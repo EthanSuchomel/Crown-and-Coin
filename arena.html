@@ -251,6 +251,19 @@ button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 /* Griffin and Dragon wing beats: 16 frames each, drawn by Claude from the OpenArt pictures (the wings cut off at the shoulder and swung through a full beat) */
 .mms-dragon{aspect-ratio:396/355}.fighter.blue .mms-dragon{background-image:url('myth/dragon_hover_blue.png')}.fighter.red .mms-dragon{background-image:url('myth/dragon_hover_red.png')}
 .fighter.soar.blue .mms-dragon{background-image:url('myth/dragon_soar_blue.png')}.fighter.soar.red .mms-dragon{background-image:url('myth/dragon_soar_red.png')}
+.mms-minotaur{aspect-ratio:171/192;background-size:1500% 100%}.fighter.blue .mms-minotaur{background-image:url('myth/minotaur_swing_blue.png')}.fighter.red .mms-minotaur{background-image:url('myth/minotaur_swing_red.png')}
+/* Dragon fire streak: patches of flame on the ground; units in it catch fire */
+.fire{position:absolute;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%);z-index:3;opacity:.95;transition:opacity .6s;
+  background:radial-gradient(ellipse at 50% 60%,rgba(255,244,180,.95),rgba(255,170,50,.85) 30%,rgba(232,80,24,.6) 58%,rgba(140,30,10,0) 100%);animation:fireLick .35s ease-in-out infinite alternate}
+.fire.out{opacity:0}
+@keyframes fireLick{from{filter:brightness(.9) saturate(1)}to{filter:brightness(1.35) saturate(1.2)}}
+.fighter.burning .pose{filter:drop-shadow(0 0 3px rgba(255,120,30,.95)) drop-shadow(0 -2px 2px rgba(255,200,60,.8))}
+/* Mage turning a Minion into a Minotaur */
+.poof{position:absolute;width:7%;aspect-ratio:1;border-radius:50%;pointer-events:none;z-index:5999;transform:translate(-50%,-50%) scale(.3);
+  background:radial-gradient(circle,rgba(240,220,255,.95),rgba(170,100,255,.6) 45%,rgba(140,70,255,0) 70%);animation:poof .7s ease-out forwards}
+@keyframes poof{to{transform:translate(-50%,-50%) scale(1.7);opacity:0}}
+.roar.screech{border-color:rgba(255,236,150,.95);box-shadow:0 0 12px rgba(255,210,90,.9)}
+@media (prefers-reduced-motion: reduce){.fire{animation:none}.poof{animation-duration:.2s}}
 .mms-griffin{aspect-ratio:261/256}.fighter.blue .mms-griffin{background-image:url('myth/griffin_hover_blue.png')}.fighter.red .mms-griffin{background-image:url('myth/griffin_hover_red.png')}
 .fighter.soar.blue .mms-griffin{background-image:url('myth/griffin_soar_blue.png')}.fighter.soar.red .mms-griffin{background-image:url('myth/griffin_soar_red.png')}
 .mms-dragon{aspect-ratio:395/313}.fighter.blue .mms-dragon{background-image:url('myth/dragon_fly_blue.png')}.fighter.red .mms-dragon{background-image:url('myth/dragon_fly_red.png')}
@@ -523,14 +536,14 @@ html.emb.short #status{display:none}
         <tr><td>Palaeoloxodon</td><td>40 gold</td><td>80</td><td>18 to up to 5 ground units at once (stomp, then a tusk swing that shoves them back; heavy units half as far). War Trumpet at 2s: Mammals +2 damage</td><td>1.0s (Mammals 0.2s faster after War Trumpet)</td><td>110% (Mammals +15% after War Trumpet)</td><td>Its tusks</td><td>No</td></tr>
         <tr class="grp"><th colspan="8">Mythical</th></tr>
         <tr><td>Minion</td><td>1 gold</td><td>5</td><td>2</td><td>1.0s</td><td>70%</td><td>Melee</td><td>No</td></tr>
-        <tr><td>Mage</td><td>15 gold</td><td>15</td><td>Chain lightning: 5 to up to 20 enemies at once</td><td>10s</td><td>65%</td><td>A quarter of the field; the bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
-        <tr><td>Minotaur</td><td>25 gold</td><td>35</td><td>15 to up to 5 ground units at once</td><td>1.0s</td><td>115%</td><td>Melee (hammer)</td><td>No</td></tr>
-        <tr><td>Griffin</td><td>40 gold</td><td>45</td><td>25</td><td>1.0s</td><td>130% flying, 100% on the ground</td><td>Melee, flying</td><td>Yes</td></tr>
-        <tr><td>Dragon</td><td>85 gold</td><td>150</td><td>Bite 30. Fire breath: 15 to up to 15 enemies at once</td><td>Bite 1.0s, fire breath 8s</td><td>120% flying, 90% on the ground</td><td>Melee, flying; fire breath reaches about a sixth of the field</td><td>Yes</td></tr>
+        <tr><td>Mage</td><td>15 gold</td><td>15</td><td>Chain lightning: 5 to up to 20 enemies at once. Every 2s, a 20% chance to turn a Minion into a Minotaur</td><td>10s</td><td>65%</td><td>A quarter of the field; the bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
+        <tr><td>Minotaur</td><td>25 gold</td><td>35</td><td>15 to up to 5 ground units at once. Charge: its first hit kills (big special units: stunned 4s instead)</td><td>1.0s</td><td>115% (184% while charging)</td><td>Melee (hammer)</td><td>No</td></tr>
+        <tr><td>Griffin</td><td>40 gold</td><td>45</td><td>25. Landing: 2 to each enemy nearby, knocked back. Screech: enemy shooters miss their next 2 shots, enemy charges stop</td><td>1.0s</td><td>130% flying, 100% on the ground</td><td>Melee, flying</td><td>Yes</td></tr>
+        <tr><td>Dragon</td><td>85 gold</td><td>150</td><td>Bite 30. Fire breath: 15 to up to 15 enemies at once. Fire run: 5 a second to anyone in its fire streak, for as long as it burns and 5 seconds after</td><td>Bite 1.0s, fire breath 8s</td><td>120% flying, 90% on the ground</td><td>Melee, flying; fire breath reaches about a sixth of the field</td><td>Yes</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="note">Megaraptor armor blocks the first 3 Archer hits (no more than 2 of those can be from Alamosaurus riders), the first 3 Robot Archer lasers, the first Longbow hit (arrow or Robot Longbow laser) and the first Gallimimus hit it takes. After that, each Gallimimus bite has a 10% chance to be deflected. The Robot Knight's shield gives it the same blocks and deflects, and it has the Megaraptor's other stats too, except its sword hits for 9 and, instead of the Megaraptor's second bite, every hit also cuts up to 2 other enemies standing close to its target for 25% damage (2). Robot Knight special move, Shield Wall: knights link up in threes (up to 4 walls) and start at the front of the army, marching at half speed while in the wall. Arrows and lasers bounce off the wall, and 6 other units shelter right behind each wall, safe from arrows: Robot Archers first (they keep shooting from there), then Brawlers fill the remaining spots. Robot Longbows never shelter behind a wall. Nobody sheltering can step past the wall until it breaks. Only melee can break a wall: after 30 melee damage it breaks and its knights are stunned for 1 second. The Robot Longbow fires two lasers per shot, 4 damage each (6 against flyers), and rolls on treads. Robot Longbow special move, Stun Shot: its first shot and every 4th shot after that (shots 1, 5, 9 and so on) fire thick glowing lasers, and the unit they hit is stunned for 1 second. The stun can't be blocked: even if armor blocks the damage, the unit is still stunned (only a laser that misses doesn't stun, and the Alamosaurus and the Laser Tank can't be stunned). The Robot Gunship, the Robots' heavy flyer, costs and moves like the Quetzalcoatlus, with half an archer's reach: it goes after melee units first, and it glides at a steady height and never dips down. It fires lasers from the ball-mounted gun under its hull, which turns to aim, at ground units (8 damage every 1.5 seconds) and rockets from its side hatch at flyers (10 damage every 2 seconds). Laser Tank, the Robots' special unit: each one takes up 3 spaces on the field, and at most 2 can be on the field at once; extra tanks wait in reserve and roll in from the back edge when one is destroyed. It always starts on the field at the very back of its side. It never stops rolling forward, whatever it is doing, until it reaches the far edge, and it only aims at enemies in front of it. It doesn't aim at a unit: it picks the spot where the enemy is most bunched up and burns it with a solid beam for 2 seconds. Every 0.2 seconds, the 10 units closest to that spot (within the glowing patch) take 1 damage, so a unit caught there the whole time takes 10. The spot stays put while the beam fires, so units can walk out of it. It waits 2 seconds at the start of the battle before its first beam. After each beam it needs 6 seconds to cool down, and it can fire only 3 beams per battle. It can't be stunned: a Super Stomp or any other stun has no effect on it. Its beam can't miss and can't be dodged or blocked (not by armor, a shield wall or the dodge units get up on a wall): the only thing that keeps it off a unit is a wall between them (the walls, the fortress or the castle). It even reaches units hiding in the forest. Megaraptors coming in from reserve charge at triple speed (+200%) until they make their first attack on an enemy (a bash at a gate doesn't count). The Alamosaurus can't be stunned: a Robot Longbow's Stun Shot, a shield wall breaking or an enemy Super Stomp has no effect on it. Alamosaurus Charge: once per battle, when the enemy it is heading for is one Alamosaurus body length away, it charges in 50% faster until it reaches it, kicking up dust. Alamosaurus special move, Super Stomp: once per battle, its first stomp at an enemy (even one that misses) shakes the field and paralyzes every enemy ground unit for 2 seconds (flyers, the Laser Tank and an enemy Alamosaurus are not affected), shown by stars circling their heads. It is also the counter to the Rhino Charge: every enemy Rhino still charging stops dead (one with no health left falls there). Longbow special move, Charged Shot: its first shot and every 4th shot after that (shots 1, 5, 9 and so on) are charged. A charged shot takes 25% longer (2.5s instead of 2s) and does double damage (20, or 30 against flyers); the Longbow glows gold while it draws and the arrow glows. When a Megaraptor bites a basic unit (Gallimimus or Archer), it also hits a second basic unit standing close to it for half damage. Megaraptors are set to ground-only for now, so they can't reach flyers. Arrows miss flyers 15% of the time from Longbows and 20% from Archers. Quetzalcoatlus go after the nearest melee unit (Gallimimus or Megaraptor) first, and only attack other units once those are gone. They glide down to fight ground units and climb back up between targets. Pterodactyls fly the same way but only attack ground units, and so do Robot Drones, which dodge 5% of all attacks. The Alamosaurus stomps up to 5 ground units touching its body at once and carries 2 Archers that shoot like regular Archers while it walks. Its stomp only reaches ground units; flyers are left to its riding Archers. Its thick hide takes 3 less damage from every Archer and Longbow arrow, so Archer arrows only do 1 damage and Longbow arrows hit it for 7. Reserves come in mixed in the same proportions as the whole army. Mammals: the Palaeoloxodon, the Mammals' special unit, sweeps its tusks through up to 5 ground units at once and shoves each one back a little (heavy units half as far; nobody is pushed off a wall, through a wall, into the rock or out of a shield wall). Porcupines shoot quills like Archer arrows, and Procoptodons shoot like Longbows, so armor that blocks those blocks them too. Bats take half a space on the field, like Robot Drones. The Desmodus goes after melee units first, like the Quetzalcoatlus. Rhino special move, Charge: every Rhino on the field when the battle starts charges 50% faster, kicking up dust, straight through the enemy army all the way to the far side of the field. It aims for the enemies on the ground ahead of it, swerving across to run them down, but it never turns back. The first enemy on the ground it runs into takes 20 damage, and every one after that takes 10 (once each per charge; flyers are above it). Nothing can kill a Rhino while it charges: its health can drop below 0, and if it has none left when the charge ends (at the far side, stopped dead, called off by Hold or Flee, or cut short by an enemy War Trumpet or Super Stomp), it falls there. At the far side it turns round and fights normally. A Robot Knight shield wall it runs into breaks at once (its knights are stunned as usual): smashing the wall is the Rhino's hit on that knight, so that knight takes no trample damage on top (it still counts as one of the enemies it has run down). The wall's other knights can still be trampled if it runs into them. If it's stopped dead, by a closed gate or the foot of the mountain, the charge ends there (a gate takes 20). Rhinos arriving later from reserve don't charge. Palaeoloxodon special move, War Trumpet: 2 seconds into the battle, every Palaeoloxodon on the field stops, rears its head with its trunk raised and trumpets. For the rest of the battle its side's Mammals (including any still in reserve) do +2 damage, attack 0.2 seconds faster and move 15% faster (this doesn't stack if there are two). Every enemy unit's next attack misses, including enemies still in reserve; a Laser Tank instead waits 2 more seconds before its first beam. Any enemy speed boost that is running when it trumpets ends at once (a Megaraptor's sprint, an Alamosaurus or Rhino charge). Rhinos always start on the field ahead of the rest of their army: every Rhino gets a place first (up to 25), and the other units fill whatever room is left. Mythical: Minions are the cheap basic unit. The Minotaur's hammer hits up to 5 ground units at once, like the Palaeoloxodon's sweep. The Griffin and the Dragon fly like the Quetzalcoatlus, at their flying speed while cruising and at their ground speed while they're down fighting a ground unit; only units that hit flyers can reach them. The Mage's chain lightning leaps from its target to the nearest enemy, then the next, up to 20 enemies, ground or air, 5 damage each; arrows that miss flyers don't apply, and it can't see units hidden in the forest. The Dragon bites every second, and every 8 seconds, when the enemy it is after is in front of it and within about a sixth of the field, it breathes a cone of fire that burns up to 15 enemies in it (nearest first, ground or air) for 15 each. A War Trumpet makes the Mage's next spell fizzle and the Dragon's next bite or breath miss. Mythical sides use the bone-and-tusk walls, fortress and castle for now.</p>
+  <p class="note">Megaraptor armor blocks the first 3 Archer hits (no more than 2 of those can be from Alamosaurus riders), the first 3 Robot Archer lasers, the first Longbow hit (arrow or Robot Longbow laser) and the first Gallimimus hit it takes. After that, each Gallimimus bite has a 10% chance to be deflected. The Robot Knight's shield gives it the same blocks and deflects, and it has the Megaraptor's other stats too, except its sword hits for 9 and, instead of the Megaraptor's second bite, every hit also cuts up to 2 other enemies standing close to its target for 25% damage (2). Robot Knight special move, Shield Wall: knights link up in threes (up to 4 walls) and start at the front of the army, marching at half speed while in the wall. Arrows and lasers bounce off the wall, and 6 other units shelter right behind each wall, safe from arrows: Robot Archers first (they keep shooting from there), then Brawlers fill the remaining spots. Robot Longbows never shelter behind a wall. Nobody sheltering can step past the wall until it breaks. Only melee can break a wall: after 30 melee damage it breaks and its knights are stunned for 1 second. The Robot Longbow fires two lasers per shot, 4 damage each (6 against flyers), and rolls on treads. Robot Longbow special move, Stun Shot: its first shot and every 4th shot after that (shots 1, 5, 9 and so on) fire thick glowing lasers, and the unit they hit is stunned for 1 second. The stun can't be blocked: even if armor blocks the damage, the unit is still stunned (only a laser that misses doesn't stun, and the Alamosaurus and the Laser Tank can't be stunned). The Robot Gunship, the Robots' heavy flyer, costs and moves like the Quetzalcoatlus, with half an archer's reach: it goes after melee units first, and it glides at a steady height and never dips down. It fires lasers from the ball-mounted gun under its hull, which turns to aim, at ground units (8 damage every 1.5 seconds) and rockets from its side hatch at flyers (10 damage every 2 seconds). Laser Tank, the Robots' special unit: each one takes up 3 spaces on the field, and at most 2 can be on the field at once; extra tanks wait in reserve and roll in from the back edge when one is destroyed. It always starts on the field at the very back of its side. It never stops rolling forward, whatever it is doing, until it reaches the far edge, and it only aims at enemies in front of it. It doesn't aim at a unit: it picks the spot where the enemy is most bunched up and burns it with a solid beam for 2 seconds. Every 0.2 seconds, the 10 units closest to that spot (within the glowing patch) take 1 damage, so a unit caught there the whole time takes 10. The spot stays put while the beam fires, so units can walk out of it. It waits 2 seconds at the start of the battle before its first beam. After each beam it needs 6 seconds to cool down, and it can fire only 3 beams per battle. It can't be stunned: a Super Stomp or any other stun has no effect on it. Its beam can't miss and can't be dodged or blocked (not by armor, a shield wall or the dodge units get up on a wall): the only thing that keeps it off a unit is a wall between them (the walls, the fortress or the castle). It even reaches units hiding in the forest. Megaraptors coming in from reserve charge at triple speed (+200%) until they make their first attack on an enemy (a bash at a gate doesn't count). The Alamosaurus can't be stunned: a Robot Longbow's Stun Shot, a shield wall breaking or an enemy Super Stomp has no effect on it. Alamosaurus Charge: once per battle, when the enemy it is heading for is one Alamosaurus body length away, it charges in 50% faster until it reaches it, kicking up dust. Alamosaurus special move, Super Stomp: once per battle, its first stomp at an enemy (even one that misses) shakes the field and paralyzes every enemy ground unit for 2 seconds (flyers, the Laser Tank and an enemy Alamosaurus are not affected), shown by stars circling their heads. It is also the counter to the Rhino Charge: every enemy Rhino still charging stops dead (one with no health left falls there). Longbow special move, Charged Shot: its first shot and every 4th shot after that (shots 1, 5, 9 and so on) are charged. A charged shot takes 25% longer (2.5s instead of 2s) and does double damage (20, or 30 against flyers); the Longbow glows gold while it draws and the arrow glows. When a Megaraptor bites a basic unit (Gallimimus or Archer), it also hits a second basic unit standing close to it for half damage. Megaraptors are set to ground-only for now, so they can't reach flyers. Arrows miss flyers 15% of the time from Longbows and 20% from Archers. Quetzalcoatlus go after the nearest melee unit (Gallimimus or Megaraptor) first, and only attack other units once those are gone. They glide down to fight ground units and climb back up between targets. Pterodactyls fly the same way but only attack ground units, and so do Robot Drones, which dodge 5% of all attacks. The Alamosaurus stomps up to 5 ground units touching its body at once and carries 2 Archers that shoot like regular Archers while it walks. Its stomp only reaches ground units; flyers are left to its riding Archers. Its thick hide takes 3 less damage from every Archer and Longbow arrow, so Archer arrows only do 1 damage and Longbow arrows hit it for 7. Reserves come in mixed in the same proportions as the whole army. Mammals: the Palaeoloxodon, the Mammals' special unit, sweeps its tusks through up to 5 ground units at once and shoves each one back a little (heavy units half as far; nobody is pushed off a wall, through a wall, into the rock or out of a shield wall). Porcupines shoot quills like Archer arrows, and Procoptodons shoot like Longbows, so armor that blocks those blocks them too. Bats take half a space on the field, like Robot Drones. The Desmodus goes after melee units first, like the Quetzalcoatlus. Rhino special move, Charge: every Rhino on the field when the battle starts charges 50% faster, kicking up dust, straight through the enemy army all the way to the far side of the field. It aims for the enemies on the ground ahead of it, swerving across to run them down, but it never turns back. The first enemy on the ground it runs into takes 20 damage, and every one after that takes 10 (once each per charge; flyers are above it). Nothing can kill a Rhino while it charges: its health can drop below 0, and if it has none left when the charge ends (at the far side, stopped dead, called off by Hold or Flee, or cut short by an enemy War Trumpet or Super Stomp), it falls there. At the far side it turns round and fights normally. A Robot Knight shield wall it runs into breaks at once (its knights are stunned as usual): smashing the wall is the Rhino's hit on that knight, so that knight takes no trample damage on top (it still counts as one of the enemies it has run down). The wall's other knights can still be trampled if it runs into them. If it's stopped dead, by a closed gate or the foot of the mountain, the charge ends there (a gate takes 20). Rhinos arriving later from reserve don't charge. Palaeoloxodon special move, War Trumpet: 2 seconds into the battle, every Palaeoloxodon on the field stops, rears its head with its trunk raised and trumpets. For the rest of the battle its side's Mammals (including any still in reserve) do +2 damage, attack 0.2 seconds faster and move 15% faster (this doesn't stack if there are two). Every enemy unit's next attack misses, including enemies still in reserve; a Laser Tank instead waits 2 more seconds before its first beam. Any enemy speed boost that is running when it trumpets ends at once (a Megaraptor's sprint, an Alamosaurus or Rhino charge). Rhinos always start on the field ahead of the rest of their army: every Rhino gets a place first (up to 25), and the other units fill whatever room is left. Mythical: Minions are the cheap basic unit. The Minotaur's hammer hits up to 5 ground units at once, like the Palaeoloxodon's sweep. The Griffin and the Dragon fly like the Quetzalcoatlus, at their flying speed while cruising and at their ground speed while they're down fighting a ground unit; only units that hit flyers can reach them. The Mage's chain lightning leaps from its target to the nearest enemy, then the next, up to 20 enemies, ground or air, 5 damage each; arrows that miss flyers don't apply, and it can't see units hidden in the forest. The Dragon bites every second, and every 8 seconds, when the enemy it is after is in front of it and within about a sixth of the field, it breathes a cone of fire that burns up to 15 enemies in it (nearest first, ground or air) for 15 each. A War Trumpet makes the Mage's next spell fizzle and the Dragon's next bite or breath miss. Mythical sides use the bone-and-tusk walls, fortress and castle for now. Dragon fire run: every Dragon on the field when the battle starts flies off and comes in low and fast from beyond the enemy's edge, over the enemy's side to the middle of the field, turns and flies back out, then returns a moment later and fights as normal. Over the enemy's side it leaves a streak of fire on the ground that burns for 5 seconds; any enemy on the ground that touches it catches fire and takes 5 damage a second until 5 seconds after the streak goes out (flyers and units up on walls are above it). Griffin swoop: every Griffin on the field when the battle starts swoops at twice its flying speed to the front of the enemy army and lands there; every enemy on the ground near where it lands is knocked back a little and takes 2. Then it screeches: every enemy shooter (archers, lasers, quills, the Mage's lightning, Alamosaurus riders) misses its next 2 shots, and every enemy charge stops: a Rhino or Minotaur charge ends, a Megaraptor loses its sprint, and an Alamosaurus that hasn't charged yet won't. Minotaur charge: every Minotaur (including reserves and ones a Mage makes) runs in 60% faster, kicking up dust, until its first hit, which kills the enemy outright; an Alamosaurus, Palaeoloxodon, Laser Tank or Dragon instead takes a normal hammer blow and is stunned for 4 seconds, even though nothing else can stun the Alamosaurus or the Laser Tank. A War Trumpet or a Griffin's screech ends the charge. Mage: every 2 seconds each Mage has a 20% chance to turn one of its side's Minions on the field (picked at random) into a Minotaur with full health, which charges.</p>
 </div>
 
 <script>
@@ -620,12 +633,12 @@ const TYPES={
   minion:{label:'Minion',faction:'Mythical',cost:1,hp:5,dmg:2,rate:1.0,range:3.5,speed:3.78,w:1.5,ratio:1.3727,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},
         flying:false,antiAir:false,rank:0,basic:true,lungeDur:.3,strikeAt:.13,lungeFwd:0.008,bob:0.6,bobRate:2.2},   // penguin chick: waddles
   mage:{label:'Mage',faction:'Mythical',cost:15,hp:15,dmg:5,rate:10,range:24,speed:3.51,w:2.8,ratio:1.4636,aimFrac:0.5,ranged:true,hitKey:'magic',armor:{},
-        flying:false,antiAir:true,rank:2,lightning:{n:20,jump:9},lungeDur:.6,strikeAt:.3,noRecoil:true,bob:0.2,bobRate:1.2,staff:[0.17,0.06]},   // chain lightning: 5 to up to 20 enemies, every 10s
-  minotaur:{label:'Minotaur',faction:'Mythical',heavy:true,cost:25,hp:35,dmg:15,rate:1.0,range:4.3,speed:6.21,w:6.0,ratio:0.9808,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},
-        flying:false,antiAir:false,rank:0,multi:5,lungeDur:.5,strikeAt:.25,lungeFwd:0.012,bob:0.3,bobRate:1.1},   // hammer: 15 to up to 5 ground units at once
-  griffin:{label:'Griffin',faction:'Mythical',cost:40,hp:45,dmg:25,rate:1.0,range:4,speed:7.02,walkSpeed:5.4,w:10.0,ratio:0.9808,sheet:16,sheetClass:'mms fls mms-griffin',flapSheet:true,soar:{period:1.4},aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
+        flying:false,antiAir:true,rank:2,lightning:{n:20,jump:9},morph:{every:2,chance:0.2,into:'minotaur'},lungeDur:.6,strikeAt:.3,noRecoil:true,bob:0.2,bobRate:1.2,staff:[0.17,0.06]},   // chain lightning: 5 to up to 20 enemies, every 10s
+  minotaur:{label:'Minotaur',faction:'Mythical',heavy:true,cost:25,hp:35,dmg:15,rate:1.0,range:4.3,speed:6.21,w:6.6,ratio:1.1228,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:15,sheetClass:'mms mms-minotaur',runFrames:8,runCycle:0.6,atkFrames:9,atkSteps:[0.15,0.32,0.55,0.75,0.9],mcharge:{mult:1.6,stun:4},
+        flying:false,antiAir:false,rank:0,multi:5,lungeDur:.6,strikeAt:.36,lungeFwd:0.006,bob:0.3,bobRate:1.1},   // hammer: 15 to up to 5 ground units at once
+  griffin:{label:'Griffin',faction:'Mythical',cost:40,hp:45,dmg:25,rate:1.0,range:4,speed:7.02,walkSpeed:5.4,w:10.0,ratio:0.9808,sheet:16,sheetClass:'mms fls mms-griffin',flapSheet:true,soar:{period:1.4},gswoop:{mult:2,radius:5,dmg:2,miss:2},knock:3,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,lungeDur:.6,strikeAt:.3,flap:.6},   // one wing beat every 0.6s   // flies at 130%, on the ground at 100%
-  dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15.1,ratio:0.8965,sheet:16,sheetClass:'mms fls mms-dragon',flapSheet:true,soar:{period:1.8},aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
+  dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15.1,ratio:0.8965,sheet:16,sheetClass:'mms fls mms-dragon',flapSheet:true,soar:{period:1.8},swoop:{mult:2,turnR:7,wait:1.2,fire:{dur:5,after:5,dps:5,r:2.4,gap:1.6}},aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,breath:{dmg:15,n:15,rate:8,reach:16,first:2},mouth:[0.95,0.5],lungeDur:.7,strikeAt:.35,flap:.9}   // bite 30 every 1s; fire breath 15 to up to 15 every 8s
 };
 const ORDER=['galli','dilo','ptero','mega','bow','quetz','alamo','robot','rarch','rdrone','rknight','rlong','rjet','rtank','ape','porc','bat','rhino','kanga','gbat','eleph','minion','mage','minotaur','griffin','dragon'];
@@ -1298,12 +1311,12 @@ function addUnit(team,key,x,y,entering){
   F.push({id:UID++,team,key,T,h,x,y,hp:unitHp(team,key),armor:Object.assign({},T.armor),cd:rnd(0.15,1.1),lunge:-1,struck:false,flash:0,missNext:!!CURSED[team],extraDelay:(CURSED[team]&&T.beam)?T.beam&&2:0,
     dead:false,deadT:0,gone:false,engaged:false,vx:0,vy:0,target:null,face:team===HOLD?1:-1,walking:false,phase:rnd(0,6),
     alt:T.flying?ALT:0,baseAlt:T.flying?ALT:0,el,lift:el.querySelector('.lift'),
-    boost:(entering&&T.entryBurst)?1:0,rcharge:!!(T.rhinoCharge&&!entering&&!behindOwnWalls(team)),rchargeWait:!!(T.rhinoCharge&&!entering&&behindOwnWalls(team)),burstPending:!!(entering&&T.entryBurst&&(MAP==='fortress'||MAP==='castle')&&team===HOLD),stun:0,superUsed:false,   // boost 1 = a Megaraptor sprinting in from reserve; it keeps it until its first attack on an enemy
+    boost:(entering&&T.entryBurst)?1:0,rcharge:!!(T.rhinoCharge&&!entering&&!behindOwnWalls(team)),rchargeWait:!!(T.rhinoCharge&&!entering&&behindOwnWalls(team)),burstPending:!!(entering&&T.entryBurst&&(MAP==='fortress'||MAP==='castle')&&team===HOLD),stun:0,superUsed:false,mcharge:!!T.mcharge,swoop:(T.swoop&&!entering)?{st:0}:null,gswoop:(T.gswoop&&!entering)?{st:0}:null,burnUntil:0,burnAcc:0,   // boost 1 = a Megaraptor sprinting in from reserve; it keeps it until its first attack on an enemy
     riders:T.riders?T.riders.map(p=>({fx:p.fx,fy:p.fy,cd:rnd(0.3,1.2),att:{T:TYPES[T.riderType],key:T.riderType,team,hitKey:'rider'}})):null});
 }
 function build(){
   if(EMB&&EMB.seed!=null) RSEED=EMB.seed>>>0; else RSEED=(Math.random()*4294967296)>>>0; UID=0; LASTHIT=0;
-  arena.innerHTML=''; F=[]; ARROWS=[]; STUCK=[]; leafCount=0; passTurn=0; WALLS=[]; hideT=0.5; over=false; stalemate=false; clock=0;
+  arena.innerHTML=''; F=[]; ARROWS=[]; STUCK=[]; FIRES=[]; leafCount=0; passTurn=0; WALLS=[]; hideT=0.5; over=false; stalemate=false; clock=0;
   STANCE=['attack','attack']; ESC=[{n:0,hp:0},{n:0,hp:0}]; retreat=null; RALLY=[false,false]; CURSED=[false,false]; SHOUTED=false;
   if(MAP_PICK&&MAP==='walls') MAP=MAP_PICK; MAP_PICK=null;   // back to the picked map (unless something else has set one since)
   HOLD=HELD_MAPS.includes(MAP)?HOLD_SEL:0; if(EMB) setOrderSide(); arena.classList.toggle('mirror',HOLD===1);
@@ -1693,7 +1706,7 @@ function warTrumpet(f){
     if(o.T.beam){ if(!o.beamOn&&(o.shotsLeft==null||o.shotsLeft===o.T.beam.shots)&&!o.delayed){ o.cool=(o.cool||0)+W.delay; o.delayed=true; } }
     else o.missNext=true;
     if(o.riders) for(const rd of o.riders) rd.att.missNext=true;
-    o.boost=0; o.burstPending=false; o.rchargeWait=false; if(o.rcharge) endCharge(o); if(o.chargeT>0) o.chargeT=0; o.chargeHit=false; }   // speed boosts are lost
+    o.boost=0; o.burstPending=false; o.rchargeWait=false; o.mcharge=false; if(o.rcharge) endCharge(o); if(o.chargeT>0) o.chargeT=0; o.chargeHit=false; }   // speed boosts are lost
   floatText(f,'War Trumpet!','super');
 }
 const rallied=f=>RALLY[f.team]&&f.T&&f.T.faction==='Mammals';
@@ -1776,6 +1789,7 @@ function sweep(f,t){
 }
 function shoot(f,t){
   f.missVolley=!!f.missNext; f.missNext=false;   // War Trumpet: this whole volley misses
+  if(!f.missVolley&&f.missShots>0){ f.missShots--; f.missVolley=true; }   // Griffin screech: its next 2 shots miss
   if(f.T.lightning){ castLightning(f,t); return; }
   if(f.T.rocket){   // Robot Gunship: a rocket out of the side hatch at flyers, a laser from the gun under its nose at ground units
     const Wp=f.T.weapons;
@@ -1813,6 +1827,106 @@ function zap(f,pts){   // a jagged bolt through the points, drawn in field units
 }
 // Dragon, fire breath: every 8 seconds, when an enemy it is going for is within reach (about a sixth of the field) and in front of it,
 // it breathes a cone of fire at it. Up to 15 enemies in the cone (ground or air, nearest first) take 15 each. Its bite carries on as normal.
+var FIRES=[];
+// Dragon fire run: at the start of the battle it comes in from beyond the enemy's edge, flies low and fast over the enemy's side
+// to the middle of the field, turns and flies back out the way it came, then returns a moment later and fights as normal.
+// Over the enemy's side it leaves a streak of fire on the ground that burns for 5 seconds. Any enemy on the ground that touches it
+// catches fire: 5 damage a second while the streak lasts and for 5 seconds after it goes out.
+function swoopStep(f,dt){
+  const S=f.swoop, T=f.T, Z=T.swoop, dir=f.team===HOLD?1:-1, mid=AW/2, R0=Z.turnR, sp=T.speed*Z.mult;
+  const out=dir>0?AW+T.w*0.6:-T.w*0.6;
+  f.target=null; f.engaged=false; f.lunge=-1;
+  if(S.st===0){   // line up on the enemy army (the middle of it, top to bottom), turning toward the roomier side
+    const ys=F.filter(o=>o.team!==f.team&&!o.dead&&!o.T.flying).map(o=>o.y).sort((a,b)=>a-b);
+    const lo=f.h+3, hi=AH-3;
+    S.y1=Math.max(lo,Math.min(hi,ys.length?ys[ys.length>>1]:AH/2));
+    S.up=S.y1+2*R0<=hi?1:-1; S.cy=S.y1+S.up*R0; S.a=0;
+    f.x=out; f.y=S.y1; S.st=1; S.drop=0; S.px=f.x; S.py=f.y; }
+  let nx=f.x, ny=f.y;
+  if(S.st===1){ nx=f.x-dir*sp*dt; if((nx-mid)*dir<=0){ nx=mid; S.st=2; } }                      // in over the enemy's side
+  else if(S.st===2){ S.a=Math.min(Math.PI,S.a+sp/R0*dt);                                           // the turn
+    nx=mid-dir*R0*Math.sin(S.a); ny=S.cy-S.up*R0*Math.cos(S.a); if(S.a>=Math.PI) S.st=3; }
+  else if(S.st===3){ nx=f.x+dir*sp*dt; if((nx-out)*dir>=0){ nx=out; S.st=4; S.t=0; } }             // back out
+  else { S.t+=dt; if(S.t>=Z.wait) f.swoop=null; f.vx=0; f.vy=0; f.walking=true; return; }        // off the edge a moment, then back to fight
+  f.vx=nx-f.x; f.vy=ny-f.y; f.walking=true; f.phase+=dt*9; if(Math.abs(f.vx)>1e-4) f.face=f.vx>0?1:-1;
+  // fire on the ground behind it, while it's over the enemy's side of the field
+  const onTheirSide=(nx-mid)*dir>0.5&&nx>0&&nx<AW;
+  S.drop+=Math.hypot(nx-S.px,ny-S.py); S.px=nx; S.py=ny;
+  if(onTheirSide&&S.drop>=Z.fire.gap){ S.drop=0; dropFire(f,nx,ny); }
+}
+function dropFire(f,x,y){
+  const Z=f.T.swoop.fire, el=document.createElement('div'); el.className='fire';
+  el.style.left=x+'%'; el.style.top=(y/AH*100)+'%'; el.style.width=(2*Z.r*1.25)+'%'; el.style.height=(2*Z.r*0.7/AH*100)+'%';
+  arena.appendChild(el);
+  FIRES.push({x,y,r:Z.r,until:clock+Z.dur,after:Z.after,dps:Z.dps,team:f.team,el});
+}
+function fireStep(dt){
+  for(let i=FIRES.length-1;i>=0;i--){ const P=FIRES[i];
+    if(clock>=P.until){ const el=P.el; el.classList.add('out'); setTimeout(()=>el.remove(),650); FIRES.splice(i,1); continue; }
+    for(const o of F){ if(o.team===P.team||o.dead||o.pass||o.T.flying||o.onWall||o.ballista) continue;
+      if(Math.hypot((o.x-P.x)/1.25,(o.y-P.y)/0.7)<=P.r){ if(!(o.burnUntil>clock)) o.burnAcc=0; o.burnUntil=Math.max(o.burnUntil||0,P.until+P.after); o.burnBy=P.team; o.burnDps=P.dps; } } }
+  for(const o of F){
+    const on=!o.dead&&o.burnUntil>clock;
+    if(on){ o.burnAcc+=dt; while(o.burnAcc>=1&&!o.dead){ o.burnAcc-=1; hit(o,{T:{dmg:o.burnDps,beam:true},team:o.burnBy,hitKey:'fire'}); } }
+    if(!!o.burnShown!==on){ o.burnShown=on; o.el.classList.toggle('burning',on); } }
+}
+// Griffin: at the start of the battle it swoops (twice its flying speed) to the enemy's front line and lands there. Every enemy on the
+// ground near where it lands is knocked back a little and takes 2. Then it screeches: every enemy shooter misses its next 2 shots,
+// and every enemy charge stops (a Rhino or Minotaur charge, a Megaraptor's sprint, an Alamosaurus that hasn't charged yet won't).
+function gswoopStep(f,dt){
+  const S=f.gswoop, G=f.T.gswoop, dir=f.team===HOLD?1:-1;
+  if(!S.t||S.t.dead){ let best=null,bx=1e9;
+    for(const o of F){ if(o.team===f.team||o.dead||o.pass||o.T.flying||o.ballista||o.onWall) continue;   // (the forest only hides units from shooters)
+      const v=o.x*dir; if(v<bx){ bx=v; best=o; } }
+    if(!best){ f.gswoop=null; return false; }
+    S.t=best; }
+  const t=S.t, tx=t.x-dir*2.5, ty=t.y, dx=tx-f.x, dy=ty-f.y, d=Math.hypot(dx,dy);
+  f.target=t; f.engaged=false; S.time=(S.time||0)+dt;
+  if(d>1.2&&S.time<6){ const st=f.T.speed*G.mult*dt; f.vx=dx/d*Math.min(st,d); f.vy=dy/d*Math.min(st,d); f.walking=true; f.phase+=dt*9; if(Math.abs(dx)>0.5) f.face=dx>0?1:-1; return true; }
+  f.gswoop=null; griffinLand(f); return true;
+}
+function griffinLand(f){
+  const G=f.T.gswoop;
+  for(const o of F){ if(o.team===f.team||o.dead||o.pass||o.T.flying||o.ballista||o.onWall) continue;
+    if(Math.hypot(o.x-f.x,o.y-f.y)<=G.radius){ hit(o,f,G.dmg/f.T.dmg); if(!o.dead) knockBack(f,o); } }
+  const q=document.createElement('span'); q.className='quake'; q.addEventListener('animationend',()=>q.remove()); f.el.appendChild(q);
+  screech(f);
+}
+function screech(f){
+  const G=f.T.gswoop, hx=f.x+f.face*f.T.w*0.32, hy=f.y-f.alt-f.h*0.72;
+  for(let k=0;k<3;k++){ const r=document.createElement('i'); r.className='roar screech'; r.style.left=hx+'%'; r.style.top=(hy/AH*100)+'%'; r.style.animationDelay=(k*0.18)+'s';
+    r.addEventListener('animationend',()=>r.remove()); arena.appendChild(r); }
+  for(const o of F){ if(o.team===f.team||o.dead) continue;
+    if(shooter(o)) o.missShots=Math.max(o.missShots||0,G.miss);
+    if(o.riders) for(const rd of o.riders) rd.att.missShots=G.miss;
+    o.rchargeWait=false; if(o.rcharge) endCharge(o);
+    if(o.chargeT>0) o.chargeT=0; if(o.T.charge) o.chargeUsed=true; o.chargeHit=false;
+    o.boost=0; o.burstPending=false; o.mcharge=false; }
+}
+// Mage: every 2 seconds, a 20% chance to turn one of its side's Minions (any on the field, picked at random) into a Minotaur
+function morphStep(f,dt){
+  const M=f.T.morph; f.morphT=(f.morphT||0)+dt; if(f.morphT<M.every) return; f.morphT-=M.every;
+  if(R()>=M.chance) return;
+  const ms=F.filter(o=>o.team===f.team&&!o.dead&&!o.pass&&!o.fleeing&&o.key==='minion');
+  if(!ms.length) return;
+  const m=ms[Math.floor(R()*ms.length)], st=f.T.staff;
+  zap(f,[{x:f.x+f.face*(st[0]-0.5)*f.T.w,y:f.y-f.alt-f.h*(1-st[1])},aimPt(m)]);
+  morph(m,M.into);
+}
+function morph(m,key){
+  const team=m.team; m.dead=true; m.gone=true; m.target=null; m.el.remove(); F.splice(F.indexOf(m),1);
+  addUnit(team,key,m.x,m.y,false); const u=F[F.length-1]; u.face=m.face;
+  HP0[team]+=Math.max(0,u.hp-Math.max(0,m.hp));   // the health bar grows with it
+  const p=document.createElement('i'); p.className='poof'; p.style.left=m.x+'%'; p.style.top=((m.y-u.h*0.5)/AH*100)+'%';
+  p.addEventListener('animationend',()=>p.remove()); arena.appendChild(p);
+}
+// Minotaur charge: its first hit kills outright; the big special units (Alamosaurus, Palaeoloxodon, Laser Tank, Dragon) instead take a
+// normal hammer blow and are stunned for 4 seconds, even the ones nothing else can stun
+function chargeHit(f,t){
+  f.mcharge=false;
+  if(SPECIAL(t.key)||t.key==='dragon'){ hit(t,f); if(!t.dead){ const d=f.T.mcharge.stun; t.stun=Math.max(t.stun,d); t.forceStun=clock+d; floatText(t,'Stunned','blk'); } return; }
+  hit(t,{T:{dmg:Math.max(1,Math.ceil(t.hp)),beam:true},team:f.team,hitKey:'melee'});
+}
 function breathStep(f){
   const B=f.T.breath;
   if(f.fireAt==null) f.fireAt=clock+B.first+R();
@@ -1839,7 +1953,7 @@ function breathStep(f){
 }
 function shootFrom(f,ox,oy,t,mult,kind,stun){
   const el=document.createElement('i'); el.className=kind==='laser'?'laser '+SIDE[f.team]:kind==='rocket'?'rocket':'arrow'+(f.key==='dilo'||f.key==='porc'?' short':''); arena.appendChild(el);
-  let forced=!!f.missVolley; if(!forced&&f.missNext&&f.hitKey==='rider'){ forced=true; f.missNext=false; }
+  let forced=!!f.missVolley; if(!forced&&f.missNext&&f.hitKey==='rider'){ forced=true; f.missNext=false; } if(!forced&&f.missShots>0&&f.hitKey==='rider'){ forced=true; f.missShots--; }
   const miss=forced||(t.T.flying&&R()<(f.T.missAir||0));
   const off=miss?{x:rnd(-1.5,1.5),y:(R()<.5?-1:1)*rnd(2.5,3.5)}:{x:0,y:0};
   if(mult>1) el.classList.add('charged');
@@ -1878,7 +1992,7 @@ function reinforce(){
 function update(dt){
   clock+=dt;
   if(!SHOUTED&&clock>=2){ SHOUTED=true; for(const f of F) if(f.T.trumpet&&!f.dead&&!f.pass) warTrumpet(f); }
-  updateWalls(dt); updateFort(dt); updateBallistas(dt);
+  updateWalls(dt); updateFort(dt); updateBallistas(dt); fireStep(dt);
   // everyone decides from the same snapshot, in a shuffled order, so neither side gets to act first
   const order=F.slice(); for(let i=order.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)); const x=order[i]; order[i]=order[j]; order[j]=x; }
   for(const f of order){ f.vx=0; f.vy=0; }
@@ -1888,7 +2002,7 @@ function update(dt){
     if(over) continue;
     const T=f.T;
     if(f.shoutT>0){ f.shoutT-=dt; f.vx=0; f.vy=0; if(f.shoutT<=0) f.el.classList.remove('shout'); continue; }
-    if(T.stunImmune) f.stun=0;   // Laser Tank and Alamosaurus: stuns don't affect them
+    if(T.stunImmune&&!(f.forceStun>clock)) f.stun=0;   // (a Minotaur's charge stuns even these)   // Laser Tank and Alamosaurus: stuns don't affect them
     if(f.pass){                                       // coming down a mountain pass from reserve: just walk; can't fight or be fought yet
       if(STANCE[f.team]==='flee'){ f.fleeing=true; continue; }   // still in the mountain: slips away at once
       const Q=f.pass.P[f.pass.i], gx=Q[0]-f.x, gy=Math.max(minY(f),Q[1])-f.y, gd=Math.hypot(gx,gy);
@@ -1903,7 +2017,7 @@ function update(dt){
       f.rchargeWait=false; if(f.rcharge){ endCharge(f); if(f.dead) continue; }
       if(f.beamOn) clearBeam(f);
       if(f.lunge>=0){ f.lunge=-1; f.el.classList.remove('stomp-n','stomp-f'); }
-      f.target=null; f.engaged=false; f.fleeing=true;
+      f.target=null; f.engaged=false; f.fleeing=true; f.swoop=null; f.gswoop=null;
       const home=f.team===HOLD?-1:1; f.face=home;
       if(MSIDE&&f.team===HOLD&&!T.flying){                 // mountainside: back into the mountain, off the back of a shelf or into the rock at its foot
         if(f.climbing){ f.onWall=f.climbing; f.climbing=null; } if(f.descending) f.descending=null;
@@ -1917,6 +2031,9 @@ function update(dt){
       f.walking=true; f.phase+=dt*9;
       continue; }
     f.fleeing=false;
+    if(f.swoop){ swoopStep(f,dt); continue; }              // Dragon: its fire run at the start of the battle
+    if(f.gswoop&&gswoopStep(f,dt)) continue;              // Griffin: swooping in to land on the enemy's front line
+    if(T.morph) morphStep(f,dt);                          // Mage: may turn a Minion into a Minotaur
     let holdPos=STANCE[f.team]==='hold';            // Hold: stand still, but still fight anything in reach
     if(T.beam){ tankStep(f,dt); continue; }
     if(BW.length&&f.slotRef){
@@ -1929,7 +2046,8 @@ function update(dt){
       if(f.onWall){ holdPos=true;                      // up on the wall: stay at its spot and shoot from there
         const hx=S.x-f.x, hy=S.y-f.y, hd=Math.hypot(hx,hy); if(hd>0.4){ const sp=Math.min(T.speed*dt,hd); f.vx=hx/hd*sp; f.vy=hy/hd*sp; } }
     }
-    const spd=((T.walkSpeed&&f.baseAlt<(ALT+LOW_ALT)/2)?T.walkSpeed:T.speed)*(f.boost>0?T.entryBurst.mult:1)*((f.rcharge||f.rchargeWait)?T.rhinoCharge.mult:1)*(rallied(f)?1.15:1);   // a Megaraptor's sprint lasts until its first attack on an enemy (see below)
+    const spd=((T.walkSpeed&&f.baseAlt<(ALT+LOW_ALT)/2)?T.walkSpeed:T.speed)*(f.boost>0?T.entryBurst.mult:1)*((f.rcharge||f.rchargeWait)?T.rhinoCharge.mult:1)*(rallied(f)?1.15:1)*(f.mcharge?T.mcharge.mult:1);   // a Minotaur charges until its first hit
+    if(f.mcharge&&!f.engaged&&f.target&&STANCE[f.team]!=='hold'){ f.dustT=(f.dustT||0)-dt; if(f.dustT<=0){ f.dustT=0.15; dust(f); } }   // a Megaraptor's sprint lasts until its first attack on an enemy (see below)
     if(f.rcharge&&!f.engaged&&!(f.stun>0)&&STANCE[f.team]!=='hold'){ f.dustT=(f.dustT||0)-dt; if(f.dustT<=0){ f.dustT=0.12; dust(f); } }   // Rhino Charge: kicks up dust as it thunders in
     if(f.rcharge&&holdPos){ endCharge(f); if(f.dead) continue; }   // ordered to Hold: the charge is called off
     if(f.rcharge){ rhinoRun(f,spd,dt); continue; }   // Rhino Charge: straight through to the far side
@@ -2032,7 +2150,7 @@ function update(dt){
         else {
           if(!t.dead){
             if(T.ranged||T.rocket) shoot(f,t);
-            else if((!t.T.flying||T.antiAir)&&gap(f,t)<=T.range+1.5&&(!BW.length||sameLevel(f,t))){ if(f.missNext){ f.missNext=false; floatText(t,'Miss','blk'); } else { hit(t,f); if(T.cleaveBasic&&t.T.basic) cleave(f,t); if(T.sweep) sweep(f,t); if(T.multi) stompAround(f,t); } }
+            else if((!t.T.flying||T.antiAir)&&gap(f,t)<=T.range+1.5&&(!BW.length||sameLevel(f,t))){ if(f.missNext){ f.missNext=false; floatText(t,'Miss','blk'); } else { if(f.mcharge) chargeHit(f,t); else hit(t,f); if(T.cleaveBasic&&t.T.basic) cleave(f,t); if(T.sweep) sweep(f,t); if(T.multi) stompAround(f,t); } }
           }
           // Alamosaurus Super Stomp: on its first stomp at an enemy, whether that stomp lands or not (a War Trumpet miss,
           // a Rhino that has already run past, a target someone else just killed)
@@ -2081,7 +2199,7 @@ function update(dt){
     if(d<SEP){ if(d<.01){dx=rnd(-1,1);dy=rnd(-1,1);d=Math.hypot(dx,dy);}
       const p=(SEP-d)/2/d; a.x-=dx*p;a.y-=dy*p;b.x+=dx*p;b.y+=dy*p; }
   }
-  for(const f of L){ if(f.fleeing){ f.y=Math.min(AH-1.5,Math.max(minY(f),f.y)); continue; }
+  for(const f of L){ if(f.swoop&&f.swoop.st) continue; if(f.fleeing){ f.y=Math.min(AH-1.5,Math.max(minY(f),f.y)); continue; }
     f.x=Math.min(AW-f.T.w/2+1,Math.max(f.T.w/2-1,f.x)); f.y=Math.min(AH-1.5,Math.max(minY(f),f.y));
     if(f.hide&&!f.hide.broken){ const W=f.hide, lim=W.x-W.face*3; if((f.x-lim)*W.face>0) f.x=lim; } }   // sheltering units can't step past their wall until it breaks
   // Fortress: a Megaraptor coming out of the skull gate sprints off at full speed, like arriving from reserve
