@@ -249,6 +249,8 @@ button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .zap.blue .glow{stroke:#5f9bff}.zap.red .glow{stroke:#ff5a48}
 .zap .core{fill:none;stroke:#fff;stroke-width:2px;stroke-linejoin:round}
 /* Griffin and Dragon wing beats: 16 frames each, drawn by Claude from the OpenArt pictures (the wings cut off at the shoulder and swung through a full beat) */
+.mms-dragon{aspect-ratio:396/355}.fighter.blue .mms-dragon{background-image:url('myth/dragon_hover_blue.png')}.fighter.red .mms-dragon{background-image:url('myth/dragon_hover_red.png')}
+.fighter.soar.blue .mms-dragon{background-image:url('myth/dragon_soar_blue.png')}.fighter.soar.red .mms-dragon{background-image:url('myth/dragon_soar_red.png')}
 .mms-griffin{aspect-ratio:221/239}.fighter.blue .mms-griffin{background-image:url('myth/griffin_fly_blue.png')}.fighter.red .mms-griffin{background-image:url('myth/griffin_fly_red.png')}
 .mms-dragon{aspect-ratio:395/313}.fighter.blue .mms-dragon{background-image:url('myth/dragon_fly_blue.png')}.fighter.red .mms-dragon{background-image:url('myth/dragon_fly_red.png')}
 @keyframes zapFade{0%,55%{opacity:1}20%{opacity:.55}35%{opacity:1}100%{opacity:0}}
@@ -622,8 +624,8 @@ const TYPES={
         flying:false,antiAir:false,rank:0,multi:5,lungeDur:.5,strikeAt:.25,lungeFwd:0.012,bob:0.3,bobRate:1.1},   // hammer: 15 to up to 5 ground units at once
   griffin:{label:'Griffin',faction:'Mythical',cost:40,hp:45,dmg:25,rate:1.0,range:4,speed:7.02,walkSpeed:5.4,w:8.5,ratio:1.0814,sheet:16,sheetClass:'mms fls mms-griffin',flapSheet:true,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,lungeDur:.6,strikeAt:.3,flap:.6},   // one wing beat every 0.6s   // flies at 130%, on the ground at 100%
-  dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15,ratio:0.7923,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
-        flying:true,antiAir:true,rank:1,breath:{dmg:15,n:15,rate:8,reach:16,first:2},mouth:[0.95,0.2],lungeDur:.7,strikeAt:.35,flap:.9}   // bite 30 every 1s; fire breath 15 to up to 15 every 8s
+  dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15.1,ratio:0.8965,sheet:16,sheetClass:'mms fls mms-dragon',flapSheet:true,soar:{period:1.8},aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
+        flying:true,antiAir:true,rank:1,breath:{dmg:15,n:15,rate:8,reach:16,first:2},mouth:[0.95,0.5],lungeDur:.7,strikeAt:.35,flap:.9}   // bite 30 every 1s; fire breath 15 to up to 15 every 8s
 };
 const ORDER=['galli','dilo','ptero','mega','bow','quetz','alamo','robot','rarch','rdrone','rknight','rlong','rjet','rtank','ape','porc','bat','rhino','kanga','gbat','eleph','minion','mage','minotaur','griffin','dragon'];
 // a fresh army for each faction, picked when a side switches faction
@@ -2160,7 +2162,10 @@ function draw(){
         const rot=((f.aim==null?REST_AIM:f.aim)-REST_AIM).toFixed(1);
         if(cf!==f.cframe||rot!==f.crot){ f.cframe=cf; f.crot=rot; ce.style.backgroundPosition=(cf/3*100).toFixed(3)+'% 0'; ce.style.transform='rotate('+rot+'deg)'; }
       } else if(f.T.flapSheet){   // Bats: wings beat all the way up and down (they stop as it falls)
-        fr=f.dead?(f.frame||0):Math.floor(((clock+f.phase)/f.T.flap)*16)%16;
+        // Dragon: glides on its soaring pose while flying across the field; beats its wings (idle pose) while hovering or fighting
+        const so=!!(f.T.soar&&!f.dead&&!over&&f.walking&&f.lunge<0&&f.baseAlt>(ALT+LOW_ALT)/2&&!(f.stun>0));
+        if(f.T.soar&&so!==!!f.soaring){ f.soaring=so; e.classList.toggle('soar',so); }
+        fr=f.dead?(f.frame||0):Math.floor(((clock+f.phase)/(so?f.T.soar.period:f.T.flap))*16)%16;
       } else if(f.T.walkSheet){   // Dinosaurs: standing, or the 8-step walk while moving
         if(f.lunge>=0&&f.T.atkFrames&&!over&&!(f.stun>0)){ const q=f.lunge/f.T.lungeDur, S=f.T.atkSteps; let k=S?S.findIndex(v=>q<v):(q<0.3?0:q<0.62?1:2); if(k<0) k=S.length; fr=(f.T.atk2Frames&&f.alt2?f.T.atk2Frames:f.T.atkFrames)+k; }   // spear thrust / bite
         else if(f.walking&&!over&&f.lunge<0&&!(f.stun>0)){
