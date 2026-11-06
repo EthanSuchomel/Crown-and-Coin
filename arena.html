@@ -266,10 +266,9 @@ button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 @media (prefers-reduced-motion: reduce){.fire{animation:none}.poof{animation-duration:.2s}}
 .mms-griffin{aspect-ratio:261/256}.fighter.blue .mms-griffin{background-image:url('myth/griffin_hover_blue.png')}.fighter.red .mms-griffin{background-image:url('myth/griffin_hover_red.png')}
 .fighter.soar.blue .mms-griffin{background-image:url('myth/griffin_soar_blue.png')}.fighter.soar.red .mms-griffin{background-image:url('myth/griffin_soar_red.png')}
-/* landed Dragon or Griffin: its original standing picture, feet on the bottom of the frame */
-.fighter.landed .mms-dragon,.fighter.landed .mms-griffin{background-size:contain!important;background-position:50% 100%!important}
-.fighter.landed.blue .mms-dragon{background-image:url('myth/dragon_stand_blue.png')!important}.fighter.landed.red .mms-dragon{background-image:url('myth/dragon_stand_red.png')!important}
-.fighter.landed.blue .mms-griffin{background-image:url('myth/griffin_stand_blue.png')!important}.fighter.landed.red .mms-griffin{background-image:url('myth/griffin_stand_red.png')!important}
+/* landed Dragon or Griffin: Ethan's folded-wing picture, walking (frame 0 standing, 1-8 the walk) */
+.fighter.landed.blue .mms-dragon{background-image:url('myth/dragon_walk_blue.png')!important}.fighter.landed.red .mms-dragon{background-image:url('myth/dragon_walk_red.png')!important}
+.fighter.landed.blue .mms-griffin{background-image:url('myth/griffin_walk_blue.png')!important}.fighter.landed.red .mms-griffin{background-image:url('myth/griffin_walk_red.png')!important}
 @keyframes zapFade{0%,55%{opacity:1}20%{opacity:.55}35%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion: reduce){.flame b{animation-duration:.01s}.zap{animation-duration:.2s}}
 .arc{position:absolute;height:2px;transform-origin:0 50%;pointer-events:none;z-index:4998;border-radius:2px;animation:arcFade .18s linear forwards}
@@ -639,9 +638,9 @@ const TYPES={
         flying:false,antiAir:true,rank:2,lightning:{n:20,jump:9},morph:{every:2,chance:0.2,into:'minotaur'},lungeDur:.6,strikeAt:.3,noRecoil:true,bob:0.2,bobRate:1.2,staff:[0.17,0.06]},   // chain lightning: 5 to up to 20 enemies, every 10s
   minotaur:{label:'Minotaur',faction:'Mythical',heavy:true,cost:25,hp:35,dmg:15,rate:1.0,range:4.3,speed:6.21,w:6.6,ratio:1.1228,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:15,sheetClass:'mms mms-minotaur',runFrames:8,runCycle:0.6,atkFrames:9,atkSteps:[0.15,0.32,0.55,0.75,0.9],mcharge:{mult:1.6,stun:4},
         flying:false,antiAir:false,rank:0,multi:5,lungeDur:.6,strikeAt:.36,lungeFwd:0.006,bob:0.3,bobRate:1.1},   // hammer: 15 to up to 5 ground units at once
-  griffin:{label:'Griffin',faction:'Mythical',cost:40,hp:45,dmg:25,rate:1.0,range:4,speed:7.02,walkSpeed:5.4,w:10.0,ratio:0.9808,sheet:16,sheetClass:'mms fls mms-griffin',flapSheet:true,soar:{period:1.4},gswoop:{mult:2,radius:5,dmg:2,miss:2},knock:3,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
+  griffin:{label:'Griffin',faction:'Mythical',cost:40,hp:45,dmg:25,rate:1.0,range:4,speed:7.02,walkSpeed:5.4,w:10.0,ratio:0.9808,sheet:16,sheetClass:'mms fls mms-griffin',flapSheet:true,soar:{period:1.4},walkCycle:0.6,gswoop:{mult:2,radius:5,dmg:2,miss:2},knock:3,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,lungeDur:.6,strikeAt:.3,flap:.6},   // one wing beat every 0.6s   // flies at 130%, on the ground at 100%
-  dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15.1,ratio:0.8965,sheet:16,sheetClass:'mms fls mms-dragon',flapSheet:true,soar:{period:1.8},swoop:{mult:6,back:1.5,land:0.3,wait:1.2,fire:{dur:5,after:5,dps:5,r:2.4,gap:1.6}},aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
+  dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15.1,ratio:0.8965,sheet:16,sheetClass:'mms fls mms-dragon',flapSheet:true,soar:{period:1.8},walkCycle:0.8,swoop:{mult:6,back:1.5,land:0.3,wait:1.2,fire:{dur:5,after:5,dps:5,r:2.4,gap:1.6}},aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,breath:{dmg:15,n:15,rate:8,reach:16,first:2},mouth:[0.95,0.5],lungeDur:.7,strikeAt:.35,flap:.9}   // bite 30 every 1s; fire breath 15 to up to 15 every 8s
 };
 const ORDER=['galli','dilo','ptero','mega','bow','quetz','alamo','robot','rarch','rdrone','rknight','rlong','rjet','rtank','ape','porc','bat','rhino','kanga','gbat','eleph','minion','mage','minotaur','griffin','dragon'];
@@ -2291,7 +2290,8 @@ function draw(){
         if(f.T.soar&&so!==!!f.soaring){ f.soaring=so; e.classList.toggle('soar',so); }
         const ld=!!(f.grounded&&!f.dead);   // landed Dragon or Griffin: its standing picture
         if(ld!==!!f.landedShown){ f.landedShown=ld; e.classList.toggle('landed',ld); }
-        fr=f.dead?(f.frame||0):Math.floor(((clock+f.phase)/(so?f.T.soar.period:f.T.flap))*16)%16;
+        fr=f.dead?(f.frame||0):ld?((f.walking&&!over&&!(f.stun>0))?1+Math.floor(f.phase/9/f.T.walkCycle*8)%8:0)   // landed: walking, or standing still
+          :Math.floor(((clock+f.phase)/(so?f.T.soar.period:f.T.flap))*16)%16;
       } else if(f.T.walkSheet){   // Dinosaurs: standing, or the 8-step walk while moving
         if(f.lunge>=0&&f.T.atkFrames&&!over&&!(f.stun>0)){ const q=f.lunge/f.T.lungeDur, S=f.T.atkSteps; let k=S?S.findIndex(v=>q<v):(q<0.3?0:q<0.62?1:2); if(k<0) k=S.length; fr=(f.T.atk2Frames&&f.alt2?f.T.atk2Frames:f.T.atkFrames)+k; }   // spear thrust / bite
         else if(f.walking&&!over&&f.lunge<0&&!(f.stun>0)){
