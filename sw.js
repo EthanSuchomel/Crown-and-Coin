@@ -1,6 +1,6 @@
-// Crown & Coin offline worker. Version 6fb0b462efee
-const V='cc-6fb0b462efee';
-const FILES=["./", "index.html", "arena.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "myth/minion_blue.png", "myth/minion_red.png", "myth/mage_blue.png", "myth/mage_red.png", "myth/minotaur_blue.png", "myth/minotaur_red.png", "myth/griffin_blue.png", "myth/griffin_red.png", "myth/dragon_blue.png", "myth/dragon_red.png"];
+// Crown & Coin offline worker. Version 805cf99257ab
+const V='cc-805cf99257ab';
+const FILES=["./", "index.html", "arena.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "myth/minion_blue.png", "myth/minion_red.png", "myth/mage_blue.png", "myth/mage_red.png", "myth/minotaur_blue.png", "myth/minotaur_red.png", "myth/griffin_blue.png", "myth/griffin_red.png", "myth/dragon_blue.png", "myth/dragon_red.png", "myth/griffin_fly_blue.png", "myth/griffin_fly_red.png", "myth/dragon_fly_blue.png", "myth/dragon_fly_red.png"];
 const EXTRA=["https://fonts.googleapis.com/css2?family=Alegreya:wght@800&family=Alegreya+Sans:wght@400;500;700&display=swap", "https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap", "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"];   // fonts and the 3D trebuchet: kept too when there's internet, never required
 self.addEventListener('install',e=>{ self.skipWaiting(); e.waitUntil((async()=>{
   const c=await caches.open(V); await c.addAll(FILES);
