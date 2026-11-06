@@ -7,3 +7,4 @@ edits-fly2-*.json: Griffin wing joint lowered; Dragon back to its still picture.
 edits-fly3-*.json: Dragon hover wing beats and soaring glide (Ethan's two poses). Apply after edits-fly2.
 edits-fly4-*.json: Griffin hover wing beats and soaring glide (Ethan's two poses). Apply after edits-fly3.
 edits-fight-*.json: Dragon fire run, Griffin landing + screech, Mage turning Minions into Minotaurs, Minotaur charge + hammer swing. Apply after edits-fly4.
+edits-swoop2-*.json: Dragon fire run 3x faster, from its own side across to the enemy edge, then back on from its own edge to land. Apply after edits-fight.
