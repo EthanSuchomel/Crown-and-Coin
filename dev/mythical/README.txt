@@ -5,3 +5,4 @@ The pictures they point at are in ../../myth/.
 edits-fly-*.json: the Griffin and Dragon wing-beat animations, applied after the first edits.
 edits-fly2-*.json: Griffin wing joint lowered; Dragon back to its still picture. Apply after edits-fly.
 edits-fly3-*.json: Dragon hover wing beats and soaring glide (Ethan's two poses). Apply after edits-fly2.
+edits-fly4-*.json: Griffin hover wing beats and soaring glide (Ethan's two poses). Apply after edits-fly3.
