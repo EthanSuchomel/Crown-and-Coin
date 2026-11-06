@@ -249,7 +249,7 @@ button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .zap.blue .glow{stroke:#5f9bff}.zap.red .glow{stroke:#ff5a48}
 .zap .core{fill:none;stroke:#fff;stroke-width:2px;stroke-linejoin:round}
 /* Griffin and Dragon wing beats: 16 frames each, drawn by Claude from the OpenArt pictures (the wings cut off at the shoulder and swung through a full beat) */
-.mms-griffin{aspect-ratio:221/221}.fighter.blue .mms-griffin{background-image:url('myth/griffin_fly_blue.png')}.fighter.red .mms-griffin{background-image:url('myth/griffin_fly_red.png')}
+.mms-griffin{aspect-ratio:221/239}.fighter.blue .mms-griffin{background-image:url('myth/griffin_fly_blue.png')}.fighter.red .mms-griffin{background-image:url('myth/griffin_fly_red.png')}
 .mms-dragon{aspect-ratio:395/313}.fighter.blue .mms-dragon{background-image:url('myth/dragon_fly_blue.png')}.fighter.red .mms-dragon{background-image:url('myth/dragon_fly_red.png')}
 @keyframes zapFade{0%,55%{opacity:1}20%{opacity:.55}35%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion: reduce){.flame b{animation-duration:.01s}.zap{animation-duration:.2s}}
@@ -620,9 +620,9 @@ const TYPES={
         flying:false,antiAir:true,rank:2,lightning:{n:20,jump:9},lungeDur:.6,strikeAt:.3,noRecoil:true,bob:0.2,bobRate:1.2,staff:[0.17,0.06]},   // chain lightning: 5 to up to 20 enemies, every 10s
   minotaur:{label:'Minotaur',faction:'Mythical',heavy:true,cost:25,hp:35,dmg:15,rate:1.0,range:4.3,speed:6.21,w:6.0,ratio:0.9808,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},
         flying:false,antiAir:false,rank:0,multi:5,lungeDur:.5,strikeAt:.25,lungeFwd:0.012,bob:0.3,bobRate:1.1},   // hammer: 15 to up to 5 ground units at once
-  griffin:{label:'Griffin',faction:'Mythical',cost:40,hp:45,dmg:25,rate:1.0,range:4,speed:7.02,walkSpeed:5.4,w:8.5,ratio:1.0,sheet:16,sheetClass:'mms fls mms-griffin',flapSheet:true,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
+  griffin:{label:'Griffin',faction:'Mythical',cost:40,hp:45,dmg:25,rate:1.0,range:4,speed:7.02,walkSpeed:5.4,w:8.5,ratio:1.0814,sheet:16,sheetClass:'mms fls mms-griffin',flapSheet:true,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,lungeDur:.6,strikeAt:.3,flap:.6},   // one wing beat every 0.6s   // flies at 130%, on the ground at 100%
-  dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15.2,ratio:0.7924,sheet:16,sheetClass:'mms fls mms-dragon',flapSheet:true,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
+  dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15,ratio:0.7923,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,breath:{dmg:15,n:15,rate:8,reach:16,first:2},mouth:[0.95,0.2],lungeDur:.7,strikeAt:.35,flap:.9}   // bite 30 every 1s; fire breath 15 to up to 15 every 8s
 };
 const ORDER=['galli','dilo','ptero','mega','bow','quetz','alamo','robot','rarch','rdrone','rknight','rlong','rjet','rtank','ape','porc','bat','rhino','kanga','gbat','eleph','minion','mage','minotaur','griffin','dragon'];
