@@ -9,3 +9,4 @@ edits-fly4-*.json: Griffin hover wing beats and soaring glide (Ethan's two poses
 edits-fight-*.json: Dragon fire run, Griffin landing + screech, Mage turning Minions into Minotaurs, Minotaur charge + hammer swing. Apply after edits-fly4.
 edits-swoop2-*.json: Dragon fire run 3x faster, from its own side across to the enemy edge, then back on from its own edge to land. Apply after edits-fight.
 edits-land-*.json: Dragon and Griffin land and stay on the ground with their standing pictures (also removes a stale Dragon style). Apply after edits-swoop2.
+edits-mage-*.json: Mage reaches the whole field, lightning every 3s. Apply after edits-land.
