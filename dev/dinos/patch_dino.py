@@ -137,6 +137,11 @@ R("function chargeHit(f,t){\n  f.mcharge=false;\n", "function chargeHit(f,t){\n 
 
 R("rlong:{label:'Robot Longbow',faction:'Robots',cost:10,", "rlong:{label:'Robot Longbow',faction:'Robots',retargetNoDmg:true,cost:10,")
 R("first shot and every 4th shot after stun for 1s, even if blocked</td>", "first shot and every 4th shot after stun for 1s, even if blocked; after 2 shots at a target they don't hurt (a Triceratops), it switches to another target</td>")
+# Mammal prices (Ethan, 2026-11-06)
+R("eleph:{label:'Palaeoloxodon',faction:'Mammals',heavy:true,cost:40,", "eleph:{label:'Palaeoloxodon',faction:'Mammals',heavy:true,cost:50,")
+R("bat:{label:'Bat',faction:'Mammals',cost:1,", "bat:{label:'Bat',faction:'Mammals',cost:2,")
+R("<td>Palaeoloxodon</td><td>40 gold</td>", "<td>Palaeoloxodon</td><td>50 gold</td>")
+R("<td>Bat</td><td>1 gold</td>", "<td>Bat</td><td>2 gold</td>")
 # Triceratops stops charges; Dinosaurs don't chase a charging enemy running past
 R("  updateWalls(dt); updateFort(dt); updateBallistas(dt); fireStep(dt);\n", "  updateWalls(dt); updateFort(dt); updateBallistas(dt); fireStep(dt); trikeStops();\n")
 R("    if(Math.abs(o.x-f.x)<=T.w*0.42+(o.T.footX||o.T.w*0.25)&&Math.abs(o.y-f.y)<=1.8+(o.T.footY||0)){ const d=", "    if(Math.abs(o.x-f.x)<=T.w*0.42+(o.T.footX||o.T.w*0.25)&&Math.abs(o.y-f.y)<=1.8+(o.T.footY||0)){ if(o.T.stopsCharge){ endCharge(f); floatText(f,'Charge stopped','blk'); return; } const d=")

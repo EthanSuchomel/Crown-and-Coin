@@ -537,11 +537,11 @@ html.emb.short #status{display:none}
         <tr class="grp"><th colspan="8">Mammals</th></tr>
         <tr><td>Gorilla</td><td>4 gold</td><td>14</td><td>3</td><td>1.0s</td><td>105%</td><td>Melee</td><td>No</td></tr>
         <tr><td>Porcupine</td><td>6 gold</td><td>16</td><td>4 (quills)</td><td>1.2s</td><td>85%</td><td>A quarter of the field</td><td>Yes, misses 20%</td></tr>
-        <tr><td>Bat</td><td>1 gold</td><td>5</td><td>2</td><td>1.0s</td><td>135%</td><td>Melee, flying; takes half a space on the field</td><td>No</td></tr>
+        <tr><td>Bat</td><td>2 gold</td><td>5</td><td>2</td><td>1.0s</td><td>135%</td><td>Melee, flying; takes half a space on the field</td><td>No</td></tr>
         <tr><td>Rhino</td><td>15 gold</td><td>28</td><td>15 (Charge: 20 to the first enemy it runs through, 10 to each one after)</td><td>1.2s</td><td>115% (173% while charging at the start of the battle)</td><td>Melee</td><td>No</td></tr>
         <tr><td>Procoptodon</td><td>18 gold</td><td>20</td><td>9</td><td>1.0s</td><td>100%</td><td>A third of the field</td><td>Yes, misses 15%</td></tr>
         <tr><td>Desmodus</td><td>20 gold</td><td>20</td><td>15</td><td>1.0s</td><td>115%</td><td>Melee, flying</td><td>Yes</td></tr>
-        <tr><td>Palaeoloxodon</td><td>40 gold</td><td>80</td><td>18 to up to 5 ground units at once (stomp, then a tusk swing that shoves them back; heavy units half as far). War Trumpet at 2s: Mammals +2 damage</td><td>1.0s (Mammals 0.2s faster after War Trumpet)</td><td>110% (Mammals +15% after War Trumpet)</td><td>Its tusks</td><td>No</td></tr>
+        <tr><td>Palaeoloxodon</td><td>50 gold</td><td>80</td><td>18 to up to 5 ground units at once (stomp, then a tusk swing that shoves them back; heavy units half as far). War Trumpet at 2s: Mammals +2 damage</td><td>1.0s (Mammals 0.2s faster after War Trumpet)</td><td>110% (Mammals +15% after War Trumpet)</td><td>Its tusks</td><td>No</td></tr>
         <tr class="grp"><th colspan="8">Mythical</th></tr>
         <tr><td>Minion</td><td>1 gold</td><td>5</td><td>2</td><td>1.0s</td><td>70%</td><td>Melee</td><td>No</td></tr>
         <tr><td>Mage (at most 2 per army)</td><td>15 gold</td><td>15</td><td>Chain lightning: 5 to up to 20 enemies at once. Every 2s, a 20% chance to turn a Minion into a Minotaur</td><td>3s</td><td>65%</td><td>The whole field; the bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
@@ -638,11 +638,11 @@ const TYPES={
         flying:false,antiAir:false,rank:0,lungeDur:.4,strikeAt:.18,lungeFwd:0.012,bob:0.15,bobRate:1.0},
   kanga:{label:'Procoptodon',faction:'Mammals',cost:18,hp:20,dmg:9,rate:1.0,range:36,speed:5.4,w:5.0,ratio:0.9245,aimFrac:0.5,ranged:true,hitKey:'longbow',armor:{},walkSheet:true,sheet:9,sheetClass:'mms mms-kanga',runFrames:8,runCycle:0.75,
         flying:false,antiAir:true,missAir:0.15,rank:2,lungeDur:.32,strikeAt:.14,bob:0.01,bobRate:0.9,shotAt:[0.93,0.47]},   // hops as it moves; arrows leave from its bow
-  bat:{label:'Bat',faction:'Mammals',cost:1,slot:0.5,hp:5,dmg:2,rate:1.0,range:3.5,speed:7.29,w:4.2,ratio:0.8333,aimFrac:0.246,sheet:16,sheetClass:'mms fls mms-bat',flapSheet:true,ranged:false,hitKey:'air',armor:{},
+  bat:{label:'Bat',faction:'Mammals',cost:2,slot:0.5,hp:5,dmg:2,rate:1.0,range:3.5,speed:7.29,w:4.2,ratio:0.8333,aimFrac:0.246,sheet:16,sheetClass:'mms fls mms-bat',flapSheet:true,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:false,rank:1,basic:true,lungeDur:.3,strikeAt:.15,flap:1.4},   // half a space, like the Drones
   gbat:{label:'Desmodus',large:true,faction:'Mammals',cost:20,hp:20,dmg:15,rate:1.0,range:4,speed:6.21,w:8.8,ratio:0.9094,aimFrac:0.241,sheet:16,sheetClass:'mms fls mms-gbat',flapSheet:true,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,preferMelee:true,lungeDur:.6,strikeAt:.3,flap:2.1},   // giant vampire bat
-  eleph:{label:'Palaeoloxodon',faction:'Mammals',heavy:true,cost:40,hp:80,dmg:18,rate:1.0,range:2.5,footX:5.4,footY:1.5,speed:5.94,w:19.432,ratio:0.6133,aimFrac:0.322,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:25,sheetClass:'mms mms-eleph',runFrames:12,runCycle:0.7,stride:4.14,atkFrames:13,atk2Frames:19,atkSteps:[0.15,0.3,0.45,0.6,0.8],
+  eleph:{label:'Palaeoloxodon',faction:'Mammals',heavy:true,cost:50,hp:80,dmg:18,rate:1.0,range:2.5,footX:5.4,footY:1.5,speed:5.94,w:19.432,ratio:0.6133,aimFrac:0.322,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:25,sheetClass:'mms mms-eleph',runFrames:12,runCycle:0.7,stride:4.14,atkFrames:13,atk2Frames:19,atkSteps:[0.15,0.3,0.45,0.6,0.8],
         flying:false,antiAir:false,rank:0,preferGround:true,multi:5,knock:2.2,trumpet:{at:2,dur:1.3,dmg:2,rate:0.2,speed:1.15,delay:2},lungeDur:.7,strikeAt:.35,lungeFwd:0.003,bob:0.1,bobRate:0.6},   // Mammals' special unit: tusk sweep hits up to 5 and shoves them back
   // ---- Mythical (Ethan's stats). Speed: 100% = 5.4 ----
   minion:{label:'Minion',faction:'Mythical',cost:1,hp:5,dmg:2,rate:1.0,range:3.5,speed:3.78,w:1.5,ratio:1.3727,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},
