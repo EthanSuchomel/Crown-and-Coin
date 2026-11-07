@@ -61,7 +61,7 @@ MYTH_JS=r"""
 // the Floating Castle (their home castle). Mages are moving barracks: on the hex they stand on they turn Minions into bigger
 // units, plant Life Trees and raise magic domes. Mages and Minions are made at castles. Captured enemy buildings do nothing
 // for them. Unit prices and the Mage's base price are placeholders until Ethan sets them.
-const MYTH={startMagic:5, castleMagic:[10,15,20,25], castleUp:[10,15,20], minions:[5,7,9,11], mageUp:4, mageBase:4,
+const MYTH={startMagic:5, castleMagic:[10,15,20,25], castleUp:[10,15,20], minions:[5,7,9,11], mageUp:[7,9,12], mageBase:4,
   treeMagic:3, treeRich:5, treeMinions:5, treeTurns:2, domeCost:1, domeUpkeep:1, chMage:2, chCastle:5, minionPack:3, secondMagic:3, guards:1};
 const MAGIC_VAL=3;                                  // the computer's rough worth of 1 magic, in gold
 const MAGES=['mage0','mage1','mage2','mage3'];      // a Mage keeps the level it was made at
@@ -127,8 +127,8 @@ function mythDome(pid,id){ const t=S.tiles[id], p=S.players[pid];
   if(t.owner!==pid||t.dome>0||!magesOn(t)||t.terrain==='water'||p.gold<MYTH.domeCost) return false;
   p.gold-=MYTH.domeCost; t.dome=WALL_HP; addLog(`${poss(pid)} Mage raises a magic dome.`,pid); return true; }
 function mythUpMages(pid){ const p=S.players[pid], l=mlvOf(pid);
-  if(l>=3||!mythHome(pid)||p.gold<MYTH.mageUp) return false;
-  p.gold-=MYTH.mageUp; p.mlv=l+1; addLog(`${p.name} raise their Mages to level ${l+1}: new Mages come out at that level.`,pid); return true; }
+  if(l>=3||!mythHome(pid)||p.gold<MYTH.mageUp[l]) return false;
+  p.gold-=MYTH.mageUp[l]; p.mlv=l+1; addLog(`${p.name} raise their Mages to level ${l+1}: new Mages come out at that level.`,pid); return true; }
 function mythUpCastle(pid){ const p=S.players[pid], l=clvOf(pid);
   if(l>=3||!mythHome(pid)||p.gold<MYTH.castleUp[l]) return false;
   p.gold-=MYTH.castleUp[l]; p.clv=l+1; addLog(`${p.name} raise the Floating Castle to level ${l+1}: ${MYTH.castleMagic[l+1]} magic and ${MYTH.minions[l+1]} Minions a turn.`,pid); return true; }
@@ -154,7 +154,7 @@ function mythActionDesc(a,pid){
   if(a==='recruit') return `At your castles: Minions (${MYTH.minionPack} for 1 magic) and Mages (${magePrice(pid)} magic, at most ${mageCap(pid)} on a hex). Where a Mage stands: turn Minions into Minotaurs, Griffins and Dragons`;
   if(a==='build') return `Plant Life Trees: a ready Mage stays on its hex for ${MYTH.treeTurns} turns; the tree makes ${MYTH.treeMagic} magic a turn (${MYTH.treeRich} with ${MYTH.treeMinions}+ Minions there)`;
   if(a==='move') return `Make up to ${movesLimit(pid)} moves. Mages and Minions go up to 2 hexes anywhere; other units 1 hex into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle`;
-  if(a==='advance') return `Upgrade your Mages (${MYTH.mageUp} magic a level) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or raise a magic dome where a Mage stands (${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn)`;
+  if(a==='advance') return `Upgrade your Mages (${MYTH.mageUp.join(', ')} magic for levels 1 to 3) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or raise a magic dome where a Mage stands (${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn)`;
   if(a==='channel') return `No other actions this turn: +${MYTH.chMage} magic for every Mage you have and +${MYTH.chCastle} for every castle you hold`;
   return actionDescBase(a,pid,0);
 }
@@ -195,7 +195,7 @@ function mythStepBody(a,sel){
     return h+here+`<div class="mygrid">${btn('tree',0,'Plant a Life Tree',sel.tree?'This hex has one':sel.castle?'Not on a castle':!magesOn(sel)?'Needs a Mage here':ok?`The Mage stays ${MYTH.treeTurns} turns`:'No ready Mage here',ok)}</div><p class="hint">${info}</p>`;
   }
   const ml=mlvOf(0), cl=clvOf(0), home=!!mythHome(0);
-  h+=`<div class="mygrid">${btn('upm',0,ml>=3?'Mages: top level':`Mages to level ${ml+1}`,ml>=3?MAGE_LV_NOTE[2]:`${MYTH.mageUp} magic: ${MAGE_LV_NOTE[ml]}`,ml<3&&home&&me.gold>=MYTH.mageUp)}${btn('upc',0,cl>=3?'Castle: top level':`Floating Castle level ${cl+1}`,cl>=3?`${MYTH.castleMagic[3]} magic and ${MYTH.minions[3]} Minions a turn`:`${MYTH.castleUp[cl]} magic: then ${MYTH.castleMagic[cl+1]} magic and ${MYTH.minions[cl+1]} Minions a turn`,cl<3&&home&&me.gold>=MYTH.castleUp[cl])}</div>`;
+  h+=`<div class="mygrid">${btn('upm',0,ml>=3?'Mages: top level':`Mages to level ${ml+1}`,ml>=3?MAGE_LV_NOTE[2]:`${MYTH.mageUp[ml]} magic: ${MAGE_LV_NOTE[ml]}`,ml<3&&home&&me.gold>=MYTH.mageUp[ml])}${btn('upc',0,cl>=3?'Castle: top level':`Floating Castle level ${cl+1}`,cl>=3?`${MYTH.castleMagic[3]} magic and ${MYTH.minions[3]} Minions a turn`:`${MYTH.castleUp[cl]} magic: then ${MYTH.castleMagic[cl+1]} magic and ${MYTH.minions[cl+1]} Minions a turn`,cl<3&&home&&me.gold>=MYTH.castleUp[cl])}</div>`;
   if(!home) h+=`<p class="hint">Upgrades are made at your Floating Castle, which you don't hold right now.</p>`;
   if(mine){ const ok=!(sel.dome>0)&&magesOn(sel)>0&&me.gold>=MYTH.domeCost;
     h+=here+`<div class="mygrid">${btn('dome',0,'Magic dome',sel.dome>0?`Up, strength ${sel.dome} of ${WALL_HP}`:!magesOn(sel)?'Needs a Mage here':`${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn`,ok)}</div>`; }
@@ -208,7 +208,7 @@ function mythAi(pid,a,later){
   const dE=bfs(S.tiles.filter(t=>t.owner===eid).map(t=>t.id)), dist=t=>fin(dE[t.id]);
   if(a==='advance'){
     if(clvOf(pid)<3&&p.gold>=MYTH.castleUp[clvOf(pid)]+2&&mythUpCastle(pid)) ids.push(S.homes[pid]);   // pays for itself in 2 to 4 turns
-    while(mlvOf(pid)<3&&p.gold>=MYTH.mageUp+3&&mythUpMages(pid)) ids.push(S.homes[pid]);
+    while(mlvOf(pid)<3&&p.gold>=MYTH.mageUp[mlvOf(pid)]+3&&mythUpMages(pid)) ids.push(S.homes[pid]);
     own.filter(t=>magesOn(t)&&!(t.dome>0)&&enemyNear(t.id,pid,1)>=2).sort((x,y)=>enemyNear(y.id,pid,1)-enemyNear(x.id,pid,1)).slice(0,2)
       .forEach(t=>{ if(p.gold>=MYTH.domeCost+3&&mythDome(pid,t.id)) ids.push(t.id); });
     return ids;
@@ -219,7 +219,7 @@ function mythAi(pid,a,later){
     return ids;
   }
   // Recruit: Mages first (about one for every 4 hexes held), then the best units the Mages allow, then Minions with some magic kept back
-  const keep=(later||[]).includes('advance')?Math.min(p.gold>>1,clvOf(pid)<3?MYTH.castleUp[clvOf(pid)]:MYTH.mageUp):0;
+  const keep=(later||[]).includes('advance')?Math.min(p.gold>>1,clvOf(pid)<3?MYTH.castleUp[clvOf(pid)]:MYTH.mageUp[Math.min(2,mlvOf(pid))]):0;
   const want=Math.max(2,Math.ceil(own.length/4)), castles=own.filter(t=>t.castle).sort((x,y)=>dist(x)-dist(y));
   for(const t of castles) while(mageTotal(pid)<want&&p.gold-keep>=magePrice(pid)&&mythBuyMage(pid,t.id)) ids.push(t.id);
   for(const t of own.filter(t=>mageLvAt(t)>=0).sort((x,y)=>dist(x)-dist(y)))
@@ -237,7 +237,7 @@ function mythFactionInfo(fid){
     <h3>Mages</h3>
     <ul><li>Made at your castles: ${MYTH.mageBase} magic, +1 for each Mage past your 5th and +1 for each Mage level. At most 2 on a hex (3 at level 3).</li>
       <li>Where a Mage stands it turns Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1 Minion), Griffins (${MYTH_CONV.griffin.m} + 2, level 1) and Dragons (${MYTH_CONV.dragon.m} + 4, level 2).</li>
-      <li>Levels (${MYTH.mageUp} magic each, at the castle): 1 Griffins, 2 Dragons, 3 every unit 1 magic cheaper and 3 Mages a hex. Each level also lengthens the Mage's lightning; a Mage keeps the level it was made at.</li>
+      <li>Levels (${MYTH.mageUp.join(', ')} magic, at the castle): 1 Griffins, 2 Dragons, 3 every unit 1 magic cheaper and 3 Mages a hex. Each level also lengthens the Mage's lightning; a Mage keeps the level it was made at.</li>
       <li>Mages plant Life Trees (the Mage stays ${MYTH.treeTurns} turns) and raise magic domes (${MYTH.domeCost} magic, ${MYTH.domeUpkeep} a turn): a dome guards every side like a full wall.</li>
       <li>Mages and Minions move 2 hexes anywhere, and a Move action has 3 moves.</li></ul>
     <h3>Your cards</h3>

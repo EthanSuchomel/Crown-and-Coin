@@ -1,6 +1,6 @@
 import json, subprocess, sys
 R='/home/claude/crown-and-coin/'
-src=open(R+'index.html').read()
+src=open(sys.argv[1] if len(sys.argv)>2 else R+'index.html').read()
 k='window.ARENA_HTML="'; i=src.find(k)+len(k); j=i
 while True:
     j=src.find('"',j); bs=0; q=j-1
@@ -9,7 +9,7 @@ while True:
     j+=1
 board=src[:i]+'@@ARENA@@'+src[j:]
 open('out/board_in.html','w').write(board)
-arena=open(R+'arena.html').read()
+arena=open(sys.argv[2] if len(sys.argv)>2 else R+'arena.html').read()
 dec=json.loads('"'+src[i:j]+'"')
 assert dec==arena, 'embedded arena differs from arena.html'
 open('out/arena_in.html','w').write(arena)
