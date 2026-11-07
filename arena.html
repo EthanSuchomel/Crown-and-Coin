@@ -1537,7 +1537,7 @@ const FOREST_X=AW/3;
 const hiddenIn=o=>!o.T.flying&&((!!TREES&&o.x<FOREST_X)||(!!FORT&&fortFade(o)<0.5));   // in the forest, or inside the fortress
 const shooter=f=>!!(f.T.ranged||f.T.rocket);
 const soaringOver=o=>!!(o.swoop&&o.swoop.st&&!(o.swoop.st===3&&o.swoop.near));   // a Dragon on its fire run, until it glides down to land
-const downed=o=>o.downT>clock;   // a flyer a Dilophosaurus has knocked down
+const downed=o=>o.downT>clock||!!o.grounded;   // a flyer on the ground: knocked down by a Dilophosaurus, or a Griffin or Dragon that has landed
 const isLarge=o=>!!(o.T.heavy||o.T.large);   // what a Megaraptor bites for 20
 const charging=o=>!!(o.rcharge||o.mcharge||o.pcharge||o.tcharge||o.chargeT>0);
 const isDino=f=>facOf(f.key)==='Dinosaurs';
