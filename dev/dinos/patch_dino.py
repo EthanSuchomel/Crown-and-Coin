@@ -15,15 +15,15 @@ def unit(key, new):
     s = s[:a] + '\n  ' + key + ':' + new + s[m.start():]
 
 # ---------------- units (speeds: 100% = 5.4) ----------------
-unit('galli', "{label:'Pachycephalosaurus',cost:3,hp:15,dmg:5,rate:1.0,range:4.3,speed:5.4,w:6.6,ratio:0.5635,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},pcharge:{mult:1.6},slowHit:{spd:0.81,rate:0.3},noRepeat:true,\n"
+unit('galli', "{label:'Pachycephalosaurus',cost:3,hp:15,dmg:5,rate:1.0,range:4.3,speed:5.4,w:6.6,artW:7.538,ratio:0.6365,aimFrac:0.417,walkSheet:true,sheet:13,sheetClass:'mms dns-pachy',runFrames:8,runCycle:0.5,atkFrames:9,atkSteps:[0.15, 0.35, 0.6],ranged:false,hitKey:'melee',armor:{},pcharge:{mult:1.6},slowHit:{spd:0.81,rate:0.3},noRepeat:true,\n"
      "        flying:false,antiAir:false,rank:0,basic:true,lungeDur:.32,strikeAt:.14,lungeFwd:0.012,bob:0.5,bobRate:1.6},   // charges in at 160% until its first hit; every head-butt slows that enemy for the rest of the battle (speed -15%, attacks 0.3s slower; once per enemy) and it moves on to a different enemy after each one")
-unit('dilo', "{label:'Dilophosaurus',cost:8,hp:15,dmg:2,rate:0.6,range:50,dodgeCharge:0.5,speed:5.4,w:6.4,ratio:0.5188,aimFrac:0.45,ranged:true,hitKey:'archer',armor:{},preferAir:true,noRepeat:true,grounds:{dur:3},spit:true,shotAt:[0.97,0.21],\n"
+unit('dilo', "{label:'Dilophosaurus',cost:8,hp:15,dmg:2,rate:0.6,range:50,dodgeCharge:0.5,speed:5.4,w:6.4,artW:7.31,ratio:0.5919,aimFrac:0.415,walkSheet:true,sheet:12,sheetClass:'mms dns-dilo',runFrames:8,runCycle:0.55,atkFrames:9,atkSteps:[0.25, 0.6],ranged:true,hitKey:'archer',armor:{},preferAir:true,noRepeat:true,grounds:{dur:3},spit:true,shotAt:[0.912, 0.287],\n"
      "        flying:false,antiAir:true,rank:2,basic:true,lungeDur:.3,strikeAt:.12,bob:0.4,bobRate:1.4},   // spits venom; goes after flyers first and knocks them down to the ground for 3s; never spits at the same target twice in a row")
-unit('mega', "{label:'Megaraptor',heavy:true,stunImmune:true,cost:12,hp:35,dmg:12,bigDmg:20,twin:true,rate:1.0,range:4.3,speed:6.21,w:9.5,ratio:0.4578,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},entryBurst:{mult:1.85/1.15},\n"
+unit('mega', "{label:'Megaraptor',heavy:true,stunImmune:true,cost:12,hp:35,dmg:12,bigDmg:20,twin:true,rate:1.0,range:4.3,speed:6.21,w:9.5,artW:10.821,ratio:0.5293,aimFrac:0.412,walkSheet:true,sheet:13,sheetClass:'mms dns-mega',runFrames:8,runCycle:0.5,atkFrames:9,atkSteps:[0.2, 0.4, 0.65],ranged:false,hitKey:'melee',armor:{},entryBurst:{mult:1.85/1.15},\n"
      "        flying:false,antiAir:false,rank:0,lungeDur:.4,strikeAt:.18,lungeFwd:0.012,bob:0.4,bobRate:1.3},   // bites 2 enemies at once; 20 to large units; can't be stunned; sprints in from reserve")
-unit('bow', "{label:'Triceratops',heavy:true,noProj:true,cost:25,hp:45,dmg:15,rate:1.2,range:3.0,footX:3.2,footY:1.0,speed:5.4,w:11.5,ratio:0.5473,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},tcharge:{mult:1.5,n:6},knock:3,hornSweep:{n:5},stopsCharge:true,\n"
+unit('bow', "{label:'Triceratops',heavy:true,noProj:true,cost:25,hp:45,dmg:15,rate:1.2,range:3.0,footX:3.2,footY:1.0,speed:5.4,w:11.5,artW:12.888,ratio:0.6197,aimFrac:0.417,walkSheet:true,sheet:13,sheetClass:'mms dns-trike',runFrames:8,runCycle:0.7,atkFrames:9,atkSteps:[0.2, 0.4, 0.7],ranged:false,hitKey:'melee',armor:{},tcharge:{mult:1.5,n:6},knock:3,hornSweep:{n:5},stopsCharge:true,\n"
      "        flying:false,antiAir:false,rank:-1,lungeDur:.45,strikeAt:.2,lungeFwd:0.012,bob:0.2,bobRate:0.9},   // nothing that's shot or cast can hurt it; leads its army and opens with a charge that shoves up to 6 enemies back")
-unit('quetz', "{label:'Stegosaurus',heavy:true,cost:30,hp:65,dmg:20,rate:2.0,range:3.0,footX:4.0,footY:1.2,speed:5.4,w:13.5,ratio:0.6329,aimFrac:0.4,ranged:false,hitKey:'melee',armor:{},tail:{n:8,reach:3,stun:2},\n"
+unit('quetz', "{label:'Stegosaurus',heavy:true,cost:30,hp:65,dmg:20,rate:2.0,range:3.0,footX:4.0,footY:1.2,speed:5.4,w:13.5,artW:15.375,ratio:0.6945,aimFrac:0.382,walkSheet:true,sheet:13,sheetClass:'mms dns-stego',runFrames:8,runCycle:0.8,atkFrames:9,atkSteps:[0.25, 0.45, 0.75],ranged:false,hitKey:'melee',armor:{},tail:{n:8,reach:3,stun:2},\n"
      "        flying:false,antiAir:false,rank:0,lungeDur:.6,strikeAt:.3,lungeFwd:0.006,bob:0.15,bobRate:0.8},   // tail swing: 20 to up to 8 enemies around it, and the ones left standing are stunned for 2s")
 R("dragon:{label:'Dragon',", "dragon:{label:'Dragon',large:true,")
 R("griffin:{label:'Griffin',", "griffin:{label:'Griffin',large:true,")
@@ -48,7 +48,7 @@ Object.assign(IMG,{
   bow:{"blue": "dino/trike_blue.png", "red": "dino/trike_red.png"},
   quetz:{"blue": "dino/stego_blue.png", "red": "dino/stego_red.png"}
 });''')
-R(".arrow.short{width:3.2%}", ".arrow.short{width:3.2%}\n.arrow.spit{width:1.2%;height:5px;border-radius:50%;background:radial-gradient(circle at 60% 45%,#efffb0 0 25%,#8fd63a 45%,#3f7d14 100%);box-shadow:0 0 4px 1px rgba(150,240,70,.65)}   /* Dilophosaurus venom */")
+R(".arrow.short{width:3.2%}", ".arrow.short{width:3.2%}\n.arrow.spit{width:1.2%;height:5px;border-radius:50%;background:radial-gradient(circle at 60% 45%,#efffb0 0 25%,#8fd63a 45%,#3f7d14 100%);box-shadow:0 0 4px 1px rgba(150,240,70,.65)}   /* Dilophosaurus venom */\n/* Dinosaur sheets (drawn by Claude from Ethan's OpenArt pictures): frame 0 standing, 1-8 walk, then the attack */\n.dns-pachy{aspect-ratio:290/162;background-size:1300% 100%}.fighter.blue .dns-pachy{background-image:url('dino/pachy_sheet_blue.png')}.fighter.red .dns-pachy{background-image:url('dino/pachy_sheet_red.png')}\n.dns-dilo{aspect-ratio:290/150;background-size:1200% 100%}.fighter.blue .dns-dilo{background-image:url('dino/dilo_sheet_blue.png')}.fighter.red .dns-dilo{background-image:url('dino/dilo_sheet_red.png')}\n.dns-mega{aspect-ratio:350/163;background-size:1300% 100%}.fighter.blue .dns-mega{background-image:url('dino/mega_sheet_blue.png')}.fighter.red .dns-mega{background-image:url('dino/mega_sheet_red.png')}\n.dns-trike{aspect-ratio:390/216;background-size:1300% 100%}.fighter.blue .dns-trike{background-image:url('dino/trike_sheet_blue.png')}.fighter.red .dns-trike{background-image:url('dino/trike_sheet_red.png')}\n.dns-stego{aspect-ratio:450/274;background-size:1300% 100%}.fighter.blue .dns-stego{background-image:url('dino/stego_sheet_blue.png')}.fighter.red .dns-stego{background-image:url('dino/stego_sheet_red.png')}")
 R("'arrow'+(f.key==='dilo'||f.key==='porc'?' short':'')", "'arrow'+(f.T&&f.T.spit?' spit':f.key==='porc'?' short':'')")
 
 # ---------------- who can hit whom ----------------
@@ -142,6 +142,9 @@ R("eleph:{label:'Palaeoloxodon',faction:'Mammals',heavy:true,cost:40,", "eleph:{
 R("bat:{label:'Bat',faction:'Mammals',cost:1,", "bat:{label:'Bat',faction:'Mammals',cost:2,")
 R("<td>Palaeoloxodon</td><td>40 gold</td>", "<td>Palaeoloxodon</td><td>50 gold</td>")
 R("<td>Bat</td><td>1 gold</td>", "<td>Bat</td><td>2 gold</td>")
+# a picture can be drawn wider than the unit's footprint (the Dinosaur sheets have room around them for legs and heads to move)
+R("  el.style.width=T.w+'%';\n", "  el.style.width=(T.artW||T.w)+'%';\n")
+R("shootFrom(f,f.x+f.face*(sa?sa[0]-0.5:0.35)*f.T.w,", "shootFrom(f,f.x+f.face*(sa?sa[0]-0.5:0.35)*(f.T.artW||f.T.w),")
 # Triceratops stops charges; Dinosaurs don't chase a charging enemy running past
 R("  updateWalls(dt); updateFort(dt); updateBallistas(dt); fireStep(dt);\n", "  updateWalls(dt); updateFort(dt); updateBallistas(dt); fireStep(dt); trikeStops();\n")
 R("    if(Math.abs(o.x-f.x)<=T.w*0.42+(o.T.footX||o.T.w*0.25)&&Math.abs(o.y-f.y)<=1.8+(o.T.footY||0)){ const d=", "    if(Math.abs(o.x-f.x)<=T.w*0.42+(o.T.footX||o.T.w*0.25)&&Math.abs(o.y-f.y)<=1.8+(o.T.footY||0)){ if(o.T.stopsCharge){ endCharge(f); floatText(f,'Charge stopped','blk'); return; } const d=")

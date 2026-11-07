@@ -306,6 +306,12 @@ tr.grp th{background:var(--bg);font-size:13px;letter-spacing:.04em;text-transfor
   background:linear-gradient(90deg,#f6f0e0 0 78%,#2f241b 78%);box-shadow:0 0 0 .5px rgba(0,0,0,.45)}
 .arrow.short{width:3.2%}
 .arrow.spit{width:1.2%;height:5px;border-radius:50%;background:radial-gradient(circle at 60% 45%,#efffb0 0 25%,#8fd63a 45%,#3f7d14 100%);box-shadow:0 0 4px 1px rgba(150,240,70,.65)}   /* Dilophosaurus venom */
+/* Dinosaur sheets (drawn by Claude from Ethan's OpenArt pictures): frame 0 standing, 1-8 walk, then the attack */
+.dns-pachy{aspect-ratio:290/162;background-size:1300% 100%}.fighter.blue .dns-pachy{background-image:url('dino/pachy_sheet_blue.png')}.fighter.red .dns-pachy{background-image:url('dino/pachy_sheet_red.png')}
+.dns-dilo{aspect-ratio:290/150;background-size:1200% 100%}.fighter.blue .dns-dilo{background-image:url('dino/dilo_sheet_blue.png')}.fighter.red .dns-dilo{background-image:url('dino/dilo_sheet_red.png')}
+.dns-mega{aspect-ratio:350/163;background-size:1300% 100%}.fighter.blue .dns-mega{background-image:url('dino/mega_sheet_blue.png')}.fighter.red .dns-mega{background-image:url('dino/mega_sheet_red.png')}
+.dns-trike{aspect-ratio:390/216;background-size:1300% 100%}.fighter.blue .dns-trike{background-image:url('dino/trike_sheet_blue.png')}.fighter.red .dns-trike{background-image:url('dino/trike_sheet_red.png')}
+.dns-stego{aspect-ratio:450/274;background-size:1300% 100%}.fighter.blue .dns-stego{background-image:url('dino/stego_sheet_blue.png')}.fighter.red .dns-stego{background-image:url('dino/stego_sheet_red.png')}
 .arrow.bolt{width:6.5%;height:4px;border-radius:2px;background:linear-gradient(90deg,#3a2a1a 0 6%,#8a5a2b 6% 74%,#2d3640 74%);box-shadow:0 0 0 1px rgba(0,0,0,.5)}   /* ballista bolt: a heavy shaft with an iron head */
 .laser.balshot{width:6.5%;height:4px}
 .bal{position:absolute;height:auto;pointer-events:none;-webkit-user-drag:none;transition:filter .08s}.bal.hit{filter:brightness(1.8)}.bal.wreck{filter:grayscale(.7) brightness(.5);opacity:.85}
@@ -615,20 +621,20 @@ const TYPES={
         armor:{archer:3,longbow:1,galli:1,rider:2,laser:3},deflect:{galli:0.1},flying:false,antiAir:false,rank:0,sweep:{n:2,mult:0.25,reach:3.5},lungeDur:.32,strikeAt:.14,
         bob:0.5,bobRate:1.0,sheet:12,sheetClass:'rks',runFrames:8,runCycle:0.78,swing:true,
         wall:{size:3,max:4,hp:30,hide:6,stun:1,speedMult:0.5}},   // Megaraptor's armor and stats, but 9 damage and a sweeping cut instead of its second bite
-  galli:{label:'Pachycephalosaurus',cost:3,hp:15,dmg:5,rate:1.0,range:4.3,speed:5.4,w:6.6,ratio:0.5635,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},pcharge:{mult:1.6},slowHit:{spd:0.81,rate:0.3},noRepeat:true,
+  galli:{label:'Pachycephalosaurus',cost:3,hp:15,dmg:5,rate:1.0,range:4.3,speed:5.4,w:6.6,artW:7.538,ratio:0.6365,aimFrac:0.417,walkSheet:true,sheet:13,sheetClass:'mms dns-pachy',runFrames:8,runCycle:0.5,atkFrames:9,atkSteps:[0.15, 0.35, 0.6],ranged:false,hitKey:'melee',armor:{},pcharge:{mult:1.6},slowHit:{spd:0.81,rate:0.3},noRepeat:true,
         flying:false,antiAir:false,rank:0,basic:true,lungeDur:.32,strikeAt:.14,lungeFwd:0.012,bob:0.5,bobRate:1.6},   // charges in at 160% until its first hit; every head-butt slows that enemy for the rest of the battle (speed -15%, attacks 0.3s slower; once per enemy) and it moves on to a different enemy after each one
-  dilo:{label:'Dilophosaurus',cost:8,hp:15,dmg:2,rate:0.6,range:50,dodgeCharge:0.5,speed:5.4,w:6.4,ratio:0.5188,aimFrac:0.45,ranged:true,hitKey:'archer',armor:{},preferAir:true,noRepeat:true,grounds:{dur:3},spit:true,shotAt:[0.97,0.21],
+  dilo:{label:'Dilophosaurus',cost:8,hp:15,dmg:2,rate:0.6,range:50,dodgeCharge:0.5,speed:5.4,w:6.4,artW:7.31,ratio:0.5919,aimFrac:0.415,walkSheet:true,sheet:12,sheetClass:'mms dns-dilo',runFrames:8,runCycle:0.55,atkFrames:9,atkSteps:[0.25, 0.6],ranged:true,hitKey:'archer',armor:{},preferAir:true,noRepeat:true,grounds:{dur:3},spit:true,shotAt:[0.912, 0.287],
         flying:false,antiAir:true,rank:2,basic:true,lungeDur:.3,strikeAt:.12,bob:0.4,bobRate:1.4},   // spits venom; goes after flyers first and knocks them down to the ground for 3s; never spits at the same target twice in a row
   ptero:{label:'Pterodactyl',cost:5,hp:10,dmg:5,rate:1.5,range:3.5,speed:7.02,w:2.961,ratio:1.2717,aimFrac:0.352,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:false,rank:1,basic:true,lungeDur:.5,strikeAt:.25,flap:.4},
-  mega:{label:'Megaraptor',heavy:true,stunImmune:true,cost:12,hp:35,dmg:12,bigDmg:20,twin:true,rate:1.0,range:4.3,speed:6.21,w:9.5,ratio:0.4578,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},entryBurst:{mult:1.85/1.15},
+  mega:{label:'Megaraptor',heavy:true,stunImmune:true,cost:12,hp:35,dmg:12,bigDmg:20,twin:true,rate:1.0,range:4.3,speed:6.21,w:9.5,artW:10.821,ratio:0.5293,aimFrac:0.412,walkSheet:true,sheet:13,sheetClass:'mms dns-mega',runFrames:8,runCycle:0.5,atkFrames:9,atkSteps:[0.2, 0.4, 0.65],ranged:false,hitKey:'melee',armor:{},entryBurst:{mult:1.85/1.15},
         flying:false,antiAir:false,rank:0,lungeDur:.4,strikeAt:.18,lungeFwd:0.012,bob:0.4,bobRate:1.3},   // bites 2 enemies at once; 20 to large units; can't be stunned; sprints in from reserve
-  bow:{label:'Triceratops',heavy:true,noProj:true,cost:25,hp:45,dmg:15,rate:1.2,range:3.0,footX:3.2,footY:1.0,speed:5.4,w:11.5,ratio:0.5473,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},tcharge:{mult:1.5,n:6},knock:3,hornSweep:{n:5},stopsCharge:true,
+  bow:{label:'Triceratops',heavy:true,noProj:true,cost:25,hp:45,dmg:15,rate:1.2,range:3.0,footX:3.2,footY:1.0,speed:5.4,w:11.5,artW:12.888,ratio:0.6197,aimFrac:0.417,walkSheet:true,sheet:13,sheetClass:'mms dns-trike',runFrames:8,runCycle:0.7,atkFrames:9,atkSteps:[0.2, 0.4, 0.7],ranged:false,hitKey:'melee',armor:{},tcharge:{mult:1.5,n:6},knock:3,hornSweep:{n:5},stopsCharge:true,
         flying:false,antiAir:false,rank:-1,lungeDur:.45,strikeAt:.2,lungeFwd:0.012,bob:0.2,bobRate:0.9},   // nothing that's shot or cast can hurt it; leads its army and opens with a charge that shoves up to 6 enemies back
   alamo:{label:'Alamosaurus',heavy:true,stunImmune:true,cost:30,hp:108,dmg:15,rate:2.25,range:2.5,footX:8.8,footY:2.0,speed:3.861,w:21,ratio:0.7621,aimFrac:0.27,ranged:false,hitKey:'melee',armor:{},reduce:{archer:3,longbow:3,rider:3},
         flying:false,antiAir:false,rank:0,preferGround:true,riderType:'dilo',riders:[{fx:0.517,fy:0.335},{fx:0.74,fy:0.303}],
         lungeDur:.6,strikeAt:.3,bob:0.4,bobRate:0.5,legs:true,multi:5,superStomp:{stun:2},charge:{mult:1.5,dist:21,max:4}},
-  quetz:{label:'Stegosaurus',heavy:true,cost:30,hp:65,dmg:20,rate:2.0,range:3.0,footX:4.0,footY:1.2,speed:5.4,w:13.5,ratio:0.6329,aimFrac:0.4,ranged:false,hitKey:'melee',armor:{},tail:{n:8,reach:3,stun:2},
+  quetz:{label:'Stegosaurus',heavy:true,cost:30,hp:65,dmg:20,rate:2.0,range:3.0,footX:4.0,footY:1.2,speed:5.4,w:13.5,artW:15.375,ratio:0.6945,aimFrac:0.382,walkSheet:true,sheet:13,sheetClass:'mms dns-stego',runFrames:8,runCycle:0.8,atkFrames:9,atkSteps:[0.25, 0.45, 0.75],ranged:false,hitKey:'melee',armor:{},tail:{n:8,reach:3,stun:2},
         flying:false,antiAir:false,rank:0,lungeDur:.6,strikeAt:.3,lungeFwd:0.006,bob:0.15,bobRate:0.8},   // tail swing: 20 to up to 8 enemies around it, and the ones left standing are stunned for 2s
   ape:{label:'Gorilla',faction:'Mammals',cost:4,hp:14,dmg:3,rate:1.0,range:4.3,speed:5.67,w:4.6,ratio:0.7816,aimFrac:0.5,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:9,sheetClass:'mms mms-ape',runFrames:8,runCycle:0.6,
         flying:false,antiAir:false,rank:0,basic:true,lungeDur:.32,strikeAt:.14,lungeFwd:0.007,bob:0.15,bobRate:1.4},
@@ -1315,7 +1321,7 @@ function legRig(s){const L=IMG.alamoLegs;
 function addUnit(team,key,x,y,entering){
   const T=TYPES[key], h=T.w*T.ratio;
   const el=document.createElement('div'); el.className='fighter u-'+key+' '+SIDE[team]+(T.flying?' flyer':'')+(entering?' enter':'');
-  el.style.width=T.w+'%';
+  el.style.width=(T.artW||T.w)+'%';
   const fd=T.flap||0.6, flap='animation-delay:'+(-rnd(0,fd)).toFixed(2)+'s;animation-duration:'+fd+'s';
   el.innerHTML='<div class="lift"><span class="stunfx" aria-hidden="true"><i class="ox" style="animation-delay:-0.00s"><i class="oy" style="animation-delay:-0.23s">★</i></i><i class="ox" style="animation-delay:-0.30s"><i class="oy" style="animation-delay:-0.53s">★</i></i><i class="ox" style="animation-delay:-0.60s"><i class="oy" style="animation-delay:-0.82s">★</i></i></span><div class="pose">'+(T.flying&&!T.sheet
     ?'<img class="spr body wu" alt="" src="'+IMG[key][SIDE[team]].up+'" style="'+flap+'"><img class="spr wd" alt="" src="'+IMG[key][SIDE[team]].down+'" style="'+flap+'">'
@@ -1824,7 +1830,7 @@ function shoot(f,t){
     return; }
   if(f.T.gun){ const st=f.stunNext?f.T.stunShot.dur:0; f.stunNext=false;
     for(const [mx,my] of f.T.gun.muzzles) shootFrom(f,f.x+f.face*(mx-0.5)*f.T.w,f.y-f.alt-f.h*(1-my),t,1,'laser',st); return; }   // two lasers, one from each cannon
-  const sa=f.T.shotAt; shootFrom(f,f.x+f.face*(sa?sa[0]-0.5:0.35)*f.T.w,f.y-f.alt-f.h*(sa?1-sa[1]:0.55),t,f.shotMult); }
+  const sa=f.T.shotAt; shootFrom(f,f.x+f.face*(sa?sa[0]-0.5:0.35)*(f.T.artW||f.T.w),f.y-f.alt-f.h*(sa?1-sa[1]:0.55),t,f.shotMult); }
 // ---- Mythical ----
 // Mage, chain lightning: a bolt from its staff to its target, then on to the nearest enemy within 9 of the last one hit,
 // and so on, up to 20 enemies (ground or air); each takes 5. Units hidden in the forest or inside the fortress are out of its sight.
