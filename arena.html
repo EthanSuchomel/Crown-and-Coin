@@ -589,6 +589,8 @@ Object.assign(IMG,{
 Object.assign(IMG,{
   minion:{"blue": "myth/minion_blue.png", "red": "myth/minion_red.png"},
   mage:{"blue": "myth/mage_blue.png", "red": "myth/mage_red.png"},
+  mage0:{"blue": "myth/mage_blue.png", "red": "myth/mage_red.png"}, mage1:{"blue": "myth/mage_blue.png", "red": "myth/mage_red.png"},
+  mage2:{"blue": "myth/mage_blue.png", "red": "myth/mage_red.png"}, mage3:{"blue": "myth/mage_blue.png", "red": "myth/mage_red.png"},
   minotaur:{"blue": "myth/minotaur_blue.png", "red": "myth/minotaur_red.png"},
   griffin:{"blue": {"up": "myth/griffin_blue.png", "down": "myth/griffin_blue.png"}, "red": {"up": "myth/griffin_red.png", "down": "myth/griffin_red.png"}},
   dragon:{"blue": {"up": "myth/dragon_blue.png", "down": "myth/dragon_blue.png"}, "red": {"up": "myth/dragon_red.png", "down": "myth/dragon_red.png"}}
@@ -664,6 +666,8 @@ const TYPES={
 };
 const ORDER=['galli','dilo','ptero','mega','bow','quetz','robot','rarch','rdrone','rknight','rlong','rjet','rtank','ape','porc','bat','rhino','kanga','gbat','eleph','minion','mage','minotaur','griffin','dragon'];
 // a fresh army for each faction, picked when a side switches faction
+// Crown & Coin's Mages by level (the board sends these): reach in field units and damage. Not in the army controls.
+[['mage0',30,5],['mage1',60,6],['mage2',90,7],['mage3',120,7]].forEach(([k,r,d])=>{ TYPES[k]={...TYPES.mage,label:'Mage',range:r,dmg:d,hidden:true,maxN:3}; ORDER.push(k); });
 const FACTIONS=['Dinosaurs','Robots','Mammals','Mythical'];
 const DEFAULT_ARMY={Dinosaurs:{galli:15,dilo:6,ptero:5,mega:5,bow:2,quetz:1},Robots:{robot:4,rarch:28,rdrone:8,rknight:6,rlong:4,rtank:1},Mammals:{ape:14,porc:6,bat:10,rhino:3,kanga:3,gbat:2,eleph:1},Mythical:{minion:25,mage:2,minotaur:3,griffin:1,dragon:1}};
 const armyFor=fac=>{ const c={}; ORDER.forEach(k=>c[k]=0); return Object.assign(c,DEFAULT_ARMY[fac]); };
@@ -671,7 +675,7 @@ const COUNTS=[armyFor('Dinosaurs'),armyFor('Robots')];
 // each side fields one faction only
 let TEAM_FACTION=['Dinosaurs','Robots'];   // each side picks its faction above its army
 const facOf=k=>TYPES[k].faction||'Dinosaurs';
-const teamKeys=t=>ORDER.filter(k=>facOf(k)===TEAM_FACTION[t]);   // [blue, red]
+const teamKeys=t=>ORDER.filter(k=>facOf(k)===TEAM_FACTION[t]&&!TYPES[k].hidden);   // [blue, red]
 const ALT=7.6, LOW_ALT=2.2;                       // cruising height, and how low flyers come to fight ground units                                       // how high flyers cruise, in field units
 const FIELD_MAX=25, MAXN=99; const capOf=k=>Math.min(MAXN,TYPES[k].maxN||MAXN);   // a unit type can have its own most per army (Mage: 2)                      // spaces on the field per side, most of one type per side
 const slot=k=>TYPES[k].slot||1;                    // Robot Brawlers take half a space
