@@ -523,15 +523,15 @@ html.emb.short #status{display:none}
         <tr><td>Pachycephalosaurus</td><td>3 gold</td><td>15</td><td>5. Every hit slows that enemy for the rest of the battle (speed -15%, attacks 0.3s slower; once per enemy); a different enemy each time</td><td>1.0s</td><td>100% (160% while charging)</td><td>Melee</td><td>No</td></tr>
         <tr><td>Dilophosaurus</td><td>8 gold</td><td>15</td><td>2 (venom spit; a flyer it hits is knocked to the ground for 3s)</td><td>0.6s</td><td>100%</td><td>Half the field; dodges 50% of hits from a charging enemy</td><td>Yes, goes after them first</td></tr>
         <tr><td>Pterodactyl</td><td>5 gold</td><td>10</td><td>5</td><td>1.5s</td><td>130%</td><td>Melee, flying</td><td>No</td></tr>
-        <tr><td>Megaraptor</td><td>12 gold</td><td>25</td><td>12 to 2 enemies at once (20 to large units)</td><td>1.0s</td><td>115% (185% when arriving from reserve, or bursting out of the forest or the fortress, until its first attack)</td><td>Melee; can't be stunned</td><td>No</td></tr>
-        <tr><td>Triceratops</td><td>25 gold</td><td>30 (shots and spells hit it but do no damage)</td><td>15, plus 15 to up to 5 enemy shooters in reach. Opening charge: shoves up to 6 enemies back</td><td>1.2s</td><td>100% (150% while charging)</td><td>Melee; leads its army, lined up with enemy Rhinos; stops any charge that reaches it</td><td>No</td></tr>
-        <tr><td>Stegosaurus</td><td>30 gold</td><td>45</td><td>20 to up to 8 enemies around it; the ones left standing are stunned for 2s</td><td>2.0s</td><td>100%</td><td>All around it (tail)</td><td>No</td></tr>
+        <tr><td>Megaraptor</td><td>12 gold</td><td>35</td><td>12 to 2 enemies at once (20 to large units)</td><td>1.0s</td><td>115% (185% when arriving from reserve, or bursting out of the forest or the fortress, until its first attack)</td><td>Melee; can't be stunned</td><td>No</td></tr>
+        <tr><td>Triceratops</td><td>25 gold</td><td>45 (shots and spells hit it but do no damage)</td><td>15, plus 15 to up to 5 enemy shooters in reach. Opening charge: shoves up to 6 enemies back</td><td>1.2s</td><td>100% (150% while charging)</td><td>Melee; leads its army, lined up with enemy Rhinos; stops any charge that reaches it</td><td>No</td></tr>
+        <tr><td>Stegosaurus</td><td>30 gold</td><td>65</td><td>20 to up to 8 enemies around it; the ones left standing are stunned for 2s</td><td>2.0s</td><td>100%</td><td>All around it (tail)</td><td>No</td></tr>
         <tr class="grp"><th colspan="8">Robots</th></tr>
         <tr><td>Robot Brawler</td><td>1 gold</td><td>5</td><td>2 (misses heavy units 25%: Megaraptors, Triceratops, Stegosaurus, Rhinos, Palaeoloxodons, Minotaurs, Robot Knights and Laser Tanks)</td><td>1.0s</td><td>169%</td><td>Melee (fists); takes half a space on the field</td><td>No</td></tr>
         <tr><td>Robot Archer</td><td>4 gold</td><td>6</td><td>2 per laser, 2 lasers per shot</td><td>1.3s</td><td>75%</td><td>A quarter of the field</td><td>Yes, misses 20%</td></tr>
         <tr><td>Robot Drone</td><td>2 gold</td><td>5 (dodges 5% of attacks)</td><td>1</td><td>0.5s</td><td>194% (fastest)</td><td>Melee, flying; takes half a space on the field</td><td>No</td></tr>
         <tr><td>Robot Knight</td><td>9 gold</td><td>20</td><td>9 (also 2 to up to 2 enemies next to its target)</td><td>1.2s</td><td>90% (45% in a shield wall)</td><td>Melee</td><td>No</td></tr>
-        <tr><td>Robot Longbow</td><td>10 gold</td><td>22</td><td>4 per laser, 2 lasers per shot (6 per laser vs flyers); first shot and every 4th shot after stun for 1s, even if blocked</td><td>2.2s</td><td>43%</td><td>A third of the field</td><td>Yes, misses 15%</td></tr>
+        <tr><td>Robot Longbow</td><td>10 gold</td><td>22</td><td>4 per laser, 2 lasers per shot (6 per laser vs flyers); first shot and every 4th shot after stun for 1s, even if blocked; after 2 shots at a target they don't hurt (a Triceratops), it switches to another target</td><td>2.2s</td><td>43%</td><td>A third of the field</td><td>Yes, misses 15%</td></tr>
         <tr><td>Robot Gunship</td><td>14 gold</td><td>30</td><td>Lasers at ground units: 8. Rockets at flyers: 10</td><td>Lasers 1.5s, rockets 2.0s</td><td>110%</td><td>Half an archer's reach, flying</td><td>Yes</td></tr>
         <tr><td>Laser Tank</td><td>40 gold</td><td>100</td><td>Beam for 2s on the spot where enemies are most bunched up: 1 every 0.2s to the 10 units closest to that spot (up to 10 each); 4 beams per battle</td><td>6s cooldown between beams; first beam no sooner than 2s into the battle; can't be stunned</td><td>10%</td><td>Most of the field; takes 3 spaces on the field, at most 2 on the field at once</td><td>Yes</td></tr>
         <tr class="grp"><th colspan="8">Mammals</th></tr>
@@ -601,7 +601,7 @@ const TYPES={
   rarch:{label:'Robot Archer',faction:'Robots',cost:4,hp:6,dmg:2,rate:1.3,range:24,speed:4.05,w:2.632,ratio:1.0749,ranged:true,hitKey:'laser',armor:{},
         flying:false,antiAir:true,missAir:0.2,rank:2,basic:true,lungeDur:.32,strikeAt:.14,bob:0.4,bobRate:1.13,
         sheet:12,sheetClass:'ras',runFrames:8,runCycle:0.62,gun:{muzzles:[[0.8758, 0.4172], [0.6359, 0.3917]]}},
-  rlong:{label:'Robot Longbow',faction:'Robots',cost:10,hp:22,dmg:4,rate:2.2,range:36,speed:2.295,w:5.371,ratio:0.8669,ranged:true,hitKey:'longbow',armor:{},
+  rlong:{label:'Robot Longbow',faction:'Robots',retargetNoDmg:true,cost:10,hp:22,dmg:4,rate:2.2,range:36,speed:2.295,w:5.371,ratio:0.8669,ranged:true,hitKey:'longbow',armor:{},
         flying:false,antiAir:true,rank:2,missAir:0.15,bonusAir:2,lungeDur:.32,strikeAt:.14,bob:0.15,bobRate:3,stunShot:{every:4,dur:1},noHide:true,   // never shelters behind a shield wall; 2 lasers of 4 (6 vs flyers); shots 1, 5, 9... stun for 1s
         sheet:10,sheetClass:'rls',runFrames:6,runCycle:0.25,gun:{muzzles:[[0.9213,0.3378],[0.4572,0.3378]]},noRecoil:true},
   rjet:{label:'Robot Gunship',faction:'Robots',cost:14,hp:30,dmg:12,rate:1.7,range:12,speed:5.94,w:9.784,ratio:0.6634,aimFrac:0.678,ranged:false,rocket:true,hover:true,hitKey:'gunship',armor:{},
@@ -621,14 +621,14 @@ const TYPES={
         flying:false,antiAir:true,rank:2,basic:true,lungeDur:.3,strikeAt:.12,bob:0.4,bobRate:1.4},   // spits venom; goes after flyers first and knocks them down to the ground for 3s; never spits at the same target twice in a row
   ptero:{label:'Pterodactyl',cost:5,hp:10,dmg:5,rate:1.5,range:3.5,speed:7.02,w:2.961,ratio:1.2717,aimFrac:0.352,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:false,rank:1,basic:true,lungeDur:.5,strikeAt:.25,flap:.4},
-  mega:{label:'Megaraptor',heavy:true,stunImmune:true,cost:12,hp:25,dmg:12,bigDmg:20,twin:true,rate:1.0,range:4.3,speed:6.21,w:9.5,ratio:0.4578,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},entryBurst:{mult:1.85/1.15},
+  mega:{label:'Megaraptor',heavy:true,stunImmune:true,cost:12,hp:35,dmg:12,bigDmg:20,twin:true,rate:1.0,range:4.3,speed:6.21,w:9.5,ratio:0.4578,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},entryBurst:{mult:1.85/1.15},
         flying:false,antiAir:false,rank:0,lungeDur:.4,strikeAt:.18,lungeFwd:0.012,bob:0.4,bobRate:1.3},   // bites 2 enemies at once; 20 to large units; can't be stunned; sprints in from reserve
-  bow:{label:'Triceratops',heavy:true,noProj:true,cost:25,hp:30,dmg:15,rate:1.2,range:3.0,footX:3.2,footY:1.0,speed:5.4,w:11.5,ratio:0.5473,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},tcharge:{mult:1.5,n:6},knock:3,hornSweep:{n:5},stopsCharge:true,
+  bow:{label:'Triceratops',heavy:true,noProj:true,cost:25,hp:45,dmg:15,rate:1.2,range:3.0,footX:3.2,footY:1.0,speed:5.4,w:11.5,ratio:0.5473,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},tcharge:{mult:1.5,n:6},knock:3,hornSweep:{n:5},stopsCharge:true,
         flying:false,antiAir:false,rank:-1,lungeDur:.45,strikeAt:.2,lungeFwd:0.012,bob:0.2,bobRate:0.9},   // nothing that's shot or cast can hurt it; leads its army and opens with a charge that shoves up to 6 enemies back
   alamo:{label:'Alamosaurus',heavy:true,stunImmune:true,cost:30,hp:108,dmg:15,rate:2.25,range:2.5,footX:8.8,footY:2.0,speed:3.861,w:21,ratio:0.7621,aimFrac:0.27,ranged:false,hitKey:'melee',armor:{},reduce:{archer:3,longbow:3,rider:3},
         flying:false,antiAir:false,rank:0,preferGround:true,riderType:'dilo',riders:[{fx:0.517,fy:0.335},{fx:0.74,fy:0.303}],
         lungeDur:.6,strikeAt:.3,bob:0.4,bobRate:0.5,legs:true,multi:5,superStomp:{stun:2},charge:{mult:1.5,dist:21,max:4}},
-  quetz:{label:'Stegosaurus',heavy:true,cost:30,hp:45,dmg:20,rate:2.0,range:3.0,footX:4.0,footY:1.2,speed:5.4,w:13.5,ratio:0.6329,aimFrac:0.4,ranged:false,hitKey:'melee',armor:{},tail:{n:8,reach:3,stun:2},
+  quetz:{label:'Stegosaurus',heavy:true,cost:30,hp:65,dmg:20,rate:2.0,range:3.0,footX:4.0,footY:1.2,speed:5.4,w:13.5,ratio:0.6329,aimFrac:0.4,ranged:false,hitKey:'melee',armor:{},tail:{n:8,reach:3,stun:2},
         flying:false,antiAir:false,rank:0,lungeDur:.6,strikeAt:.3,lungeFwd:0.006,bob:0.15,bobRate:0.8},   // tail swing: 20 to up to 8 enemies around it, and the ones left standing are stunned for 2s
   ape:{label:'Gorilla',faction:'Mammals',cost:4,hp:14,dmg:3,rate:1.0,range:4.3,speed:5.67,w:4.6,ratio:0.7816,aimFrac:0.5,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:9,sheetClass:'mms mms-ape',runFrames:8,runCycle:0.6,
         flying:false,antiAir:false,rank:0,basic:true,lungeDur:.32,strikeAt:.14,lungeFwd:0.007,bob:0.15,bobRate:1.4},
@@ -1555,7 +1555,7 @@ function pickTarget(f){
   for(const o of F){ if(o.team===f.team||o.dead||!canHit(f,o)) continue;
     if(BW.length&&!f.T.ranged&&!f.T.flying&&!o.T.flying&&levelOf(o)&&!canClimb(f)) continue;   // too big to climb up to a wall
     if(isDino(f)&&charging(o)&&reachGap(f,o)>rangeOf(f)) continue;   // Dinosaurs don't chase a charging enemy running past; they fight it once it's in reach
-    const p=prio(f,o)-((f.T.noRepeat&&o.id===f.lastShot)?5:0)-((f.T.ranged&&shielded(o))?2:0)+((f.onWall&&f.T.ranged&&reachGap(f,o)<=rangeOf(f))?10:0)-(((MT||TREES||FORT)&&f.T.ranged&&!clearShot(f,o))?0.5:0), d=dist(f,o);   // wall shooters take what they can reach first
+    const p=prio(f,o)-((f.T.noRepeat&&o.id===f.lastShot)?5:0)-((f.ignoreT===o.id)?5:0)-((f.T.ranged&&shielded(o))?2:0)+((f.onWall&&f.T.ranged&&reachGap(f,o)<=rangeOf(f))?10:0)-(((MT||TREES||FORT)&&f.T.ranged&&!clearShot(f,o))?0.5:0), d=dist(f,o);   // wall shooters take what they can reach first
     if(p>bp||(p===bp&&d<bd)){bp=p;bd=d;best=o;} }
   if(f.T.ranged||f.T.flying) for(const o of BAL){ if(o.team===f.team||o.dead) continue;   // castle ballistas: only shooters and flyers can reach them
     const p=-((MT||TREES||FORT)&&f.T.ranged&&!clearShot(f,o)?0.5:0)+((f.onWall&&f.T.ranged&&reachGap(f,o)<=rangeOf(f))?10:0), d=dist(f,o);
@@ -1574,7 +1574,7 @@ function floatText(t,text,cls){
 // Alamosaurus strikes when its Charge reaches its enemy, which also lands on everyone else that stomp catches)
 const MEGA_CHARGE_DODGE=0.75;
 function hit(t,att,mult,proj){
-  if(t.T.noProj&&(proj||(att.T&&(att.T.ranged||att.T.rocket)))){ floatText(t,'Block','blk'); return; }   // Triceratops: shots and spells can't hurt it
+  if(t.T.noProj&&(proj||(att.T&&(att.T.ranged||att.T.rocket)))){ floatText(t,'Block','blk'); if(att.T&&att.T.retargetNoDmg){ att.noDmg=(att.noDmgT===t.id?att.noDmg:0)+1; att.noDmgT=t.id; if(att.noDmg>=2*((att.T.gun&&att.T.gun.muzzles.length)||1)){ att.ignoreT=t.id; att.target=null; att.noDmg=0; } } return; }   // Triceratops: shots and spells can't hurt it (a Robot Longbow gives up on it after 2 shots)
   if(t.T.dodgeCharge&&(att.rcharge||att.chargeHit||att.pcharge||att.mcharge)&&R()<t.T.dodgeCharge){ floatText(t,'Dodge','blk'); return; }   // Dilophosaurus: jumps aside from half the hits of a charging enemy
   if(proj&&soaringOver(t)){ floatText(t,'Miss','blk'); return; }   // shots already in the air miss a Dragon soaring over
   const sure=!!(att.T&&att.T.beam);   // the Laser Tank's beam: it can't miss and nothing dodges or blocks it (only a wall in the way stops it, see beamClear)
