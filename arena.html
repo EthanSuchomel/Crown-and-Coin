@@ -239,10 +239,15 @@ button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .scorch.red{background:radial-gradient(ellipse,rgba(255,240,230,.75) 0 12%,rgba(255,80,50,.55) 35%,rgba(255,40,20,.18) 62%,rgba(255,40,20,0) 72%)}
 .scorch.blue{background:radial-gradient(ellipse,rgba(230,240,255,.75) 0 12%,rgba(60,140,255,.55) 35%,rgba(40,110,255,.18) 62%,rgba(40,110,255,0) 72%)}
 @keyframes scorch{from{opacity:.75}to{opacity:1}}
-.flame{position:absolute;transform-origin:0 50%;pointer-events:none;z-index:4997}
-.flame b{position:absolute;inset:0;transform-origin:0 50%;clip-path:polygon(0 42%,100% 0,100% 100%,0 58%);
-  background:radial-gradient(ellipse 60% 55% at 8% 50%,rgba(255,252,215,1),rgba(255,214,90,.95) 35%,rgba(255,140,30,.9) 65%,rgba(220,60,20,.8) 85%,rgba(140,25,10,0) 100%),linear-gradient(90deg,rgba(255,200,70,.9),rgba(255,120,30,.85) 55%,rgba(200,40,15,.5) 85%,rgba(120,20,10,0));
-  filter:blur(1.2px);animation:flame .9s ease-out forwards}
+.flame{position:absolute;pointer-events:none;z-index:4997;transform-origin:var(--ox,0) var(--oy,50%)}
+.flame b{position:absolute;inset:0;transform-origin:var(--ox,0) var(--oy,50%);background-repeat:no-repeat;background-size:600% 100%;animation:flame .9s ease-out forwards,flick .3s steps(6) infinite}
+.flame.blast b{background-image:url('myth/flame_blast.png')}
+.flame.spray b{background-image:url('myth/flame_arc.png');animation:flameArc .9s ease-out forwards,flick .3s steps(6) infinite}
+@keyframes flameArc{0%{transform:scale(.2);opacity:0}15%{transform:scale(1);opacity:1}70%{opacity:.95}100%{transform:scale(1.04);opacity:0}}
+@keyframes flick{from{background-position:0 0}to{background-position:120% 0}}   /* 6 frames */
+/* the Dragon blowing fire as it soars over on its fire run (inside its picture, so it follows its mouth) */
+.blowfx{position:absolute;display:none;pointer-events:none;left:8.25%;top:49.64%;width:90%;aspect-ratio:340/276;background:url('myth/flame_lone.png') no-repeat 0 0/600% 100%;animation:flick .3s steps(6) infinite}
+.fighter.blowing .blowfx{display:block}
 @keyframes flame{0%{transform:scaleX(.15);opacity:0}15%{transform:scaleX(1);opacity:1}70%{opacity:.95}100%{transform:scaleX(1.05);opacity:0}}
 .zap{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4999;overflow:visible;animation:zapFade .45s linear forwards}
 .zap .glow{fill:none;stroke-width:7px;stroke-linejoin:round;opacity:.75}
@@ -253,8 +258,8 @@ button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .fighter.soar.blue .mms-dragon{background-image:url('myth/dragon_soar_blue.png')}.fighter.soar.red .mms-dragon{background-image:url('myth/dragon_soar_red.png')}
 .mms-minotaur{aspect-ratio:171/192;background-size:1500% 100%}.fighter.blue .mms-minotaur{background-image:url('myth/minotaur_swing_blue.png')}.fighter.red .mms-minotaur{background-image:url('myth/minotaur_swing_red.png')}
 /* Dragon fire streak: patches of flame on the ground; units in it catch fire */
-.fire{position:absolute;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%);z-index:3;opacity:.95;transition:opacity .6s;
-  background:radial-gradient(ellipse at 50% 60%,rgba(255,244,180,.95),rgba(255,170,50,.85) 30%,rgba(232,80,24,.6) 58%,rgba(140,30,10,0) 100%);animation:fireLick .35s ease-in-out infinite alternate}
+.fire{position:absolute;pointer-events:none;transform:translate(-50%,-94.0%) scaleX(var(--fx,1));opacity:.95;transition:opacity .6s;aspect-ratio:268/100;
+  background:url('myth/flame_row.png') no-repeat 0 0/600% 100%;animation:flick .5s steps(6) infinite,fireLick .35s ease-in-out infinite alternate}
 .fire.out{opacity:0}
 @keyframes fireLick{from{filter:brightness(.9) saturate(1)}to{filter:brightness(1.35) saturate(1.2)}}
 .fighter.burning .pose{filter:drop-shadow(0 0 3px rgba(255,120,30,.95)) drop-shadow(0 -2px 2px rgba(255,200,60,.8))}
@@ -271,7 +276,7 @@ button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .fighter.landed.blue .mms-dragon{background-image:url('myth/dragon_walk_blue.png')!important}.fighter.landed.red .mms-dragon{background-image:url('myth/dragon_walk_red.png')!important}
 .fighter.landed.blue .mms-griffin{background-image:url('myth/griffin_walk_blue.png')!important}.fighter.landed.red .mms-griffin{background-image:url('myth/griffin_walk_red.png')!important}
 @keyframes zapFade{0%,55%{opacity:1}20%{opacity:.55}35%{opacity:1}100%{opacity:0}}
-@media (prefers-reduced-motion: reduce){.flame b{animation-duration:.01s}.zap{animation-duration:.2s}}
+@media (prefers-reduced-motion: reduce){.flame b,.flame.spray b{animation:flame .6s linear forwards}.blowfx{animation:none}.zap{animation-duration:.2s}}
 .arc{position:absolute;height:2px;transform-origin:0 50%;pointer-events:none;z-index:4998;border-radius:2px;animation:arcFade .18s linear forwards}
 .arc.red{background:#ffd9d0;box-shadow:0 0 4px 1px rgba(255,60,40,.95)}
 .arc.blue{background:#d9e6ff;box-shadow:0 0 4px 1px rgba(60,140,255,.95)}
@@ -642,7 +647,7 @@ const TYPES={
   griffin:{label:'Griffin',faction:'Mythical',cost:40,hp:45,dmg:25,rate:1.0,range:4,speed:7.02,walkSpeed:5.4,w:10.0,ratio:0.9808,sheet:24,sheetClass:'mms fls mms-griffin',flapSheet:true,soar:{period:1.6},walkCycle:0.6,gswoop:{mult:2,radius:5,dmg:2,miss:2},knock:3,aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:true,rank:1,lungeDur:.6,strikeAt:.3,flap:.75},   // one wing beat every 0.6s   // flies at 130%, on the ground at 100%
   dragon:{label:'Dragon',faction:'Mythical',cost:85,hp:150,dmg:30,rate:1.0,range:5,speed:6.48,walkSpeed:4.86,w:15.1,ratio:0.8965,sheet:24,sheetClass:'mms fls mms-dragon',flapSheet:true,soar:{period:2.2},walkCycle:0.8,swoop:{mult:6,back:1.5,land:0.3,wait:1.2,fire:{dur:5,after:5,dps:5,r:2.4,gap:1.6}},aimFrac:0.45,ranged:false,hitKey:'air',armor:{},
-        flying:true,antiAir:true,rank:1,breath:{dmg:15,n:15,rate:8,reach:16,first:2},mouth:[0.95,0.5],lungeDur:.7,strikeAt:.35,flap:1.1}   // bite 30 every 1s; fire breath 15 to up to 15 every 8s
+        flying:true,antiAir:true,rank:1,breath:{dmg:15,n:15,rate:8,reach:16,first:2},mouth:[0.94,0.57],mouthLand:[0.96,0.47],lungeDur:.7,strikeAt:.35,flap:1.1}   // bite 30 every 1s; fire breath 15 to up to 15 every 8s
 };
 const ORDER=['galli','dilo','ptero','mega','bow','quetz','alamo','robot','rarch','rdrone','rknight','rlong','rjet','rtank','ape','porc','bat','rhino','kanga','gbat','eleph','minion','mage','minotaur','griffin','dragon'];
 // a fresh army for each faction, picked when a side switches faction
@@ -1310,6 +1315,7 @@ function addUnit(team,key,x,y,entering){
     :T.sheet?'<div class="'+(T.sheetClass||'rbs')+'"></div>'+(T.pivot?'<div class="rtc"></div><div class="rtt"></div>':'')+(T.gunPivot?'<div class="rjb"></div>':'')
     :T.legs?rearRig('f')+legRig('f')+'<img class="spr body" alt="" src="'+IMG[key][SIDE[team]]+'">'+rearRig('n')+'<div class="rig o"><div class="seg"><img class="spr" alt="" src="'+IMG.alamoLegs.ro+'"></div></div>'+legRig('n')
     :'<img class="spr body" alt="" src="'+IMG[key][SIDE[team]]+'">')+(T.trumpet?'<img class="eshout" alt="" src="'+ESHOUT[SIDE[team]]+'">':'')+'</div></div>';
+  if(T.swoop) el.querySelector('.mms').innerHTML='<i class="blowfx"></i>';   // Dragon: the flame it blows on its fire run
   arena.appendChild(el);
   F.push({id:UID++,team,key,T,h,x,y,hp:unitHp(team,key),armor:Object.assign({},T.armor),cd:rnd(0.15,1.1),lunge:-1,struck:false,flash:0,missNext:!!CURSED[team],extraDelay:(CURSED[team]&&T.beam)?T.beam&&2:0,
     dead:false,deadT:0,gone:false,engaged:false,vx:0,vy:0,target:null,face:team===HOLD?1:-1,walking:false,phase:rnd(0,6),
@@ -1867,14 +1873,17 @@ function swoopStep(f,dt){
   while(onTheirSide&&S.drop>=Z.fire.gap){ S.drop-=Z.fire.gap; dropFire(f,nx-dir*S.drop,ny); }   // (fast enough to need several a frame)
 }
 function dropFire(f,x,y){
-  const Z=f.T.swoop.fire, el=document.createElement('div'); el.className='fire';
-  el.style.left=x+'%'; el.style.top=(y/AH*100)+'%'; el.style.width=(2*Z.r*1.25)+'%'; el.style.height=(2*Z.r*0.7/AH*100)+'%';
-  arena.appendChild(el);
+  const Z=f.T.swoop.fire; let el=null;
+  if(((f.fireN=(f.fireN||0)+1)%2)===1){   // Ethan's line of flames: one picture every other burning patch reads as one line of fire
+    el=document.createElement('div'); el.className='fire';
+    el.style.left=x+'%'; el.style.top=((y+0.4)/AH*100)+'%'; el.style.width=(Z.r*3)+'%'; el.style.zIndex=Math.round(y*10)-1;   // units standing in it are drawn in front
+    el.style.setProperty('--fx',vrnd(0,1)<0.5?-1:1); el.style.animationDelay=(-vrnd(0,0.5)).toFixed(2)+'s,'+(-vrnd(0,0.35)).toFixed(2)+'s';
+    arena.appendChild(el); }
   FIRES.push({x,y,r:Z.r,until:clock+Z.dur,after:Z.after,dps:Z.dps,team:f.team,el});
 }
 function fireStep(dt){
   for(let i=FIRES.length-1;i>=0;i--){ const P=FIRES[i];
-    if(clock>=P.until){ const el=P.el; el.classList.add('out'); setTimeout(()=>el.remove(),650); FIRES.splice(i,1); continue; }
+    if(clock>=P.until){ const el=P.el; if(el){ el.classList.add('out'); setTimeout(()=>el.remove(),650); } FIRES.splice(i,1); continue; }
     for(const o of F){ if(o.team===P.team||o.dead||o.pass||o.T.flying||o.onWall||o.ballista) continue;
       if(Math.hypot((o.x-P.x)/1.25,(o.y-P.y)/0.7)<=P.r){ if(!(o.burnUntil>clock)) o.burnAcc=0; o.burnUntil=Math.max(o.burnUntil||0,P.until+P.after); o.burnBy=P.team; o.burnDps=P.dps; } } }
   for(const o of F){
@@ -1939,6 +1948,7 @@ function chargeHit(f,t){
   if(SPECIAL(t.key)||t.key==='dragon'){ hit(t,f); if(!t.dead){ const d=f.T.mcharge.stun; t.stun=Math.max(t.stun,d); t.forceStun=clock+d; floatText(t,'Stunned','blk'); } return; }
   hit(t,{T:{dmg:Math.max(1,Math.ceil(t.hp)),beam:true},team:f.team,hitKey:'melee'});
 }
+const FLAME={arc:{ar:227/172,tip:[0.0352, 0.0466]},blast:{ar:317/225,tip:[0.0606, 0.4133]}};   // where each flame picture starts (its narrow end)
 function breathStep(f){
   const B=f.T.breath;
   if(f.fireAt==null) f.fireAt=clock+B.first+R();
@@ -1952,14 +1962,25 @@ function breathStep(f){
   const burn=F.filter(o=>!o.dead&&!o.pass&&!o.ballista&&o.team!==f.team&&canHit(f,o)&&inCone(o)).sort((a,b)=>dist(a,f)-dist(b,f)).slice(0,B.n);
   f.fireAt=clock+B.rate;
   // draw it: from its mouth along the cone, as long as reach (or to just past the farthest unit burned)
-  const M=f.T.mouth, mx=f.x+f.face*(M[0]-0.5)*f.T.w, my=f.y-f.alt-f.h*(1-M[1]);
+  const M=f.grounded?f.T.mouthLand:f.T.mouth, mx=f.x+f.face*(M[0]-0.5)*f.T.w, my=f.y-f.alt-f.h*(1-M[1]);
   const far=burn.reduce((m,o)=>Math.max(m,dist(o,{x:ox,y:oy})),L)+2, len=Math.min(B.reach+2,far);
   const ex=ox+ux*len, ey=oy+uy*len-(t.T.flying?t.alt:0)-1, ang=Math.atan2(ey-my,ex-mx), dl=Math.hypot(ex-mx,ey-my);
-  const aw=arena.clientWidth||1000, fl=document.createElement('div'); fl.className='flame';
-  fl.style.left=mx+'%'; fl.style.top=(my/AH*100)+'%'; fl.style.width=dl+'%';
-  const hpx=2*(1.6+len*0.4)*aw/AW; fl.style.height=hpx.toFixed(1)+'px'; fl.style.marginTop=(-hpx/2).toFixed(1)+'px';
-  fl.style.transform='rotate('+(ang*180/Math.PI).toFixed(1)+'deg)';
-  const b=document.createElement('b'); fl.appendChild(b); b.addEventListener('animationend',()=>fl.remove()); arena.appendChild(fl);
+  const fl=document.createElement('div'), b=document.createElement('b'); fl.appendChild(b);
+  const ty=t.y-(t.T.flying?t.alt:0);
+  if(!t.T.flying&&Math.abs(t.x-mx)<9&&ty>my){   // close in front, on the ground: it sprays fire down at them (the curved flame)
+    const P=FLAME.arc, hh=Math.max(4,ty-my+1), ww=hh*P.ar;
+    fl.className='flame spray'; fl.style.width=ww+'%'; fl.style.height=(hh/AH*100)+'%';
+    fl.style.left=(mx-P.tip[0]*ww)+'%'; fl.style.top=((my-P.tip[1]*hh)/AH*100)+'%';
+    fl.style.setProperty('--ox',(P.tip[0]*100)+'%'); fl.style.setProperty('--oy',(P.tip[1]*100)+'%');
+    fl.style.transform='scaleX('+(t.x>=mx?1:-1)+')';
+  } else {                                        // farther off: a straight blast of fire out to them
+    const P=FLAME.blast, hh=Math.max(3,Math.min(9,dl*0.6));
+    fl.className='flame blast'; fl.style.width=dl+'%'; fl.style.height=(hh/AH*100)+'%';
+    fl.style.left=(mx-P.tip[0]*dl)+'%'; fl.style.top=((my-P.tip[1]*hh)/AH*100)+'%';
+    fl.style.setProperty('--ox',(P.tip[0]*100)+'%'); fl.style.setProperty('--oy',(P.tip[1]*100)+'%');
+    fl.style.transform='rotate('+(ang*180/Math.PI).toFixed(1)+'deg)'+(Math.cos(ang)<0?' scaleY(-1)':'');   // (kept right way up when it breathes to the left)
+  }
+  b.addEventListener('animationend',e=>{ if(e.animationName!=='flick') fl.remove(); }); arena.appendChild(fl);
   if(f.missNext){ f.missNext=false; floatText(t,'Miss','blk'); return; }   // War Trumpet: this breath does no harm
   for(const o of burn) hit(o,f,B.dmg/f.T.dmg);
 }
@@ -2296,6 +2317,8 @@ function draw(){
         // Dragon: glides on its soaring pose while flying across the field; beats its wings (idle pose) while hovering or fighting
         const so=!!(f.T.soar&&!f.dead&&!over&&f.walking&&f.lunge<0&&f.baseAlt>(ALT+LOW_ALT)/2&&!(f.stun>0));
         if(f.T.soar&&so!==!!f.soaring){ f.soaring=so; e.classList.toggle('soar',so); }
+        const bw=!!(f.swoop&&f.swoop.st===1&&!f.dead&&!over&&!(f.stun>0)&&(f.x-AW/2)*(f.team===HOLD?1:-1)>-6);   // fire run: blowing fire from the middle on
+        if(bw!==!!f.blowShown){ f.blowShown=bw; e.classList.toggle('blowing',bw); }
         const ld=!!(f.grounded&&!f.dead);   // landed Dragon or Griffin: its standing picture
         if(ld!==!!f.landedShown){ f.landedShown=ld; e.classList.toggle('landed',ld); }
         fr=f.dead?(f.frame||0):ld?((f.walking&&!over&&!(f.stun>0))?1+Math.floor(f.phase/9/f.T.walkCycle*8)%8:0)   // landed: walking, or standing still
