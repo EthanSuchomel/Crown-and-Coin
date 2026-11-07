@@ -9,3 +9,4 @@ R("const downed=o=>o.downT>clock;   // a flyer a Dilophosaurus has knocked down"
   "const downed=o=>o.downT>clock||!!o.grounded;   // a flyer on the ground: knocked down by a Dilophosaurus, or a Griffin or Dragon that has landed")
 R("They still count as flyers for who can hit them.", "Once landed, ground fighters can attack them too.") if "They still count as flyers for who can hit them." in s else None
 open(p,'w',encoding='utf-8').write(s); print('fixed')
+# (merged 2026-11-07 from another session's edit on the test link: the Laser Tank's beam does hurt the Triceratops)
