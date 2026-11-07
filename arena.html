@@ -431,7 +431,7 @@ tr.grp th{background:var(--bg);font-size:13px;letter-spacing:.04em;text-transfor
 .status small{font-weight:500;font-size:.85em}
 .team.b .tn span{color:var(--blue)}.team.r .tn span{color:var(--red)}
 .step{display:flex;align-items:center;gap:8px;min-width:0}
-.step label{min-width:122px;max-width:140px;line-height:1.15}
+.step label{min-width:122px;max-width:140px;line-height:1.15}.step label .cap{font-size:12px;font-weight:500;color:var(--muted)}
 .step button{padding:0;width:44px;font-size:22px;line-height:1}
 .step input{width:58px;min-height:44px;text-align:center;font:inherit;font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;
   border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);-moz-appearance:textfield;appearance:textfield}
@@ -544,7 +544,7 @@ html.emb.short #status{display:none}
         <tr><td>Palaeoloxodon</td><td>40 gold</td><td>80</td><td>18 to up to 5 ground units at once (stomp, then a tusk swing that shoves them back; heavy units half as far). War Trumpet at 2s: Mammals +2 damage</td><td>1.0s (Mammals 0.2s faster after War Trumpet)</td><td>110% (Mammals +15% after War Trumpet)</td><td>Its tusks</td><td>No</td></tr>
         <tr class="grp"><th colspan="8">Mythical</th></tr>
         <tr><td>Minion</td><td>1 gold</td><td>5</td><td>2</td><td>1.0s</td><td>70%</td><td>Melee</td><td>No</td></tr>
-        <tr><td>Mage</td><td>15 gold</td><td>15</td><td>Chain lightning: 5 to up to 20 enemies at once. Every 2s, a 20% chance to turn a Minion into a Minotaur</td><td>3s</td><td>65%</td><td>The whole field; the bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
+        <tr><td>Mage (at most 2 per army)</td><td>15 gold</td><td>15</td><td>Chain lightning: 5 to up to 20 enemies at once. Every 2s, a 20% chance to turn a Minion into a Minotaur</td><td>3s</td><td>65%</td><td>The whole field; the bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
         <tr><td>Minotaur</td><td>25 gold</td><td>35</td><td>15 to up to 5 ground units at once. Charge: its first hit kills (big special units: stunned 4s instead)</td><td>1.0s</td><td>115% (184% while charging)</td><td>Melee (hammer)</td><td>No</td></tr>
         <tr><td>Griffin</td><td>40 gold</td><td>45</td><td>25. Landing: 2 to each enemy nearby, knocked back. Screech: enemy shooters miss their next 2 shots, enemy charges stop</td><td>1.0s</td><td>130% flying, 100% on the ground</td><td>Melee, flying</td><td>Yes</td></tr>
         <tr><td>Dragon</td><td>85 gold</td><td>150</td><td>Bite 30. Fire breath: 15 to up to 15 enemies at once. Fire run: 5 a second to anyone in its fire streak, for as long as it burns and 5 seconds after</td><td>Bite 1.0s, fire breath 8s</td><td>120% flying, 90% on the ground</td><td>Melee, flying; fire breath reaches about a sixth of the field</td><td>Yes</td></tr>
@@ -640,7 +640,7 @@ const TYPES={
   // ---- Mythical (Ethan's stats). Speed: 100% = 5.4 ----
   minion:{label:'Minion',faction:'Mythical',cost:1,hp:5,dmg:2,rate:1.0,range:3.5,speed:3.78,w:1.5,ratio:1.3727,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},
         flying:false,antiAir:false,rank:0,basic:true,lungeDur:.3,strikeAt:.13,lungeFwd:0.008,bob:0.6,bobRate:2.2},   // penguin chick: waddles
-  mage:{label:'Mage',faction:'Mythical',cost:15,hp:15,dmg:5,rate:3,range:120,speed:3.51,w:2.8,ratio:1.4636,aimFrac:0.5,ranged:true,hitKey:'magic',armor:{},
+  mage:{label:'Mage',faction:'Mythical',cost:15,maxN:2,hp:15,dmg:5,rate:3,range:120,speed:3.51,w:2.8,ratio:1.4636,aimFrac:0.5,ranged:true,hitKey:'magic',armor:{},
         flying:false,antiAir:true,rank:2,lightning:{n:20,jump:9},morph:{every:2,chance:0.2,into:'minotaur'},lungeDur:.6,strikeAt:.3,noRecoil:true,bob:0.2,bobRate:1.2,staff:[0.17,0.06]},   // chain lightning: 5 to up to 20 enemies, every 10s
   minotaur:{label:'Minotaur',faction:'Mythical',heavy:true,cost:25,hp:35,dmg:15,rate:1.0,range:4.3,speed:6.21,w:6.6,ratio:1.1228,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:15,sheetClass:'mms mms-minotaur',runFrames:8,runCycle:0.6,atkFrames:9,atkSteps:[0.15,0.32,0.55,0.75,0.9],mcharge:{mult:1.6,stun:4},
         flying:false,antiAir:false,rank:0,multi:5,lungeDur:.6,strikeAt:.36,lungeFwd:0.006,bob:0.3,bobRate:1.1},   // hammer: 15 to up to 5 ground units at once
@@ -652,7 +652,7 @@ const TYPES={
 const ORDER=['galli','dilo','ptero','mega','bow','quetz','alamo','robot','rarch','rdrone','rknight','rlong','rjet','rtank','ape','porc','bat','rhino','kanga','gbat','eleph','minion','mage','minotaur','griffin','dragon'];
 // a fresh army for each faction, picked when a side switches faction
 const FACTIONS=['Dinosaurs','Robots','Mammals','Mythical'];
-const DEFAULT_ARMY={Dinosaurs:{dilo:8,ptero:4,mega:24,bow:8},Robots:{robot:4,rarch:28,rdrone:8,rknight:6,rlong:4,rtank:1},Mammals:{ape:14,porc:6,bat:10,rhino:3,kanga:3,gbat:2,eleph:1},Mythical:{minion:25,mage:4,minotaur:3,griffin:1,dragon:1}};
+const DEFAULT_ARMY={Dinosaurs:{dilo:8,ptero:4,mega:24,bow:8},Robots:{robot:4,rarch:28,rdrone:8,rknight:6,rlong:4,rtank:1},Mammals:{ape:14,porc:6,bat:10,rhino:3,kanga:3,gbat:2,eleph:1},Mythical:{minion:25,mage:2,minotaur:3,griffin:1,dragon:1}};
 const armyFor=fac=>{ const c={}; ORDER.forEach(k=>c[k]=0); return Object.assign(c,DEFAULT_ARMY[fac]); };
 const COUNTS=[armyFor('Dinosaurs'),armyFor('Robots')];
 // each side fields one faction only
@@ -660,7 +660,7 @@ let TEAM_FACTION=['Dinosaurs','Robots'];   // each side picks its faction above 
 const facOf=k=>TYPES[k].faction||'Dinosaurs';
 const teamKeys=t=>ORDER.filter(k=>facOf(k)===TEAM_FACTION[t]);   // [blue, red]
 const ALT=7.6, LOW_ALT=2.2;                       // cruising height, and how low flyers come to fight ground units                                       // how high flyers cruise, in field units
-const FIELD_MAX=25, MAXN=99;                      // spaces on the field per side, most of one type per side
+const FIELD_MAX=25, MAXN=99; const capOf=k=>Math.min(MAXN,TYPES[k].maxN||MAXN);   // a unit type can have its own most per army (Mage: 2)                      // spaces on the field per side, most of one type per side
 const slot=k=>TYPES[k].slot||1;                    // Robot Brawlers take half a space
 // first units in the list that fit on the field; the rest wait in reserve
 // who starts on the field: in order until the field is full; a unit type with a limit (Laser Tank: 2 at a time)
@@ -2381,16 +2381,16 @@ function renderArmy(){
     const [fl,rl]=splitField(fieldFirst(mixList(COUNTS[team]))), field=fl.length, res=rl.length;
     return '<div class="team '+CLS[team]+'"><div class="tn"><span>'+NAMES[team]+' &middot; '+TEAM_FACTION[team]+'</span><small>'+total+' total &middot; <b class="gold">'+armyGold(COUNTS[team])+' gold</b> &middot; <b class="gold">'+ORDER.reduce((s,k)=>s+COUNTS[team][k]*TYPES[k].hp,0)+' health</b> &middot; '+field+' on the field, '+res+' in reserve</small></div>'+(EMB?'':'<div class="facs" role="group" aria-label="'+NAMES[team]+' faction">'+FACTIONS.map(fc=>'<button type="button" data-ft="'+team+'" data-fac="'+fc+'" aria-pressed="'+(fc===TEAM_FACTION[team])+'">'+fc+'</button>').join('')+'</div>')+teamKeys(team).map(key=>{
       const n=COUNTS[team][key], nm=TYPES[key].label, id='n-'+team+'-'+key;
-      return '<div class="step"><label for="'+id+'">'+nm+'</label>'+
+      return '<div class="step"><label for="'+id+'">'+nm+(TYPES[key].maxN?' <small class="cap">(max '+TYPES[key].maxN+')</small>':'')+'</label>'+
         '<button type="button" data-t="'+team+'" data-k="'+key+'" data-d="-1" aria-label="Fewer '+NAMES[team]+' '+nm+'s"'+((n===0||total<=1)?' disabled':'')+'>&minus;</button>'+
-        '<input type="number" inputmode="numeric" id="'+id+'" data-t="'+team+'" data-k="'+key+'" min="0" max="'+MAXN+'" value="'+n+'">'+
-        '<button type="button" data-t="'+team+'" data-k="'+key+'" data-d="1" aria-label="More '+NAMES[team]+' '+nm+'s"'+(n>=MAXN?' disabled':'')+'>+</button></div>';
+        '<input type="number" inputmode="numeric" id="'+id+'" data-t="'+team+'" data-k="'+key+'" min="0" max="'+capOf(key)+'" value="'+n+'">'+
+        '<button type="button" data-t="'+team+'" data-k="'+key+'" data-d="1" aria-label="More '+NAMES[team]+' '+nm+'s"'+(n>=capOf(key)?' disabled':'')+'>+</button></div>';
     }).join('')+'</div>';
   }).join('');
 }
 function setCount(t,k,v){
   if(facOf(k)!==TEAM_FACTION[t]) return;   // a side only fields its own faction
-  v=Math.max(0,Math.min(MAXN,Math.round(v)||0));
+  v=Math.max(0,Math.min(capOf(k),Math.round(v)||0));
   const other=ORDER.reduce((s,x)=>s+(x===k?0:COUNTS[t][x]),0);
   if(v+other<1) v=1;                 // every side needs at least one unit
   COUNTS[t][k]=v; renderArmy(); build();
@@ -2468,7 +2468,7 @@ function embSetup(m){
   ME=m.me; AI_TEAMS=m.ai||[]; AI_LV=m.lvl||'medium';
   { const md=m.mods||{}; SNEAK=(md.sneak===0||md.sneak===1)?md.sneak:null; SNEAK_HIT=false;
     MOD_PLUS=[0,1].map(t=>+((md.plus||[])[t])||0); MOD_MULT=[0,1].map(t=>+((md.mult||[])[t])||1); } MAP_PICK=null; MAP=m.map||'open'; HOLD_SEL=m.hold||0; END_SENT=false; ENDED=null; HOSTCLK=null; SNAP_T=0;
-  for(let t=0;t<2;t++){ for(const k of ORDER) COUNTS[t][k]=0; const a=m.armies[t]||{}; for(const k in a){ const ak=KEY_IN[k]||k; if(TYPES[ak]) COUNTS[t][ak]+=a[k]; }
+  for(let t=0;t<2;t++){ for(const k of ORDER) COUNTS[t][k]=0; const a=m.armies[t]||{}; for(const k in a){ const ak=KEY_IN[k]||k; if(TYPES[ak]) COUNTS[t][ak]=Math.min(capOf(ak),COUNTS[t][ak]+a[k]); }
     const fk=ORDER.find(k=>COUNTS[t][k]>0); TEAM_FACTION[t]=m.factions&&m.factions[t]||(fk?facOf(fk):['Dinosaurs','Robots'][t]); }
   speed=1; document.querySelectorAll('.spd').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.s===1)));
   build(); showOrders();

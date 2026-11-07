@@ -14,3 +14,4 @@ edits-walk-*.json: landed Dragon and Griffin use Ethan's folded-wing pictures wi
 edits-front-*.json: Dragon lands at the front line after its fire run; 24-frame wing beats at a steady pace. edits-soar-*.json: no projectile can hit the Dragon while it soars over. Apply after edits-walk, front then soar.
 edits-flames-*.json: Dragon fire uses Ethan's flame pictures (flicker drawn by Claude). Apply after edits-soar.
 edits-blow-*.json: the soaring flame blows forward; fire lands 14 ahead. edits-dsize-*.json: all Dragon poses the same size (560x480 frames, w 21.35). Apply after edits-flames, blow then dsize.
+edits-mage2-*.json: at most 2 Mages per army (per-unit maxN cap; default army 2 Mages). Apply after edits-dsize.
