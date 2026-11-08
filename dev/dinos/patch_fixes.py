@@ -10,3 +10,4 @@ R("const downed=o=>o.downT>clock;   // a flyer a Dilophosaurus has knocked down"
 R("They still count as flyers for who can hit them.", "Once landed, ground fighters can attack them too.") if "They still count as flyers for who can hit them." in s else None
 open(p,'w',encoding='utf-8').write(s); print('fixed')
 # (merged 2026-11-07 from another session's edit on the test link: the Laser Tank's beam does hurt the Triceratops)
+# 2026-11-07 (Ethan): Robot Knight 25 health (was 20); shield wall breaks after 50 melee damage (was 30). Edited in arena.html directly.
