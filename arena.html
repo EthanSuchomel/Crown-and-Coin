@@ -438,7 +438,7 @@ tr.grp th{background:var(--bg);font-size:13px;letter-spacing:.04em;text-transfor
 .status small{font-weight:500;font-size:.85em}
 .team.b .tn span{color:var(--blue)}.team.r .tn span{color:var(--red)}
 .step{display:flex;align-items:center;gap:8px;min-width:0}
-.step label{min-width:122px;max-width:140px;line-height:1.15}.step label .cap{font-size:12px;font-weight:500;color:var(--muted)}
+.step label{min-width:122px;max-width:140px;line-height:1.15}.step.mlv{margin-bottom:4px}.step.mlv label{max-width:none;flex:1}.step.mlv label .cap{display:block}.step .mlvn{min-width:2.4em;text-align:center;font-weight:700;font-size:1.1em}.step label .cap{font-size:12px;font-weight:500;color:var(--muted)}
 .step button{padding:0;width:44px;font-size:22px;line-height:1}
 .step input{width:58px;min-height:44px;text-align:center;font:inherit;font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;
   border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);-moz-appearance:textfield;appearance:textfield}
@@ -550,7 +550,7 @@ html.emb.short #status{display:none}
         <tr><td>Palaeoloxodon</td><td>50 gold</td><td>80</td><td>18 to up to 5 ground units at once (stomp, then a tusk swing that shoves them back; heavy units half as far). War Trumpet at 2s: Mammals +2 damage</td><td>1.0s (Mammals 0.2s faster after War Trumpet)</td><td>110% (Mammals +15% after War Trumpet)</td><td>Its tusks</td><td>No</td></tr>
         <tr class="grp"><th colspan="8">Mythical</th></tr>
         <tr><td>Minion</td><td>1 gold</td><td>5</td><td>2</td><td>1.0s</td><td>70%</td><td>Melee</td><td>No</td></tr>
-        <tr><td>Mage (at most 2 per army)</td><td>15 gold</td><td>15</td><td>Chain lightning: 5 to up to 20 enemies at once. Every 2s, a 20% chance to turn a Minion into a Minotaur</td><td>3s</td><td>65%</td><td>The whole field; the bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
+        <tr><td>Mage (at most 2 per army, 3 at level 3)</td><td>15 gold, +1 a level</td><td>15</td><td>Chain lightning: 5 to up to 20 enemies at once. Every 2s, a 20% chance to turn a Minion into a Minotaur</td><td>3s</td><td>65%</td><td>By Mage level: a quarter of the field (5 damage), half (6), three quarters (7), the whole field (7). Griffins need level 1, Dragons level 2; at level 3 every unit costs 1 gold less. The bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
         <tr><td>Minotaur</td><td>25 gold</td><td>35</td><td>15 to up to 5 ground units at once. Charge: its first hit kills (big special units: stunned 4s instead)</td><td>1.0s</td><td>115% (184% while charging)</td><td>Melee (hammer)</td><td>No</td></tr>
         <tr><td>Griffin</td><td>40 gold</td><td>45</td><td>25. Landing: 2 to each enemy nearby, knocked back. Screech: enemy shooters miss their next 2 shots, enemy charges stop</td><td>1.0s</td><td>130% flying, 100% on the ground</td><td>Melee, flying</td><td>Yes</td></tr>
         <tr><td>Dragon</td><td>85 gold</td><td>150</td><td>Bite 30. Fire breath: 15 to up to 15 enemies at once. Fire run: 5 a second to anyone in its fire streak, for as long as it burns and 5 seconds after</td><td>Bite 1.0s, fire breath 8s</td><td>120% flying, 90% on the ground</td><td>Melee, flying; fire breath reaches about a sixth of the field</td><td>Yes</td></tr>
@@ -673,7 +673,12 @@ const DEFAULT_ARMY={Dinosaurs:{galli:15,dilo:6,ptero:5,mega:5,bow:2,quetz:1},Rob
 const armyFor=fac=>{ const c={}; ORDER.forEach(k=>c[k]=0); return Object.assign(c,DEFAULT_ARMY[fac]); };
 const COUNTS=[armyFor('Dinosaurs'),armyFor('Robots')];
 // each side fields one faction only
-let TEAM_FACTION=['Dinosaurs','Robots'];   // each side picks its faction above its army
+let TEAM_FACTION=['Dinosaurs','Robots'];
+// Mage level per side (Mythical only): picked above the army, like the Crown & Coin upgrade
+const MLV=[2,2], MLV_NOTE=['Lightning reaches a quarter of the field, 5 damage','Half the field, 6 damage; Griffins','Three quarters, 7 damage; Dragons','Whole field, 7 damage; 3 Mages; units 1 gold cheaper'];
+const mlvOn=t=>!EMB&&TEAM_FACTION[t]==='Mythical';
+const capFor=(t,k)=>!mlvOn(t)?capOf(k):k==='mage'?(MLV[t]>=3?3:2):(k==='griffin'&&MLV[t]<1)||(k==='dragon'&&MLV[t]<2)?0:capOf(k);
+const lockNote=(t,k)=>mlvOn(t)&&capFor(t,k)===0?' <small class="cap">(Mage level '+(k==='griffin'?1:2)+')</small>':'';   // each side picks its faction above its army
 const facOf=k=>TYPES[k].faction||'Dinosaurs';
 const teamKeys=t=>ORDER.filter(k=>facOf(k)===TEAM_FACTION[t]&&!TYPES[k].hidden);   // [blue, red]
 const ALT=7.6, LOW_ALT=2.2;                       // cruising height, and how low flyers come to fight ground units                                       // how high flyers cruise, in field units
@@ -1323,7 +1328,7 @@ function rearRig(s){const L=IMG.alamoLegs;
 function legRig(s){const L=IMG.alamoLegs;
   return '<div class="rig '+s+'"><div class="seg up '+s+'"><img class="spr" alt="" src="'+L[s+'u']+'"><div class="seg low '+s+'"><img class="spr" alt="" src="'+L[s+'l']+'"></div></div></div>';}
 function addUnit(team,key,x,y,entering){
-  const T=TYPES[key], h=T.w*T.ratio;
+  const T=(key==='mage'&&mlvOn(team))?TYPES['mage'+MLV[team]]:TYPES[key], h=T.w*T.ratio;   // a Mage fights at its side's level
   const el=document.createElement('div'); el.className='fighter u-'+key+' '+SIDE[team]+(T.flying?' flyer':'')+(entering?' enter':'');
   el.style.width=(T.artW||T.w)+'%';
   const fd=T.flap||0.6, flap='animation-delay:'+(-rnd(0,fd)).toFixed(2)+'s;animation-duration:'+fd+'s';
@@ -1503,7 +1508,7 @@ const minY=f=>f.h+1+(f.T.flying?f.baseAlt+1:0);
 // can go, a ground unit further up still counts as in reach when it's close enough sideways (its lasers shoot down and across)
 function reachGap(f,o){ const g=gap(f,o); if(!f.T.hover||o.T.flying) return g;
   if(f.y<=minY(f)+0.6&&o.y<f.y) return Math.max(0,Math.abs(o.x-f.x)-(o.T.footX||0)); return g; }
-const armyGold=c=>ORDER.reduce((s,k)=>s+c[k]*TYPES[k].cost,0);   // what an army costs
+const armyGold=(c,t)=>ORDER.reduce((s,k)=>{ let g=TYPES[k].cost; if(t!=null&&mlvOn(t)){ if(k==='mage') g+=MLV[t]; if(MLV[t]>=3) g=Math.max(1,g-1); } return s+c[k]*g; },0);   // what an army costs (a Mythical side's Mage level counts)
 function setStatus(){
   const tot=[0,1].map(t=>alive(t).length+RES[t].length);
   // gold worth of everything still standing or waiting in reserve
@@ -2468,28 +2473,32 @@ function renderArmy(){
   armyEl.innerHTML=[0,1].map(team=>{
     const total=ORDER.reduce((s,k)=>s+COUNTS[team][k],0);
     const [fl,rl]=splitField(fieldFirst(mixList(COUNTS[team]))), field=fl.length, res=rl.length;
-    return '<div class="team '+CLS[team]+'"><div class="tn"><span>'+NAMES[team]+' &middot; '+TEAM_FACTION[team]+'</span><small>'+total+' total &middot; <b class="gold">'+armyGold(COUNTS[team])+' gold</b> &middot; <b class="gold">'+ORDER.reduce((s,k)=>s+COUNTS[team][k]*TYPES[k].hp,0)+' health</b> &middot; '+field+' on the field, '+res+' in reserve</small></div>'+(EMB?'':'<div class="facs" role="group" aria-label="'+NAMES[team]+' faction">'+FACTIONS.map(fc=>'<button type="button" data-ft="'+team+'" data-fac="'+fc+'" aria-pressed="'+(fc===TEAM_FACTION[team])+'">'+fc+'</button>').join('')+'</div>')+teamKeys(team).map(key=>{
-      const n=COUNTS[team][key], nm=TYPES[key].label, id='n-'+team+'-'+key;
-      return '<div class="step"><label for="'+id+'">'+nm+(TYPES[key].maxN?' <small class="cap">(max '+TYPES[key].maxN+')</small>':'')+'</label>'+
+    return '<div class="team '+CLS[team]+'"><div class="tn"><span>'+NAMES[team]+' &middot; '+TEAM_FACTION[team]+'</span><small>'+total+' total &middot; <b class="gold">'+armyGold(COUNTS[team],team)+' gold</b> &middot; <b class="gold">'+ORDER.reduce((s,k)=>s+COUNTS[team][k]*TYPES[k].hp,0)+' health</b> &middot; '+field+' on the field, '+res+' in reserve</small></div>'+(EMB?'':'<div class="facs" role="group" aria-label="'+NAMES[team]+' faction">'+FACTIONS.map(fc=>'<button type="button" data-ft="'+team+'" data-fac="'+fc+'" aria-pressed="'+(fc===TEAM_FACTION[team])+'">'+fc+'</button>').join('')+'</div>')+(mlvOn(team)?'<div class="step mlv"><label>Mage level <small class="cap">'+MLV_NOTE[MLV[team]]+'</small></label><button type="button" data-ml="'+team+'" data-d="-1" aria-label="Lower Mage level"'+(MLV[team]<=0?' disabled':'')+'>&minus;</button><output class="mlvn">'+MLV[team]+'</output><button type="button" data-ml="'+team+'" data-d="1" aria-label="Raise Mage level"'+(MLV[team]>=3?' disabled':'')+'>+</button></div>':'')+teamKeys(team).map(key=>{
+      const n=COUNTS[team][key], nm=TYPES[key].label, id='n-'+team+'-'+key, cap=capFor(team,key);
+      return '<div class="step"><label for="'+id+'">'+nm+(TYPES[key].maxN?' <small class="cap">(max '+cap+')</small>':'')+lockNote(team,key)+'</label>'+
         '<button type="button" data-t="'+team+'" data-k="'+key+'" data-d="-1" aria-label="Fewer '+NAMES[team]+' '+nm+'s"'+((n===0||total<=1)?' disabled':'')+'>&minus;</button>'+
-        '<input type="number" inputmode="numeric" id="'+id+'" data-t="'+team+'" data-k="'+key+'" min="0" max="'+capOf(key)+'" value="'+n+'">'+
-        '<button type="button" data-t="'+team+'" data-k="'+key+'" data-d="1" aria-label="More '+NAMES[team]+' '+nm+'s"'+(n>=capOf(key)?' disabled':'')+'>+</button></div>';
+        '<input type="number" inputmode="numeric" id="'+id+'" data-t="'+team+'" data-k="'+key+'" min="0" max="'+cap+'" value="'+n+'"'+(cap===0?' disabled':'')+'>'+
+        '<button type="button" data-t="'+team+'" data-k="'+key+'" data-d="1" aria-label="More '+NAMES[team]+' '+nm+'s"'+(n>=cap?' disabled':'')+'>+</button></div>';
     }).join('')+'</div>';
   }).join('');
 }
 function setCount(t,k,v){
   if(facOf(k)!==TEAM_FACTION[t]) return;   // a side only fields its own faction
-  v=Math.max(0,Math.min(capOf(k),Math.round(v)||0));
+  v=Math.max(0,Math.min(capFor(t,k),Math.round(v)||0));
   const other=ORDER.reduce((s,x)=>s+(x===k?0:COUNTS[t][x]),0);
   if(v+other<1) v=1;                 // every side needs at least one unit
   COUNTS[t][k]=v; renderArmy(); build();
 }
+function setMageLevel(t,lv){   // lower levels lock Griffins and Dragons and the third Mage: those units leave the army
+  MLV[t]=Math.max(0,Math.min(3,lv)); ORDER.forEach(k=>{ if(facOf(k)==='Mythical') COUNTS[t][k]=Math.min(COUNTS[t][k],capFor(t,k)); });
+  if(!ORDER.some(k=>COUNTS[t][k]>0)) COUNTS[t].minion=1; renderArmy(); build(); }
 function setFaction(t,fac){   // a side switches faction: it starts from that faction's usual army
   if(TEAM_FACTION[t]===fac) return;
   TEAM_FACTION[t]=fac; COUNTS[t]=armyFor(fac); renderArmy(); build();
 }
 armyEl.addEventListener('click',e=>{
   const fb=e.target.closest('button[data-fac]'); if(fb){ setFaction(+fb.dataset.ft,fb.dataset.fac); return; }
+  const ml=e.target.closest('button[data-ml]'); if(ml){ if(!ml.disabled) setMageLevel(+ml.dataset.ml,MLV[+ml.dataset.ml]+(+ml.dataset.d)); return; }
   const b=e.target.closest('button[data-t]'); if(!b||b.disabled) return;
   setCount(+b.dataset.t,b.dataset.k,COUNTS[+b.dataset.t][b.dataset.k]+(+b.dataset.d));
 });
