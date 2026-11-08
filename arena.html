@@ -541,7 +541,7 @@ html.emb.short #status{display:none}
         <tr><td>Gorilla</td><td>4 gold</td><td>14</td><td>3</td><td>1.0s</td><td>105%</td><td>Melee</td><td>No</td></tr>
         <tr><td>Porcupine</td><td>6 gold</td><td>8</td><td>4 (quills). Melee attackers that hit it take 1 back</td><td>1.2s</td><td>85%</td><td>A quarter of the field</td><td>Yes, misses 20%</td></tr>
         <tr><td>Bat</td><td>2 gold</td><td>5</td><td>2</td><td>1.0s</td><td>135%</td><td>Melee, flying; takes half a space on the field</td><td>No</td></tr>
-        <tr><td>Rhino</td><td>15 gold</td><td>28</td><td>10 (Charge: 20 to the first enemy it runs through, 10 to each one after)</td><td>1.2s</td><td>115% (173% while charging at the start of the battle)</td><td>Melee</td><td>No</td></tr>
+        <tr><td>Rhino</td><td>15 gold</td><td>28</td><td>15 (Charge: 20 to the first enemy it runs through, 10 to each one after)</td><td>1.2s</td><td>115% (173% while charging at the start of the battle)</td><td>Melee</td><td>No</td></tr>
         <tr><td>Desmodus</td><td>20 gold</td><td>20</td><td>15</td><td>1.0s</td><td>115%</td><td>Melee, flying</td><td>Yes</td></tr>
         <tr><td>Palaeoloxodon</td><td>50 gold</td><td>80</td><td>18 to up to 5 ground units at once (stomp, then a tusk swing that shoves them back; heavy units half as far). War Trumpet at 2s: Mammals +2 damage</td><td>1.0s (Mammals 0.2s faster after War Trumpet)</td><td>110% (Mammals +15% after War Trumpet)</td><td>Its tusks</td><td>No</td></tr>
         <tr class="grp"><th colspan="8">Mythical</th></tr>
@@ -637,7 +637,7 @@ const TYPES={
         flying:false,antiAir:false,rank:0,basic:true,lungeDur:.32,strikeAt:.14,lungeFwd:0.007,bob:0.15,bobRate:1.4},
   porc:{label:'Porcupine',faction:'Mammals',cost:6,hp:8,quills:1,dmg:4,rate:1.2,range:24,speed:4.59,w:4.2,ratio:0.7881,aimFrac:0.45,ranged:true,hitKey:'archer',armor:{},walkSheet:true,sheet:9,sheetClass:'mms mms-porc',runFrames:8,runCycle:0.5,
         flying:false,antiAir:true,missAir:0.2,rank:2,basic:true,lungeDur:.32,strikeAt:.14,bob:0.15,bobRate:1.6,shotAt:[0.62,0.3]},   // shoots quills
-  rhino:{label:'Rhino',faction:'Mammals',heavy:true,rhinoCharge:{mult:1.5,dmg:20,next:10},fieldFirst:true,cost:15,hp:28,dmg:10,rate:1.2,range:4.3,speed:6.21,w:11.408,ratio:0.5065,aimFrac:0.404,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:13,sheetClass:'mms mms-rhino',runFrames:12,runCycle:0.8,stride:4.962,
+  rhino:{label:'Rhino',faction:'Mammals',heavy:true,rhinoCharge:{mult:1.5,dmg:20,next:10},fieldFirst:true,cost:15,hp:28,dmg:15,rate:1.2,range:4.3,speed:6.21,w:11.408,ratio:0.5065,aimFrac:0.404,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:13,sheetClass:'mms mms-rhino',runFrames:12,runCycle:0.8,stride:4.962,
         flying:false,antiAir:false,rank:0,lungeDur:.4,strikeAt:.18,lungeFwd:0.012,bob:0.15,bobRate:1.0},
   bat:{label:'Bat',faction:'Mammals',cost:2,slot:0.5,hp:5,dmg:2,rate:1.0,range:3.5,speed:7.29,w:4.2,ratio:0.8333,aimFrac:0.246,sheet:16,sheetClass:'mms fls mms-bat',flapSheet:true,ranged:false,hitKey:'air',armor:{},
         flying:true,antiAir:false,rank:1,basic:true,lungeDur:.3,strikeAt:.15,flap:1.4},   // half a space, like the Drones
