@@ -5,3 +5,4 @@ build.py BASE_INDEX BASE_ARENA: takes the repo's index.html and arena.html (befo
 myth_board_art.json: the board pictures (Floating Castle, Life Tree, unit pictures, magic crystal and dome icons).
 edits-myth-board-arena.html.json: the arena edits as find/replace pairs (plain arena.html text).
 patch_arena_magelv.py: the Mage level picker in the standalone arena (apply to arena.html after the others).
+patch_arena_magelv2.py: Mage level only changes lightning and Minotaur chance (20/30/40/50%); apply after patch_arena_magelv.py.

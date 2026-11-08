@@ -550,7 +550,7 @@ html.emb.short #status{display:none}
         <tr><td>Palaeoloxodon</td><td>50 gold</td><td>80</td><td>18 to up to 5 ground units at once (stomp, then a tusk swing that shoves them back; heavy units half as far). War Trumpet at 2s: Mammals +2 damage</td><td>1.0s (Mammals 0.2s faster after War Trumpet)</td><td>110% (Mammals +15% after War Trumpet)</td><td>Its tusks</td><td>No</td></tr>
         <tr class="grp"><th colspan="8">Mythical</th></tr>
         <tr><td>Minion</td><td>1 gold</td><td>5</td><td>2</td><td>1.0s</td><td>70%</td><td>Melee</td><td>No</td></tr>
-        <tr><td>Mage (at most 2 per army, 3 at level 3)</td><td>15 gold, +1 a level</td><td>15</td><td>Chain lightning: 5 to up to 20 enemies at once. Every 2s, a 20% chance to turn a Minion into a Minotaur</td><td>3s</td><td>65%</td><td>By Mage level: a quarter of the field (5 damage), half (6), three quarters (7), the whole field (7). Griffins need level 1, Dragons level 2; at level 3 every unit costs 1 gold less. The bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
+        <tr><td>Mage (at most 2 per army)</td><td>15 gold</td><td>15</td><td>Chain lightning: 5 to 7 (by Mage level) to up to 20 enemies at once. Every 2s, a chance to turn a Minion into a Minotaur: 20% at level 0, 30%, 40%, 50% at level 3</td><td>3s</td><td>65%</td><td>By Mage level: a quarter of the field (5 damage), half (6), three quarters (7), the whole field (7). The bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
         <tr><td>Minotaur</td><td>25 gold</td><td>35</td><td>15 to up to 5 ground units at once. Charge: its first hit kills (big special units: stunned 4s instead)</td><td>1.0s</td><td>115% (184% while charging)</td><td>Melee (hammer)</td><td>No</td></tr>
         <tr><td>Griffin</td><td>40 gold</td><td>45</td><td>25. Landing: 2 to each enemy nearby, knocked back. Screech: enemy shooters miss their next 2 shots, enemy charges stop</td><td>1.0s</td><td>130% flying, 100% on the ground</td><td>Melee, flying</td><td>Yes</td></tr>
         <tr><td>Dragon</td><td>85 gold</td><td>150</td><td>Bite 30. Fire breath: 15 to up to 15 enemies at once. Fire run: 5 a second to anyone in its fire streak, for as long as it burns and 5 seconds after</td><td>Bite 1.0s, fire breath 8s</td><td>120% flying, 90% on the ground</td><td>Melee, flying; fire breath reaches about a sixth of the field</td><td>Yes</td></tr>
@@ -667,7 +667,8 @@ const TYPES={
 const ORDER=['galli','dilo','ptero','mega','bow','quetz','robot','rarch','rdrone','rknight','rlong','rjet','rtank','ape','porc','bat','rhino','kanga','gbat','eleph','minion','mage','minotaur','griffin','dragon'];
 // a fresh army for each faction, picked when a side switches faction
 // Crown & Coin's Mages by level (the board sends these): reach in field units and damage. Not in the army controls.
-[['mage0',30,5],['mage1',60,6],['mage2',90,7],['mage3',120,7]].forEach(([k,r,d])=>{ TYPES[k]={...TYPES.mage,label:'Mage',range:r,dmg:d,hidden:true,maxN:3}; ORDER.push(k); });
+// and each level's chance, every 2 s, to turn a Minion into a Minotaur: 20%, 30%, 40%, 50%
+[['mage0',30,5,.2],['mage1',60,6,.3],['mage2',90,7,.4],['mage3',120,7,.5]].forEach(([k,r,d,c])=>{ TYPES[k]={...TYPES.mage,label:'Mage',range:r,dmg:d,morph:{...TYPES.mage.morph,chance:c},hidden:true,maxN:3}; ORDER.push(k); });
 const FACTIONS=['Dinosaurs','Robots','Mammals','Mythical'];
 const DEFAULT_ARMY={Dinosaurs:{galli:15,dilo:6,ptero:5,mega:5,bow:2,quetz:1},Robots:{robot:4,rarch:28,rdrone:8,rknight:6,rlong:4,rtank:1},Mammals:{ape:14,porc:6,bat:10,rhino:3,kanga:3,gbat:2,eleph:1},Mythical:{minion:25,mage:2,minotaur:3,griffin:1,dragon:1}};
 const armyFor=fac=>{ const c={}; ORDER.forEach(k=>c[k]=0); return Object.assign(c,DEFAULT_ARMY[fac]); };
@@ -675,10 +676,10 @@ const COUNTS=[armyFor('Dinosaurs'),armyFor('Robots')];
 // each side fields one faction only
 let TEAM_FACTION=['Dinosaurs','Robots'];
 // Mage level per side (Mythical only): picked above the army, like the Crown & Coin upgrade
-const MLV=[2,2], MLV_NOTE=['Lightning reaches a quarter of the field, 5 damage','Half the field, 6 damage; Griffins','Three quarters, 7 damage; Dragons','Whole field, 7 damage; 3 Mages; units 1 gold cheaper'];
+const MLV=[2,2], MLV_NOTE=['Lightning: a quarter of the field, 5 damage · Minotaurs 20%','Half the field, 6 damage · Minotaurs 30%','Three quarters, 7 damage · Minotaurs 40%','Whole field, 7 damage · Minotaurs 50%'];
 const mlvOn=t=>!EMB&&TEAM_FACTION[t]==='Mythical';
-const capFor=(t,k)=>!mlvOn(t)?capOf(k):k==='mage'?(MLV[t]>=3?3:2):(k==='griffin'&&MLV[t]<1)||(k==='dragon'&&MLV[t]<2)?0:capOf(k);
-const lockNote=(t,k)=>mlvOn(t)&&capFor(t,k)===0?' <small class="cap">(Mage level '+(k==='griffin'?1:2)+')</small>':'';   // each side picks its faction above its army
+const capFor=(t,k)=>capOf(k);   // the level only changes the Mages' lightning and Minotaur making
+const lockNote=(t,k)=>'';   // each side picks its faction above its army
 const facOf=k=>TYPES[k].faction||'Dinosaurs';
 const teamKeys=t=>ORDER.filter(k=>facOf(k)===TEAM_FACTION[t]&&!TYPES[k].hidden);   // [blue, red]
 const ALT=7.6, LOW_ALT=2.2;                       // cruising height, and how low flyers come to fight ground units                                       // how high flyers cruise, in field units
@@ -1508,7 +1509,7 @@ const minY=f=>f.h+1+(f.T.flying?f.baseAlt+1:0);
 // can go, a ground unit further up still counts as in reach when it's close enough sideways (its lasers shoot down and across)
 function reachGap(f,o){ const g=gap(f,o); if(!f.T.hover||o.T.flying) return g;
   if(f.y<=minY(f)+0.6&&o.y<f.y) return Math.max(0,Math.abs(o.x-f.x)-(o.T.footX||0)); return g; }
-const armyGold=(c,t)=>ORDER.reduce((s,k)=>{ let g=TYPES[k].cost; if(t!=null&&mlvOn(t)){ if(k==='mage') g+=MLV[t]; if(MLV[t]>=3) g=Math.max(1,g-1); } return s+c[k]*g; },0);   // what an army costs (a Mythical side's Mage level counts)
+const armyGold=(c,t)=>ORDER.reduce((s,k)=>s+c[k]*TYPES[k].cost,0);   // what an army costs
 function setStatus(){
   const tot=[0,1].map(t=>alive(t).length+RES[t].length);
   // gold worth of everything still standing or waiting in reserve
