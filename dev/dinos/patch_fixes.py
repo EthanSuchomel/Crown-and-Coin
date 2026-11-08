@@ -11,3 +11,5 @@ R("They still count as flyers for who can hit them.", "Once landed, ground fight
 open(p,'w',encoding='utf-8').write(s); print('fixed')
 # (merged 2026-11-07 from another session's edit on the test link: the Laser Tank's beam does hurt the Triceratops)
 # 2026-11-07 (Ethan): Robot Knight 25 health (was 20); shield wall breaks after 50 melee damage (was 30). Edited in arena.html directly.
+# 2026-11-08: Laser Tank beam lasts 2.5s (ticks 12) and follows the bunch it was fired at
+#   (slides at up to 12 field units/s toward the middle of enemies within 1.5x radius of its spot; scorch mark moves with it)

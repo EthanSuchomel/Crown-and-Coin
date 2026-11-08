@@ -539,7 +539,7 @@ html.emb.short #status{display:none}
         <tr><td>Robot Knight</td><td>9 gold</td><td>25</td><td>9 (also 2 to up to 2 enemies next to its target)</td><td>1.2s</td><td>90% (45% in a shield wall)</td><td>Melee</td><td>No</td></tr>
         <tr><td>Robot Longbow</td><td>10 gold</td><td>22</td><td>4 per laser, 2 lasers per shot (6 per laser vs flyers); first shot and every 4th shot after stun for 1s, even if blocked; after 2 shots at a target they don't hurt (a Triceratops), it switches to another target</td><td>2.2s</td><td>65%</td><td>A third of the field</td><td>Yes, misses 15%</td></tr>
         <tr><td>Robot Gunship</td><td>14 gold</td><td>30</td><td>Lasers at ground units: 8. Rockets at flyers: 10</td><td>Lasers 1.5s, rockets 2.0s</td><td>110%</td><td>Half an archer's reach, flying</td><td>Yes</td></tr>
-        <tr><td>Laser Tank</td><td>40 gold</td><td>100</td><td>Beam for 2s on the spot where enemies are most bunched up: 1 every 0.2s to the 10 units closest to that spot (up to 10 each); 4 beams per battle</td><td>6s cooldown between beams; first beam no sooner than 2s into the battle; can't be stunned</td><td>10%</td><td>Most of the field; takes 3 spaces on the field, at most 2 on the field at once</td><td>Yes</td></tr>
+        <tr><td>Laser Tank</td><td>40 gold</td><td>100</td><td>Beam for 2.5s on the spot where enemies are most bunched up, and it follows that bunch as it moves: 1 every 0.2s to the 10 units closest to that spot (up to 12 each); 4 beams per battle</td><td>6s cooldown between beams; first beam no sooner than 2s into the battle; can't be stunned</td><td>10%</td><td>Most of the field; takes 3 spaces on the field, at most 2 on the field at once</td><td>Yes</td></tr>
         <tr class="grp"><th colspan="8">Mammals</th></tr>
         <tr><td>Gorilla</td><td>4 gold</td><td>14</td><td>3</td><td>1.0s</td><td>105%</td><td>Melee</td><td>No</td></tr>
         <tr><td>Porcupine</td><td>6 gold</td><td>16</td><td>4 (quills)</td><td>1.2s</td><td>85%</td><td>A quarter of the field</td><td>Yes, misses 20%</td></tr>
@@ -616,7 +616,7 @@ const TYPES={
         flying:true,antiAir:true,rank:1,preferMelee:true,lungeDur:.7,strikeAt:.35,sheet:6,sheetClass:'rjs',jet:true,weapons:{laser:{dmg:8,rate:1.5},rocket:{dmg:10,rate:2}},hatch:[0.6,0.3333],gunPivot:[0.6634,0.4457],gunTip:[0.8699,0.6255],gunTurn:320},   // Quetzalcoatlus stats; lasers at ground units, rockets at flyers
   rtank:{label:'Laser Tank',faction:'Robots',heavy:true,stunImmune:true,cost:40,slot:3,fieldMax:2,hp:100,dmg:1,rate:5,range:70,speed:0.54,w:19.845,ratio:0.6172,aimFrac:0.3,footX:7.65,footY:1.8,ranged:true,hitKey:'beam',armor:{},
         flying:false,antiAir:true,rank:3,noHide:true,back:true,bob:0.01,sheet:7,sheetClass:'rts',runFrames:6,runCycle:0.9,
-        muzzle:[0.8865,0.3088],pivot:[0.2042,0.2623],aimMax:22,turnRate:70,beam:{dur:2,tick:0.2,ticks:10,n:10,radius:8.4,cool:6,shots:4,startDelay:2}},   // Robots' special unit
+        muzzle:[0.8865,0.3088],pivot:[0.2042,0.2623],aimMax:22,turnRate:70,beam:{dur:2.5,tick:0.2,ticks:12,follow:12,n:10,radius:8.4,cool:6,shots:4,startDelay:2}},   // Robots' special unit
   rdrone:{label:'Robot Drone',faction:'Robots',cost:2,slot:0.5,hp:5,dmg:1,rate:0.5,range:3.0,speed:10.48,w:2.796,ratio:0.9554,aimFrac:0.35,ranged:false,hitKey:'drone',armor:{},
         flying:true,antiAir:false,rank:1,basic:true,lungeDur:.3,strikeAt:.15,sheet:12,sheetClass:'rds',prop:0.16,dodge:0.05},   // fastest unit (15% faster than the Brawler); half a space
   rknight:{label:'Robot Knight',faction:'Robots',heavy:true,cost:9,hp:25,dmg:9,rate:1.2,range:4.3,speed:4.86,w:7.058,ratio:0.9437,aimFrac:0.371,ranged:false,hitKey:'melee',
@@ -1620,7 +1620,7 @@ function hit(t,att,mult,proj){
   if(t.hp===0){ t.dead=true; t.el.classList.add('down'); t.target=null; if(t.beamOn) clearBeam(t); }
   return true;
 }
-// ---- Laser Tank: picks the spot where the enemy is most bunched up and burns it with a beam for 2 seconds:
+// ---- Laser Tank: picks the spot where the enemy is most bunched up and burns it with a beam for 2.5 seconds, following that bunch as it moves:
 // every 0.2s the 10 units closest to that spot (within reach of it) take 1 damage. Then 6 seconds to cool down; 4 beams per battle ----
 const aimPt=t=>({x:t.x,y:t.y-t.alt-t.h*(t.T.aimFrac||0.5)});
 const pivotPt=f=>({x:f.x+f.face*(f.T.pivot[0]-0.5)*f.T.w,y:f.y-f.alt-f.h*(1-f.T.pivot[1])});
@@ -1669,6 +1669,11 @@ function tankStep(f,dt){
     else f.vx=fwd*st; f.walking=true; f.phase+=dt*9; }   // it can't drive up the mountain
   if(f.beamOn){
     f.beamT+=dt; const sp=f.spot;
+    // the beam stays on the bunch it was fired at: it slides toward the middle of the enemies around its spot as they move
+    { const near=F.filter(o=>!o.dead&&o.team!==f.team&&canHit(f,o)&&beamClear(f,o)&&Math.hypot(o.x-sp.x,o.y-sp.y)<=B.radius*1.5);
+      if(near.length){ let cx=0,cy=0; for(const o of near){ cx+=o.x; cy+=o.y; } cx/=near.length; cy/=near.length;
+        const dx=cx-sp.x, dy=cy-sp.y, d=Math.hypot(dx,dy), m=B.follow*dt;
+        if(d>m){ sp.x+=dx/d*m; sp.y+=dy/d*m; } else { sp.x=cx; sp.y=cy; } } }
     turnTo(f,aimFor(f,sp),dt);
     while(f.ticks<B.ticks&&f.beamT>=f.ticks*B.tick-1e-9){
       f.ticks++;
@@ -2453,7 +2458,8 @@ function draw(){
     const p=muzzlePt(f), q={x:f.spot.x,y:f.spot.y-0.6}, dx=q.x-p.x, dy=q.y-p.y, bh=Math.max(3,aw*0.0055);
     b.style.left=p.x+'%'; b.style.top=(p.y/AH*100)+'%'; b.style.width=Math.hypot(dx,dy)+'%'; b.style.height=bh.toFixed(1)+'px';
     b.style.setProperty('--bh',bh.toFixed(1)+'px');
-    b.style.transform='translateY(-50%) rotate('+(Math.atan2(dy,dx)*180/Math.PI).toFixed(1)+'deg)'; }
+    b.style.transform='translateY(-50%) rotate('+(Math.atan2(dy,dx)*180/Math.PI).toFixed(1)+'deg)';
+    if(f.scorchEl){ f.scorchEl.style.left=f.spot.x+'%'; f.scorchEl.style.top=(f.spot.y/AH*100)+'%'; } }
   for(const a of ARROWS){
     a.el.style.left=a.x+'%'; a.el.style.top=(a.y/AH*100)+'%';
     a.el.style.transform='translate(-50%,-50%) rotate('+(a.ang*180/Math.PI).toFixed(1)+'deg)';
