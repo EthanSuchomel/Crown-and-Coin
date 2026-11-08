@@ -172,35 +172,56 @@ function mythAct(op,k){
   else if(op==='dome'&&a==='advance') mythDome(0,id);
   render();
 }
+// the card column during a Mythical Recruit, Build or Advancements: what's possible, with the buttons round the tapped hex
 function mythStepBody(a,sel){
   const me=S.players[0], mine=!!sel&&sel.owner===0;
-  const btn=(op,k,label,sub,ok)=>`<button class="mybtn" data-act="my" data-op="${op}" data-k="${k}"${ok?'':' disabled'}><b>${label}</b><small>${sub}</small></button>`;
   let h=`<div class="row-label"><span class="px px-magic" aria-hidden="true"></span> You have <b>${me.gold} magic</b></div>`;
-  const here=mine&&sel.troops?`<div class="harmy">Here: ${armyList(sel.army)}</div>`:'';
+  if(mine&&sel.troops) h+=`<div class="harmy">Here: ${armyList(sel.army)}</div>`;
+  if(a==='recruit') return h+`<p class="hint">Tap one of your castles to make Minions (${MYTH.minionPack} for 1 magic) or a Mage (${magePrice(0)} magic, at most ${mageCap(0)} on a hex). Tap a hex with a Mage to turn its Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1), Griffins (${MYTH_CONV.griffin.m} + 2, level 1 Mage) and Dragons (${MYTH_CONV.dragon.m} + 4, level 2 Mage).</p>`;
+  if(a==='build') return h+`<p class="hint">Tap a hex where one of your Mages is ready to plant a Life Tree. It costs no magic, but that Mage can't move for ${MYTH.treeTurns} whole turns. A tree makes ${MYTH.treeMagic} magic a turn, or ${MYTH.treeRich} with ${MYTH.treeMinions} or more Minions on its hex. One per hex, not on castles; it's destroyed if the hex is captured.</p>`;
+  return h+`<p class="hint">Tap any of your hexes to upgrade your Mages (${MYTH.mageUp.join(', ')} magic) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or to raise a magic dome where a Mage stands: ${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} every turn (if you can't pay, it fades). A dome guards every side like a full wall.</p>`;
+}
+// the round buttons on posts round the zoomed-in hex, like the other factions' Recruit, Build and Advancements buttons
+function mythBubbleItems(t){
+  const me=S.players[0], a=_zoomMode, out=[];
+  const it=(op,k,img,name,note,ok,o)=>out.push(Object.assign({op,k,img,name,note,ok},o||{}));
   if(a==='recruit'){
-    if(!mine) return h+`<p class="hint">Tap one of your castles to make Minions (${MYTH.minionPack} for 1 magic) or a Mage (${magePrice(0)} magic), or a hex with a Mage to turn its Minions into Minotaurs, Griffins and Dragons.</p>`;
-    h+=here; let any=false;
-    if(sel.castle){ any=true; const cap=mageCap(0), mo=magesOn(sel), mp=magePrice(0);
-      h+=`<div class="mygrid">${btn('min',1,`+${MYTH.minionPack} Minions`,'1 magic',me.gold>=1)}${btn('min',5,`+${5*MYTH.minionPack} Minions`,'5 magic',me.gold>=5)}${btn('minall',0,`All: +${me.gold*MYTH.minionPack} Minions`,`${me.gold} magic`,me.gold>=1)}${btn('mage',0,`Mage, level ${mlvOf(0)}`,mo>=cap?`${cap} on this hex already`:`${mp} magic`,mo<cap&&me.gold>=mp)}</div>`; }
-    if(mageLvAt(sel)>=0){ any=true; const ml=mageLvAt(sel), mn=(sel.army.minion||0);
-      h+=`<p class="hint" style="margin:.5em 0 0">Best Mage here: level ${ml}. Turn this hex's ${mn} Minion${mn===1?'':'s'} into:</p><div class="mygrid">`+Object.keys(MYTH_CONV).map(k=>{ const C=MYTH_CONV[k], c=convPrice(sel,k), lock=ml<C.lv;
-        return btn('conv',k,UNIT_STATS[k].name,lock?`Needs a level ${C.lv} Mage`:`${c} magic + ${C.min} Minion${C.min>1?'s':''}`,!lock&&mn>=C.min&&me.gold>=c); }).join('')+`</div>`; }
-    if(!any) h+=`<p class="hint">Nothing to recruit here: you need a castle or a Mage on the hex.</p>`;
-    return h;
+    if(t.castle){ const tc=1, all=me.gold, cap=mageCap(0), mo=magesOn(t), mp=magePrice(0);
+      it('min',1,UNIT_ART.minion,`+${MYTH.minionPack}`,'1 magic',me.gold>=1,{big:true,label:`Make ${MYTH.minionPack} Minions for 1 magic`});
+      it('min',5,UNIT_ART.minion,`+${5*MYTH.minionPack}`,'5 magic',me.gold>=5,{big:true,label:`Make ${5*MYTH.minionPack} Minions for 5 magic`});
+      it('minall',0,UNIT_ART.minion,'All',`+${all*MYTH.minionPack} · ${all}`,all>=1,{big:true,label:`Make ${all*MYTH.minionPack} Minions for all ${all} magic`});
+      it('mage',0,UNIT_ART.mage0,`Mage ${mlvOf(0)}`,mo>=cap?`${cap} here`:`${mp} magic`,mo<cap&&me.gold>=mp,{label:mo>=cap?`This hex already has ${cap} Mages`:`Make a level ${mlvOf(0)} Mage for ${mp} magic`}); }
+    const ml=mageLvAt(t), mn=(t.army&&t.army.minion)||0;
+    if(ml>=0) for(const k of Object.keys(MYTH_CONV)){ const C=MYTH_CONV[k], c=convPrice(t,k), lock=ml<C.lv;
+      it('conv',k,UNIT_ART[k],UNIT_STATS[k].name,lock?`Mage ${C.lv}`:`${c}+${C.min}`,!lock&&mn>=C.min&&me.gold>=c,
+        {label:lock?`${UNIT_STATS[k].name}: needs a level ${C.lv} Mage here`:`Turn ${C.min===1?'a Minion':C.min+' Minions'} into a ${UNIT_STATS[k].name} for ${c} magic`}); }
+  } else if(a==='build'){
+    const ok=!t.tree&&!t.castle&&t.terrain==='plain'&&MAGES.some(k=>t.ready&&t.ready[k]>0);
+    it('tree',0,ART.bld.tree,'Life Tree',t.tree?'Has one':t.castle?'Not here':!magesOn(t)?'Needs Mage':ok?`Free · ${MYTH.treeTurns} turns`:'Mage busy',ok,
+      {sm:true,label:ok?`Plant a Life Tree: this hex's Mage stays ${MYTH.treeTurns} turns`:'A Life Tree needs a ready Mage on a plain hex without one'});
+  } else if(a==='advance'){
+    const ml=mlvOf(0), cl=clvOf(0), home=!!mythHome(0), dok=!(t.dome>0)&&magesOn(t)>0&&me.gold>=MYTH.domeCost;
+    it('upm',0,UNIT_ART.mage0,ml>=3?'Mages 3':`Mages ${ml+1}`,ml>=3?'Max level':!home?'No castle':`${MYTH.mageUp[ml]} magic`,ml<3&&home&&me.gold>=MYTH.mageUp[ml],
+      {label:ml>=3?'Mages are at the top level':`Raise new Mages to level ${ml+1} for ${MYTH.mageUp[ml]} magic: ${MAGE_LV_NOTE[ml]}`});
+    it('dome',0,ART.icons.dome,'Dome',t.dome>0?`Up ${t.dome}/${WALL_HP}`:!magesOn(t)?'Needs Mage':`${MYTH.domeCost}, ${MYTH.domeUpkeep}/turn`,dok,
+      {sm:true,label:t.dome>0?'This hex already has a dome':`Raise a magic dome over this hex: ${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn`});
+    it('upc',0,MYTH_ART.castle,cl>=3?'Castle 3':`Castle ${cl+1}`,cl>=3?'Max level':!home?'No castle':`${MYTH.castleUp[cl]} magic`,cl<3&&home&&me.gold>=MYTH.castleUp[cl],
+      {sm:true,label:cl>=3?'The Floating Castle is at the top level':`Raise the Floating Castle to level ${cl+1} for ${MYTH.castleUp[cl]} magic: ${MYTH.castleMagic[cl+1]} magic and ${MYTH.minions[cl+1]} Minions a turn`});
   }
-  if(a==='build'){
-    const info=`A Life Tree costs no magic, but the Mage that plants it can't move for ${MYTH.treeTurns} whole turns. It makes ${MYTH.treeMagic} magic a turn, or ${MYTH.treeRich} with ${MYTH.treeMinions} or more Minions on its hex. One per hex, not on castles; it's destroyed if the hex is captured.`;
-    if(!mine) return h+`<p class="hint">Tap a hex where one of your Mages is ready. ${info}</p>`;
-    const ok=!sel.tree&&!sel.castle&&sel.terrain==='plain'&&MAGES.some(k=>sel.ready&&sel.ready[k]>0);
-    return h+here+`<div class="mygrid">${btn('tree',0,'Plant a Life Tree',sel.tree?'This hex has one':sel.castle?'Not on a castle':!magesOn(sel)?'Needs a Mage here':ok?`The Mage stays ${MYTH.treeTurns} turns`:'No ready Mage here',ok)}</div><p class="hint">${info}</p>`;
-  }
-  const ml=mlvOf(0), cl=clvOf(0), home=!!mythHome(0);
-  h+=`<div class="mygrid">${btn('upm',0,ml>=3?'Mages: top level':`Mages to level ${ml+1}`,ml>=3?MAGE_LV_NOTE[2]:`${MYTH.mageUp[ml]} magic: ${MAGE_LV_NOTE[ml]}`,ml<3&&home&&me.gold>=MYTH.mageUp[ml])}${btn('upc',0,cl>=3?'Castle: top level':`Floating Castle level ${cl+1}`,cl>=3?`${MYTH.castleMagic[3]} magic and ${MYTH.minions[3]} Minions a turn`:`${MYTH.castleUp[cl]} magic: then ${MYTH.castleMagic[cl+1]} magic and ${MYTH.minions[cl+1]} Minions a turn`,cl<3&&home&&me.gold>=MYTH.castleUp[cl])}</div>`;
-  if(!home) h+=`<p class="hint">Upgrades are made at your Floating Castle, which you don't hold right now.</p>`;
-  if(mine){ const ok=!(sel.dome>0)&&magesOn(sel)>0&&me.gold>=MYTH.domeCost;
-    h+=here+`<div class="mygrid">${btn('dome',0,'Magic dome',sel.dome>0?`Up, strength ${sel.dome} of ${WALL_HP}`:!magesOn(sel)?'Needs a Mage here':`${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn`,ok)}</div>`; }
-  h+=`<p class="hint">Tap a hex with a Mage to raise a magic dome over it: ${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} magic every turn (if you can't pay, it fades). It guards every side like a full wall.</p>`;
-  return h;
+  return out;
+}
+const MYTH_RING={1:[90],2:[120,60],3:[150,90,30],4:[150,90,30,270],5:[150,90,30,225,315],6:[150,90,30,210,330,270],7:[150,90,30,200,250,290,340]};
+function mythBubbles(P,cx,cy,k,R,stem){
+  const items=mythBubbleItems(S.tiles[_zoomHex]); let lines='', html='';
+  const [hcx,hcy]=P(cx,cy), hr=HR*k, r=items.length>3?Math.min(R,(hr*.95+stem)/1.75):R, ring=hr*.95+stem+r, fsz=(r/R).toFixed(3);
+  const rpost=deg=>{ const a=deg*Math.PI/180, ux=Math.cos(a), uy=-Math.sin(a), nx=-uy*r*.2, ny=ux*r*.2, r0=hr*.86;
+    for(const sg of [-1,1]){ const x1=(hcx+ux*r0+sg*nx).toFixed(1), y1=(hcy+uy*r0+sg*ny).toFixed(1), x2=(hcx+ux*(ring-r+4)+sg*nx).toFixed(1), y2=(hcy+uy*(ring-r+4)+sg*ny).toFixed(1);
+      lines+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#060907" stroke-width="4.5" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ece4cf" stroke-width="2"/>`; }
+    return `style="left:${(hcx+ux*ring).toFixed(1)}px;top:${(hcy+uy*ring).toFixed(1)}px;width:${(2*r).toFixed(1)}px;height:${(2*r).toFixed(1)}px;font-size:calc(.78em * ${fsz})"`; };
+  const degs=MYTH_RING[Math.min(7,items.length)]||[];
+  items.slice(0,7).forEach((o,i)=>{
+    html+=`<button class="bub unit${o.big?' rec':''}${o.ok?'':' off'}" data-my="${o.op}" data-k="${o.k}" ${rpost(degs[i])} ${o.ok?'':'disabled'} aria-label="${o.label||o.name}"><img src="${o.img}" alt=""${o.sm?' class="sm"':''}><b${o.big?' class="big"':o.name.length>11?' class="lng"':''}>${o.name}</b><small>${o.note}</small></button>`; });
+  return {lines,html};
 }
 // the computer's Mythical Recruit, Build and Advancements
 function mythAi(pid,a,later){
@@ -369,9 +390,18 @@ rep("(W.inc||4)*incomeOf(i).total", "(W.inc||4)*incomeOf(i).total*(isMyth(i)?MAG
 
 # ---------- screen ----------
 rep("const buildHex=()=>{ if(!S||!isHumanTurn()||ui.sel==null) return null; const a=curAction(), t=S.tiles[ui.sel]; if(t.owner!==0) return null;",
-    "const buildHex=()=>{ if(!S||!isHumanTurn()||ui.sel==null) return null; const a=curAction(), t=S.tiles[ui.sel]; if(t.owner!==0) return null;\n  if(isMyth(0)) return null;   // the Mythical choose in the card column instead")
-rep("const blds=[]; for(const k of ['fort','barracks','market','wh'])", "const blds=[]; for(const k of ['fort','barracks','market','wh','tree'])")
-rep("const bk=k==='wh'?'wh':k+'_'+fac,", "const bk=(k==='wh'||k==='tree')?k:k+'_'+fac,")
+    "const buildHex=()=>{ if(!S||!isHumanTurn()||ui.sel==null) return null; const a=curAction(), t=S.tiles[ui.sel]; if(t.owner!==0) return null;\n"
+    "  if(isMyth(0)) return (a==='recruit'?(t.castle||mageLvAt(t)>=0):a==='build'?(t.terrain==='plain'&&!t.castle):a==='advance'?t.terrain!=='water':false)?ui.sel:null;   // Mythical: castles and Mage hexes, Mage hexes for trees, any hex for upgrades and domes")
+rep("  y0=Math.min(y0,cy-HR-reach); y0=Math.max(y0,cy+HR+1-h);\n  return [x0,y0,w,h];",
+    "  if(isMyth(0)&&curAction()!=='build') y0=Math.max(y0,cy+HR+reach-h);   // Mythical buttons can go all the way round the hex\n  y0=Math.min(y0,cy-HR-reach); y0=Math.max(y0,cy+HR+1-h);\n  return [x0,y0,w,h];")
+rep("  const menu=recruiting&&ui.train&&hasMenu(t,ui.train)?ui.train:null;\n",
+    "  if(isMyth(0)){ const m=mythBubbles(P,cx,cy,k,R,stem); ov.hidden=false; ov.innerHTML=`<svg aria-hidden=\"true\">${m.lines}</svg>${m.html}`; requestAnimationFrame(()=>{ void ov.offsetWidth; ov.classList.add('show'); }); return; }\n  const menu=recruiting&&ui.train&&hasMenu(t,ui.train)?ui.train:null;\n")
+rep("$('#bldov').addEventListener('click',e=>{ if(!isHumanTurn()||ui.sel==null) return;\n",
+    "$('#bldov').addEventListener('click',e=>{ if(!isHumanTurn()||ui.sel==null) return;\n  const my=e.target.closest('button[data-my]'); if(my){ mythAct(my.dataset.my,my.dataset.k); return; }\n")
+# the Life Tree stands big in the middle of its hex instead of small at the side
+rep("    const ics=[]; if(S.homes.includes(i)&&t.castle&&owned) ics.push('crown');",
+    "    if(t.tree&&owned&&!swords){ const z=TREE_SIZE; castles+=`<use href=\"#b-tree\" transform=\"translate(${(cx-z/2+2).toFixed(2)} ${(cy+HR*.42-z).toFixed(2)}) scale(${(z/16).toFixed(4)})\"/>`; }   // a Life Tree: big, in the middle of its hex\n    const ics=[]; if(S.homes.includes(i)&&t.castle&&owned) ics.push('crown');")
+rep("const BLD_SIZE=9.6,", "const TREE_SIZE=25; const BLD_SIZE=9.6,")
 rep("    if(t.walls) t.walls.forEach((hp,k)=>{ if(hp>0) walls+=wallSvg(", "    if(t.dome>0) walls+=domeSvg(cx,cy,t.dome);\n    if(t.walls) t.walls.forEach((hp,k)=>{ if(hp>0) walls+=wallSvg(")
 rep("<span class=\"sh-gold\"><span class=\"px px-coin\" aria-hidden=\"true\"></span> ${S.players[0].gold}</span>",
     "<span class=\"sh-gold\" title=\"${isMyth(0)?'Magic':'Gold'}\"><span class=\"px px-${isMyth(0)?'magic':'coin'}\" aria-hidden=\"true\"></span> ${S.players[0].gold}</span>")
