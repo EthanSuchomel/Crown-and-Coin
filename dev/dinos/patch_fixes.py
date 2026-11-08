@@ -14,3 +14,4 @@ open(p,'w',encoding='utf-8').write(s); print('fixed')
 # 2026-11-08: Laser Tank beam lasts 2.5s (ticks 12) and follows the bunch it was fired at
 #   (slides at up to 12 field units/s toward the middle of enemies within 1.5x radius of its spot; scorch mark moves with it)
 # 2026-11-08: Robot Longbow no longer misses flyers (missAir 0.15 removed)
+# 2026-11-08: merged the main arena link's changes (Procoptodon removed; Porcupine 8hp + quills; Rhino 10 dmg; Brawler 4hp; Archer 1s; Knight 12 dmg 1s bonus{bow:4}) with Knight 25hp
