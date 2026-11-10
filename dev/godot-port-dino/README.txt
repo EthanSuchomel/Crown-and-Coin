@@ -6,3 +6,10 @@ check/: not shipped. soak.gd (computer vs computer, volcano and guard use), ui_s
 errors), ui_shots.gd (screenshots; run under xvfb-run with --rendering-driver opengl3).
 Results on 2026-11-09: self-test 168 passed, 0 failed (22 new Dinosaur checks); written to Ethan's computer with a backup of
 every replaced file in _backup_before_dino_rework/ (Godot ignores it: .gdignore).
+
+2026-11-09 (night), catching up with the browser (claude.ai) version: python3 p15_match.py PROJ, then copy treb_anim.gd to
+PROJ/scripts/ui/treb_anim.gd. It adds the 3D trebuchet firing animation (a port of the browser's three.js one: steel model for
+the Robots, bone for the others; the flat picture hides while the model swings and lobs the stone), stride-locked walk frames
+for the Rhino and Palaeoloxodon, and the Robot Archer / Robot Longbow notes. check/treb_shots.gd (screenshots of a shot,
+shots/treb_anim_frames.png) and check/stride_check.gd (walk frames step with ground covered). Self-test: 170 passed, 0 failed.
+Written to Ethan's computer with the replaced files in _backup_before_browser_match/.

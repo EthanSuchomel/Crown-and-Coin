@@ -1,7 +1,7 @@
 # Crown & Coin — Godot port status
 
 Project folder: C:\Users\ethan\Documents\CrownAndCoin-Godot (Godot 4.7.2). The browser version stays the reference for rules and numbers.
-Self-test: open scenes/test_rules.tscn and press F6; every line should say PASS (168 checks as of 2026-11-09, evening; the scene stays open when done).
+Self-test: open scenes/test_rules.tscn and press F6; every line should say PASS (170 checks as of 2026-11-09, night; the scene stays open when done).
 Map preview: scenes/arena_preview.tscn (pick the map and holder in the Inspector).
 
 ## Done
@@ -34,6 +34,15 @@ Written into the folder from a cloud session through the desktop app's file brid
 - **Also fixed:** notes under the card stopped appearing once the log reached 80 lines (main.gd counted the log's size); now a running count (GameState.log_n).
 - **Checked here before writing:** self-test 168 passed (22 new Dinosaur checks); a headless run through the new screens with no script errors; screenshots under a virtual display. Computer vs computer (6 games each): the Dinosaur computer wins 3 of 18, the same as before the rework; it wakes the volcano and hires guards, but not often (only when it has the gold when an Advancements comes up).
 - Port scripts, art and checks: repo EthanSuchomel/Crown-and-Coin, dev/godot-port-dino/ (commit dd7e465). Godot itself can run in the cloud session for tests (download Godot 4.7.2 from GitHub).
+
+## 2026-11-09 (night): matched to the claude.ai version
+Ethan asked for the Godot version to match the claude.ai link. A side-by-side check of both versions' numbers (board unit stats, arena unit types, rules, Mythical numbers, cards, what each building trains) found them already the same after the Dinosaur rework. Three things were left, now done (8 files written; the 7 replaced ones copied first to `_backup_before_browser_match/`):
+- **3D trebuchet firing animation** (new scripts/ui/treb_anim.gd): when a finished trebuchet fires, yours or the computer's, its 3D model stands where its picture is, swings its arm and lobs the stone at the target hex, with a puff of dust where it lands. Steel model for the Robots, bone for everyone else, team colour on the bands. A port of the browser's three.js one (same model, timings, light and camera angle; drawn at 3/4 resolution with chunky pixels like the browser's canvas). Shots play one after another. As in the browser, a target more than a hex or so away is outside the model's little window, so the stone flies out of view.
+- **Rhino and Palaeoloxodon walk:** their walk frames now step with the ground they cover (browser `stride`), so their feet don't slide.
+- **Unit notes:** Robot Archer "Fires 2 lasers a shot"; Robot Longbow "shots 1, 5, 9…".
+- Checked first: self-test 170 passed (2 new checks), screenshots of a Robot and a Mammal shot, and a headless arena run of the walk frames.
+- Port script: dev/godot-port-dino/p15_match.py + treb_anim.gd in the repo.
+- **Kept different on purpose:** the browser's Minion note says "The only Mythical unit that captures castles", but neither version enforces that rule, so Godot keeps the accurate note. Godot also keeps its Nov 1 computer calibration (ARENA_CAL), which the repo version lacks.
 
 ## Still to bring over
 1. Online play (later, likely through Steam).
