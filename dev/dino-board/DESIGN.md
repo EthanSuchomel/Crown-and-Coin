@@ -46,8 +46,8 @@ Ethan wanted the Dinosaurs to look and play differently from the other factions,
 
 ## Where it lives
 - **iPad site:** repo EthanSuchomel/Crown-and-Coin, commit 6fe608d (index.html, arena.html, sw.js bumped). Patch scripts and art are in dev/dino-board/.
-- **claude.ai Crown & Coin link** (7jbdEk6pGqUo5z36bGR7gj): still the old version without the Mythical faction or the Dinosaur rewrite. Replacing it with the repo version is still pending.
+- **claude.ai Crown & Coin link** (7jbdEk6pGqUo5z36bGR7gj): updated to the repo version the same evening (version 1794284534-6f89), with the Mythical faction and this rework; online play kept.
+- **Godot version:** ported the same evening and written to Ethan's computer, with a backup of the replaced files (see godot-port-status.md; scripts in the repo's dev/godot-port-dino/).
 - **Not done:**
-  - The Godot port.
   - A board picture of a barracks with guards standing at it (to discuss with Ethan before making it in OpenArt).
   - Volcano-style walls for the arena's Castle map.
