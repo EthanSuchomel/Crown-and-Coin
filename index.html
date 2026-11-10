@@ -947,7 +947,7 @@ function mythConvert(pid,id,k){ const t=S.tiles[id], p=S.players[pid], C=MYTH_CO
   p.gold-=c; takeUnits(t,{minion:C.min}); addUnits(t,k,1,true);
   addLog(`${poss(pid)} Mage turns ${C.min===1?'a Minion':C.min+' Minions'} into a ${UNIT_STATS[k].name}.`,pid); return true; }
 function mythPlant(pid,id){ const t=S.tiles[id];
-  if(t.owner!==pid||t.tree||t.castle||t.terrain!=='plain'||!magesOn(t)>0) return false;
+  if(t.owner!==pid||t.tree||t.castle||t.terrain!=='plain'||!(magesOn(t)>0)) return false;
   t.tree=1; t.root=MYTH.treeTurns; if(MAGES.reduce((s,k)=>s+((t.ready&&t.ready[k])||0),0)>=magesOn(t)) lockMage(t);   // a Mage that already moved this turn is the one that stays
   addLog(`${poss(pid)} Mage plants a Life Tree and stays with it for ${MYTH.treeTurns} turns.`,pid); return true; }
 function mythDome(pid,id){ const t=S.tiles[id], p=S.players[pid];
