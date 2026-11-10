@@ -1520,9 +1520,9 @@ function setStatus(){
       resEl[t].innerHTML='Reserve: <b>'+RES[t].length+'</b>';
       resEl[t].classList.toggle('empty',RES[t].length===0);
     }
-    document.getElementById('hpbar').setAttribute('aria-label','Blue health '+Math.ceil(hp[0])+' of '+Math.ceil(HP0[0])+', Red health '+Math.ceil(hp[1])+' of '+Math.ceil(HP0[1]));
+    document.getElementById('hpbar').setAttribute('aria-label',NAMES[0]+' health '+Math.ceil(hp[0])+' of '+Math.ceil(HP0[0])+', '+NAMES[1]+' health '+Math.ceil(hp[1])+' of '+Math.ceil(HP0[1]));
   }
-  if(!over) statusEl.innerHTML='<span class="b">Blue '+tot[0]+' <small>('+gold[0]+' gold, '+Math.ceil(hp[0])+' health)</small></span> &middot; <span class="r">Red '+tot[1]+' <small>('+gold[1]+' gold, '+Math.ceil(hp[1])+' health)</small></span>';
+  if(!over) statusEl.innerHTML='<span class="b">'+NAMES[0]+' '+tot[0]+' <small>('+gold[0]+' gold, '+Math.ceil(hp[0])+' health)</small></span> &middot; <span class="r">'+NAMES[1]+' '+tot[1]+' <small>('+gold[1]+' gold, '+Math.ceil(hp[1])+' health)</small></span>';
   else if(retreat!=null) statusEl.innerHTML='<span class="'+CLS[retreat]+'">'+NAMES[retreat]+'</span> fled the field: '+ESC[retreat].n+' unit'+(ESC[retreat].n===1?'':'s')+' escaped'+(RES[retreat].length?' and '+RES[retreat].length+' never left reserve':'')+' ('+Math.ceil(hp[retreat])+' health saved).';
   else if(stalemate) statusEl.textContent='Stalemate. Neither side can hurt the other.';
   else if(tot[0]===0&&tot[1]===0) statusEl.textContent='Draw. Both armies fell.';
