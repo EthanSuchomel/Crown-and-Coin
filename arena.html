@@ -545,7 +545,7 @@ html.emb.short #status{display:none}
         <tr><td>Desmodus</td><td>20 gold</td><td>20</td><td>15</td><td>1.0s</td><td>115%</td><td>Melee, flying</td><td>Yes</td></tr>
         <tr><td>Palaeoloxodon</td><td>50 gold</td><td>80</td><td>18 to up to 5 ground units at once (stomp, then a tusk swing that shoves them back; heavy units half as far). War Trumpet at 2s: Mammals +2 damage</td><td>1.0s (Mammals 0.2s faster after War Trumpet)</td><td>110% (Mammals +15% after War Trumpet)</td><td>Its tusks</td><td>No</td></tr>
         <tr class="grp"><th colspan="8">Mythical</th></tr>
-        <tr><td>Minion</td><td>1 gold</td><td>5</td><td>2</td><td>1.0s</td><td>70%</td><td>Melee</td><td>No</td></tr>
+        <tr><td>Minion</td><td>1 gold</td><td>5</td><td>2</td><td>2.0s</td><td>70%</td><td>Melee</td><td>No</td></tr>
         <tr><td>Mage (at most 2 per army)</td><td>15 gold</td><td>15</td><td>Chain lightning: 5 to 7 (by Mage level) to up to 20 enemies at once. Every 2s, a chance to turn a Minion into a Minotaur: 20% at level 0, 30%, 40%, 50% at level 3</td><td>3s</td><td>50%</td><td>By Mage level: a quarter of the field (5 damage), half (6), three quarters (7), the whole field (7). The bolt jumps to the next enemy within about a tenth of the field</td><td>Yes, never misses</td></tr>
         <tr><td>Minotaur</td><td>25 gold</td><td>35</td><td>15 to up to 5 ground units at once. Charge: its first hit kills (big special units: stunned 4s instead)</td><td>1.0s</td><td>115% (184% while charging)</td><td>Melee (hammer)</td><td>No</td></tr>
         <tr><td>Griffin</td><td>40 gold</td><td>45</td><td>25. Landing: 2 to each enemy nearby, knocked back. Screech: enemy shooters miss their next 2 shots, enemy charges stop</td><td>1.0s</td><td>130% flying, 100% on the ground</td><td>Melee, flying</td><td>Yes</td></tr>
@@ -646,7 +646,7 @@ const TYPES={
   eleph:{label:'Palaeoloxodon',faction:'Mammals',heavy:true,cost:50,hp:80,dmg:18,rate:1.0,range:2.5,footX:5.4,footY:1.5,speed:5.94,w:19.432,ratio:0.6133,aimFrac:0.322,ranged:false,hitKey:'melee',armor:{},walkSheet:true,sheet:25,sheetClass:'mms mms-eleph',runFrames:12,runCycle:0.7,stride:4.14,atkFrames:13,atk2Frames:19,atkSteps:[0.15,0.3,0.45,0.6,0.8],
         flying:false,antiAir:false,rank:0,preferGround:true,multi:5,knock:2.2,trumpet:{at:2,dur:1.3,dmg:2,rate:0.2,speed:1.15,delay:2},lungeDur:.7,strikeAt:.35,lungeFwd:0.003,bob:0.1,bobRate:0.6},   // Mammals' special unit: tusk sweep hits up to 5 and shoves them back
   // ---- Mythical (Ethan's stats). Speed: 100% = 5.4 ----
-  minion:{label:'Minion',faction:'Mythical',cost:1,hp:5,dmg:2,rate:1.0,range:3.5,speed:3.78,w:1.5,ratio:1.3727,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},
+  minion:{label:'Minion',faction:'Mythical',cost:1,hp:5,dmg:2,rate:2.0,range:3.5,speed:3.78,w:1.5,ratio:1.3727,aimFrac:0.45,ranged:false,hitKey:'melee',armor:{},
         flying:false,antiAir:false,rank:0,basic:true,lungeDur:.3,strikeAt:.13,lungeFwd:0.008,bob:0.6,bobRate:2.2},   // penguin chick: waddles
   mage:{label:'Mage',faction:'Mythical',cost:15,maxN:2,hp:15,dmg:5,rate:3,range:120,speed:2.7,w:2.8,ratio:1.4636,aimFrac:0.5,ranged:true,hitKey:'magic',armor:{},
         flying:false,antiAir:true,rank:2,lightning:{n:20,jump:9},morph:{every:2,chance:0.2,into:'minotaur'},lungeDur:.6,strikeAt:.3,noRecoil:true,bob:0.2,bobRate:1.2,staff:[0.17,0.06]},   // chain lightning: 5 to up to 20 enemies, every 10s
