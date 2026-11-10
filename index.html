@@ -947,8 +947,8 @@ function mythConvert(pid,id,k){ const t=S.tiles[id], p=S.players[pid], C=MYTH_CO
   p.gold-=c; takeUnits(t,{minion:C.min}); addUnits(t,k,1,true);
   addLog(`${poss(pid)} Mage turns ${C.min===1?'a Minion':C.min+' Minions'} into a ${UNIT_STATS[k].name}.`,pid); return true; }
 function mythPlant(pid,id){ const t=S.tiles[id];
-  if(t.owner!==pid||t.tree||t.castle||t.terrain!=='plain'||!MAGES.some(k=>t.ready&&t.ready[k]>0)) return false;
-  t.tree=1; t.root=MYTH.treeTurns; lockMage(t);
+  if(t.owner!==pid||t.tree||t.castle||t.terrain!=='plain'||!magesOn(t)>0) return false;
+  t.tree=1; t.root=MYTH.treeTurns; if(MAGES.reduce((s,k)=>s+((t.ready&&t.ready[k])||0),0)>=magesOn(t)) lockMage(t);   // a Mage that already moved this turn is the one that stays
   addLog(`${poss(pid)} Mage plants a Life Tree and stays with it for ${MYTH.treeTurns} turns.`,pid); return true; }
 function mythDome(pid,id){ const t=S.tiles[id], p=S.players[pid];
   if(t.owner!==pid||t.dome>0||!magesOn(t)||t.terrain==='water'||p.gold<MYTH.domeCost) return false;
@@ -979,7 +979,7 @@ const domeSvg=(cx,cy,hp)=>`<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r
 function mythActionDesc(a,pid){
   if(a==='harvest') return `+${modsOf(pid).harvestBase} magic, plus 1 for every 2 hexes you own (on top of your Life Trees and castle)`;
   if(a==='recruit') return `At your castles: Minions (${MYTH.minionPack} for 1 magic) and Mages (${magePrice(pid)} magic, at most ${mageCap(pid)} on a hex). Where a Mage stands: turn Minions into Minotaurs, Griffins and Dragons`;
-  if(a==='build') return `Plant Life Trees: a ready Mage stays on its hex for ${MYTH.treeTurns} turns; the tree makes ${MYTH.treeMagic} magic a turn (${MYTH.treeRich} with ${MYTH.treeMinions}+ Minions there)`;
+  if(a==='build') return `Plant Life Trees: a Mage (even one that moved this turn) stays on its hex for ${MYTH.treeTurns} turns; the tree makes ${MYTH.treeMagic} magic a turn (${MYTH.treeRich} with ${MYTH.treeMinions}+ Minions there)`;
   if(a==='move') return `Make up to ${movesLimit(pid)} moves. Mages and Minions go up to 2 hexes anywhere; other units 1 hex into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle`;
   if(a==='advance') return `Upgrade your Mages (${MYTH.mageUp.join(', ')} magic for levels 1 to 3) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or raise a magic dome where a Mage stands (${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn)`;
   if(a==='channel') return `No other actions this turn: +${MYTH.chMage} magic for every Mage you have and +${MYTH.chCastle} for every castle you hold`;
@@ -1005,7 +1005,7 @@ function mythStepBody(a,sel){
   let h=`<div class="row-label"><span class="px px-magic" aria-hidden="true"></span> You have <b>${me.gold} magic</b></div>`;
   if(mine&&sel.troops) h+=`<div class="harmy">Here: ${armyList(sel.army)}</div>`;
   if(a==='recruit') return h+`<p class="hint">Tap one of your castles to make Minions (${MYTH.minionPack} for 1 magic) or a Mage (${magePrice(0)} magic, at most ${mageCap(0)} on a hex). Tap a hex with a Mage to turn its Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1), Griffins (${MYTH_CONV.griffin.m} + 2, level 1 Mage) and Dragons (${MYTH_CONV.dragon.m} + 4, level 2 Mage).</p>`;
-  if(a==='build') return h+`<p class="hint">Tap a hex where one of your Mages is ready to plant a Life Tree. It costs no magic, but that Mage can't move for ${MYTH.treeTurns} whole turns. A tree makes ${MYTH.treeMagic} magic a turn, or ${MYTH.treeRich} with ${MYTH.treeMinions} or more Minions on its hex. One per hex, not on castles; it's destroyed if the hex is captured.</p>`;
+  if(a==='build') return h+`<p class="hint">Tap a hex where one of your Mages stands to plant a Life Tree (it can have moved this turn). It costs no magic, but that Mage can't move for ${MYTH.treeTurns} whole turns. A tree makes ${MYTH.treeMagic} magic a turn, or ${MYTH.treeRich} with ${MYTH.treeMinions} or more Minions on its hex. One per hex, not on castles; it's destroyed if the hex is captured.</p>`;
   return h+`<p class="hint">Tap any of your hexes to upgrade your Mages (${MYTH.mageUp.join(', ')} magic) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or to raise a magic dome where a Mage stands: ${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} every turn (if you can't pay, it fades). A dome guards every side like a full wall.</p>`;
 }
 // the round buttons on posts round the zoomed-in hex, like the other factions' Recruit, Build and Advancements buttons
@@ -1023,9 +1023,9 @@ function mythBubbleItems(t){
       it('conv',k,UNIT_ART[k],UNIT_STATS[k].name,lock?`Mage ${C.lv}`:`${c}+${C.min}`,!lock&&mn>=C.min&&me.gold>=c,
         {label:lock?`${UNIT_STATS[k].name}: needs a level ${C.lv} Mage here`:`Turn ${C.min===1?'a Minion':C.min+' Minions'} into a ${UNIT_STATS[k].name} for ${c} magic`}); }
   } else if(a==='build'){
-    const ok=!t.tree&&!t.castle&&t.terrain==='plain'&&MAGES.some(k=>t.ready&&t.ready[k]>0);
-    it('tree',0,ART.bld.tree,'Life Tree',t.tree?'Has one':t.castle?'Not here':!magesOn(t)?'Needs Mage':ok?`Free · ${MYTH.treeTurns} turns`:'Mage busy',ok,
-      {sm:true,label:ok?`Plant a Life Tree: this hex's Mage stays ${MYTH.treeTurns} turns`:'A Life Tree needs a ready Mage on a plain hex without one'});
+    const ok=!t.tree&&!t.castle&&t.terrain==='plain'&&magesOn(t)>0;
+    it('tree',0,ART.bld.tree,'Life Tree',t.tree?'Has one':t.castle?'Not here':!magesOn(t)?'Needs Mage':ok?`Free · ${MYTH.treeTurns} turns`:'Needs Mage',ok,
+      {sm:true,label:ok?`Plant a Life Tree: this hex's Mage stays ${MYTH.treeTurns} turns`:'A Life Tree needs a Mage on a plain hex without one'});
   } else if(a==='advance'){
     const ml=mlvOf(0), cl=clvOf(0), home=!!mythHome(0), dok=!(t.dome>0)&&magesOn(t)>0&&me.gold>=MYTH.domeCost;
     it('upm',0,UNIT_ART.mage0,ml>=3?'Mages 3':`Mages ${ml+1}`,ml>=3?'Max level':!home?'No castle':`${MYTH.mageUp[ml]} magic`,ml<3&&home&&me.gold>=MYTH.mageUp[ml],
@@ -1062,7 +1062,7 @@ function mythAi(pid,a,later){
     return ids;
   }
   if(a==='build'){
-    own.filter(t=>!t.tree&&!t.castle&&t.terrain==='plain'&&MAGES.some(k=>t.ready&&t.ready[k]>0)&&dist(t)>=1).sort((x,y)=>dist(y)-dist(x))
+    own.filter(t=>!t.tree&&!t.castle&&t.terrain==='plain'&&magesOn(t)>0&&dist(t)>=1).sort((x,y)=>dist(y)-dist(x))
       .forEach(t=>{ if(mythPlant(pid,t.id)) ids.push(t.id); });
     return ids;
   }
