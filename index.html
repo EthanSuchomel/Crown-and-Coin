@@ -2997,7 +2997,7 @@ async function runAI(){
 const MW=26, MH=MW*0.8127;         // mountain picture: drawn taller than the art (30%) and a little wider (5%), inside its hex
 // castle pictures: centred in the hex and sized so the whole picture (corners included) sits inside it
 const HFIT=16.4;                   // keep a little inside the hex's points (the hex reaches 18)
-const castleW=f=>Math.min(HH-3.5, 2*HFIT/(ART['castle_'+f].ratio+1/Math.sqrt(3)));
+const castleW=f=>f==='mythical'?26:Math.min(HH-3.5, 2*HFIT/(ART['castle_'+f].ratio+1/Math.sqrt(3)));   // the Floating Castle (Ethan, 2026-11-10): drawn big, filling its hex
 // Home castles show their faction's castle; every other castle is the stone castle, whoever holds it.
 const trebIc=pid=>{const f=pid!=null&&pid>=0&&S.players[pid]?S.players[pid].faction:null; return (f==='dinos'||f==='robots')?'treb_'+f:'treb';};   // each faction's own trebuchet picture
 const castleArt=t=>isHomeCastle(t)?S.players[t.owner].faction:'neutral';
@@ -3295,8 +3295,8 @@ function renderMap(){
         if(k==='barracks'&&pips){ pips=false; for(let q=0;q<t.bk;q++) tops+=`<rect x="${(x+z+.2).toFixed(2)}" y="${(y+1+q*2.2).toFixed(2)}" width="1.7" height="1.7" fill="#efc15a" stroke="#060907" stroke-width=".35"/>`; }
       });
     }
-    if(t.tree&&owned&&!swords){ const z=TREE_SIZE; castles+=`<use href="#b-tree" transform="translate(${(cx-z/2+2).toFixed(2)} ${(cy+HR*.42-z).toFixed(2)}) scale(${(z/16).toFixed(4)})"/>`; }   // a Life Tree: big, in the middle of its hex
-    const ics=[]; if(isHomeCastle(t)&&owned) ics.push('crown');
+    if(t.tree&&owned&&!swords){ const z=TREE_SIZE; castles+=`<use href="#b-tree" transform="translate(${(cx-z/2).toFixed(2)} ${(cy-z/2).toFixed(2)}) scale(${(z/16).toFixed(4)})"/>`; }   // a Life Tree: big, centred in its hex (Ethan, 2026-11-10)
+    const ics=[];   // no crown on home castles (Ethan, 2026-11-10)
     if(t.treb) ics.push(t.treb===2?'treb':'trebwip'); if(t.treb2) ics.push(t.treb2===2?'treb':'trebwip'); if(braced(t)&&t.troops>0) ics.push('fortify');
     ics.forEach((k,n)=>{
       // with buildings in the hex, the little icons stand on its right side, above and below the troop count
@@ -3327,7 +3327,7 @@ function renderMap(){
 }
 function legendHtml(){
   const m=modsOf(0);
-  return `<ul class="keylist"><li><span class="px px-c-neutral" aria-hidden="true"></span> Castle: recruit here, +${m.castleGold} gold, +${m.castleDefense} defense</li><li><span class="px px-crown" aria-hidden="true"></span> Home castle: +${HOME_DEFENSE} defense and ${HOME_GUARDS} guard archers that always defend it (not shown on the map). It always recruits your basic unit; once you've built a barracks or fort anywhere, it can train those units too, for good</li><li><span class="px px-coin" aria-hidden="true"></span> Bonus coin: +${COIN_GOLD} gold to the first side that takes the hex</li><li><span class="px px-t-mountain" aria-hidden="true"></span> Mountain: only a Move action upgraded at least once can enter</li><li><span class="px px-treb" aria-hidden="true"></span> Trebuchet: hits an enemy hex next to it at the start of its owner's turn (faded while being built)</li><li><span class="px px-wall" aria-hidden="true"></span> Wall: the stone line along a hex side; each missing block is lost strength</li><li><span class="px px-barracks" aria-hidden="true"></span> Gold squares above a barracks: its level</li><li><span class="px px-t-water" aria-hidden="true"></span> Water: blocked</li><li>Faded number: already moved this turn</li></ul>`;
+  return `<ul class="keylist"><li><span class="px px-c-neutral" aria-hidden="true"></span> Castle: recruit here, +${m.castleGold} gold, +${m.castleDefense} defense</li><li><span class="px px-c-neutral" aria-hidden="true"></span> Home castle (your faction's own castle): +${HOME_DEFENSE} defense and ${HOME_GUARDS} guard archers that always defend it (not shown on the map). It always recruits your basic unit; once you've built a barracks or fort anywhere, it can train those units too, for good</li><li><span class="px px-coin" aria-hidden="true"></span> Bonus coin: +${COIN_GOLD} gold to the first side that takes the hex</li><li><span class="px px-t-mountain" aria-hidden="true"></span> Mountain: only a Move action upgraded at least once can enter</li><li><span class="px px-treb" aria-hidden="true"></span> Trebuchet: hits an enemy hex next to it at the start of its owner's turn (faded while being built)</li><li><span class="px px-wall" aria-hidden="true"></span> Wall: the stone line along a hex side; each missing block is lost strength</li><li><span class="px px-barracks" aria-hidden="true"></span> Gold squares above a barracks: its level</li><li><span class="px px-t-water" aria-hidden="true"></span> Water: blocked</li><li>Faded number: already moved this turn</li></ul>`;
 }
 function render(){renderHead();renderStats();renderMap();renderHexInfo();renderPanel();save();netPush();}
 // the "Cards" header: whose turn it is, plus help, log and new game
