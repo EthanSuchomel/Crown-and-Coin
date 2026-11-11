@@ -871,7 +871,7 @@ const gpad=f=>Math.max(1,Math.min(3.2,f.T.w*0.35));
 // the army holding the fortress fights with +5% health and +1 damage on this map
 const FORT_HP=1.05, FORT_DMG=1;
 const fortBuff=team=>MAP==='fortress'&&team===HOLD;
-const unitHp=(team,k)=>Math.round(TYPES[k].hp*(fortBuff(team)?FORT_HP:1)*100)/100;
+const unitHp=(team,k)=>Math.round(TYPES[k].hp*(fortBuff(team)?FORT_HP:1)*(MOD_HP[team]||1)*100)/100;
 function makeFortress(){
   const D=ROBO()&&FORT_DEF_R?FORT_DEF_R:MAMMO()?FORT_DEF_M:FORT_DEF;
   FORT={...D, max:D.hp, open:0, broken:false, flash:0};
@@ -1294,7 +1294,7 @@ let UID=0, LASTHIT=0, ME=0, AI_TEAMS=[1], AI_LV='medium';
 /* Crown & Coin abilities brought into a battle (none in a standalone game):
    Offline (Robots): a sneak attack. SNEAK is the attacking team; the other side can't attack until SNEAK lands its first hit.
    Update (Robots): MOD_PLUS extra damage on every hit and MOD_MULT more damage, per team. */
-let SNEAK=null, SNEAK_HIT=false, MOD_PLUS=[0,0], MOD_MULT=[1,1];
+let SNEAK=null, SNEAK_HIT=false, MOD_PLUS=[0,0], MOD_MULT=[1,1], MOD_HP=[1,1];
 // the sneak attack also ends if the attackers have nothing left that can hurt the defenders (Brawlers against flyers, say)
 let _sneakT=-1;
 function sneakCanLand(){ const types=t=>F.filter(f=>f.team===t&&!f.dead).map(f=>f.T).concat(RES[t].map(k=>TYPES[k]));
@@ -2575,7 +2575,7 @@ function embSetup(m){
   EMB={role:m.role,seed:m.seed>>>0,go:false,rate:1,title:m.title||'Battle',me:m.me};
   ME=m.me; AI_TEAMS=m.ai||[]; AI_LV=m.lvl||'medium';
   { const md=m.mods||{}; SNEAK=(md.sneak===0||md.sneak===1)?md.sneak:null; SNEAK_HIT=false;
-    MOD_PLUS=[0,1].map(t=>+((md.plus||[])[t])||0); MOD_MULT=[0,1].map(t=>+((md.mult||[])[t])||1); } MAP_PICK=null; MAP=m.map||'open'; HOLD_SEL=m.hold||0; END_SENT=false; ENDED=null; HOSTCLK=null; SNAP_T=0;
+    MOD_PLUS=[0,1].map(t=>+((md.plus||[])[t])||0); MOD_MULT=[0,1].map(t=>+((md.mult||[])[t])||1); MOD_HP=[0,1].map(t=>+((md.hp||[])[t])||1); } MAP_PICK=null; MAP=m.map||'open'; HOLD_SEL=m.hold||0; END_SENT=false; ENDED=null; HOSTCLK=null; SNAP_T=0;
   for(let t=0;t<2;t++){ for(const k of ORDER) COUNTS[t][k]=0; const a=m.armies[t]||{}; for(const k in a){ const ak=KEY_IN[k]||k; if(TYPES[ak]&&ORDER.includes(ak)) COUNTS[t][ak]=Math.min(capOf(ak),COUNTS[t][ak]+a[k]); }
     const fk=ORDER.find(k=>COUNTS[t][k]>0); TEAM_FACTION[t]=m.factions&&m.factions[t]||(fk?facOf(fk):['Dinosaurs','Robots'][t]); }
   speed=1; document.querySelectorAll('.spd').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.s===1)));
