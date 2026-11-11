@@ -976,7 +976,7 @@ const NAMED_UP={robots:ROBO_UP, mammals:MAMM_UP};   // the Dinosaurs have their 
 // The upgrade names are Claude's placeholders. ----------
 const DCARD={
   stamp:{move:[['Charge','an extra move, if that move is an attack'],['Home Run','units from your home castle can move to any of your hexes'],['Two Herds','when you attack, the ready units on another of your hexes next to the target join in']],
-         build:[['Free Market','your first market in this action is free'],['Supplies','+2 materials when this action starts'],['Cheap Nests','every building that costs materials costs just 1']],
+         build:[['Free Market','your first market in this action is free'],['Supplies','+2 materials when this action starts'],['Cheap Nests','every building costs 1 less (markets 1 gold, the rest 1 material)']],
          fortify:[['Hatchlings','1 free Pachycephalosaurus at every nesting ground'],['Raptor Brood','also 1 free Megaraptor at every nesting ground'],['New Nest','a free nesting ground: your next barracks costs nothing']]},
   pack:{harvest:[['Trade Calls','+1 gold for every market'],['Castle Tolls','+5 gold for every castle'],['Big Herd','+2 gold for every 5 of your units']],
         recruit:[['Calling','3 free Pachycephalosaurus at a nesting ground you pick'],['Raptor Call','also 1 free Megaraptor there'],['Castle Raptors','2 free Megaraptors at your home castle']],
@@ -2168,10 +2168,10 @@ function placeDpick(i){ const t=S.tiles[i]; if(!S.play||!S.play.dpick||t.owner!=
 // a free building: Free Market (the first market of a Stampede Build) and New Nest (the next barracks)
 function dinoCost(pid,k,c,t){
   const st=dk(pid,'stamp','build'), ne=dk(pid,'nest','build'), p=S.players[pid];
-  if(k==='market'){ if(st>=1&&!S.play.freeMk) return 0; if(ne>=1) c-=1; if(ne>=2&&t&&(t.market|0)>=1) c-=1; return Math.max(0,c); }
+  if(k==='market'){ if(st>=1&&!S.play.freeMk) return 0; if(ne>=1) c-=1; if(ne>=2&&t&&(t.market|0)>=1) c-=1; if(st>=3) c-=1; return Math.max(0,c); }
   if(k==='barracks'&&(p.fnest|0)>0) return 0;
-  if(st>=3&&inMat(k)) return Math.min(c,1);
-  return c;
+  if(st>=3) c-=1;   // Cheap Nests: every building 1 cheaper (Ethan, 2026-11-11)
+  return Math.max(0,c);
 }
 function dinoBuilt(pid,k,price){ if(!isDino(pid)||price>0||!S.play) return; const p=S.players[pid];
   if(k==='market'&&dk(pid,'stamp','build')>=1&&!S.play.freeMk) S.play.freeMk=1; else if(k==='barracks'&&(p.fnest|0)>0) p.fnest--; }
