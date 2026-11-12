@@ -803,7 +803,7 @@ function actionDescBase(a,pid,lvl){
   }
   if(a==='recruit'){ const f=(S&&S.players&&S.players[pid])?S.players[pid].faction:DEFAULT_FACTION, b=BASIC[f], per=BASIC_PER[f]||1;
     return (lvl?`First, free ${unitPl(b)}: ${FREE_CASTLE[lvl]*per} at each castle and ${FREE_BARRACKS[lvl]*per} at each barracks. Then r`:'R')+`ecruit ${unitPl(b)} (${UNIT_STATS[b].cost} gold each) at your castles and barracks, or train other units at barracks${isDino(pid)?'':' and forts'}`; }
-  if(a==='build'&&isRobo(pid)) return `Build factories (${costOf('market',lvl)} gold, one per hex; each starts as a market) and upgrade them from your home castle: a Barracks, then a Fortress (${matTxt(costOf('barracks',lvl))} each). Buy materials at your markets`;
+  if(a==='build'&&isRobo(pid)) return `Build markets (${costOf('market',lvl)} gold). Stack up to ${ROBO_MARKETS} on a hex for a resource hex, or turn one into a factory from your home castle: a Barracks, then a Fortress (${matTxt(costOf('barracks',lvl))} each). Buy materials at your markets`;
   if(a==='build') return `Build as many as you can afford: Markets (${costOf('market',lvl)} gold)${isDino(pid)?'':`, Forts (${matTxt(costOf('fort',lvl))})`} and Barracks (${matTxt(costOf('barracks',lvl))}). Buy materials at your markets`;
   if(a==='move'){
     const extra=[lvl>=1?'troops can climb onto mountains':'',lvl>=2?'you attack with advantage':''].filter(Boolean);
@@ -1255,11 +1255,13 @@ const upTotal=(pid,cid)=>upsOf(pid,cid).reduce((s,v)=>s+v,0);
 const rawLvl=()=>S&&S.play?(fxOn()?0:lvlOf(S.current,S.play.card,S.play.step)):0;   // the current action's upgrade level (a Fortify's regroup and picks play at the basic level)
 const curLvl=()=>S&&S.play?(isDino(S.current)?(dk(S.current,'siege','move')>=1?1:0):effLvl(S.current,rawLvl())):0;   // Dinosaurs: Siege of Teeth's Climb plays as a mountain-climbing Move                   // ...as the usual upgrade effects see it
 // the Robots' Efficiency: up to 4 buildings on a hex during that Build
-const bMax=()=>(S&&S.play&&isRobo(S.current))?1:(S&&S.play&&curAction()==='build'&&roboOn(S.current,rawLvl()))?4:MAX_BUILDINGS;   // Robots: one Factory per hex
+const bMax=()=>(S&&S.play&&isRobo(S.current))?ROBO_MARKETS:(S&&S.play&&curAction()==='build'&&roboOn(S.current,rawLvl()))?4:MAX_BUILDINGS;   // Robots: one Factory per hex
 // ---- the Robots' Factory (Ethan, 2026-11-11): one building per hex. It's built as a market, and the home castle upgrades
 // each one on its own (during Build, paid like a barracks or fort): first a barracks, then a fortress. Castles take a market only. ----
 const roboLv=t=>t.market?(t.barracks?(t.fort?3:2):1):0;
-const roboNext=t=>(t.market&&!t.castle)?(!t.barracks?'barracks':!t.fort?'fort':null):null;   // what the home castle can add to it next
+const ROBO_MARKETS=4;   // a resource hex holds up to 4 markets
+const roboNext=t=>(t.market&&!t.castle)?(!t.barracks?((t.market|0)===1?'barracks':null):!t.fort?'fort':null):null;   // what the home castle can add to it next (a resource hex takes none)
+const roboCanMarket=t=>!t.barracks&&!t.fort&&!t.wh&&(t.market|0)<ROBO_MARKETS;   // an empty hex, or a market on the resource path
 const ROBO_NAME={barracks:'Barracks',fort:'Fortress'};
 const roboUpTargets=(pid,k)=>S.tiles.filter(t=>t.owner===pid&&roboNext(t)===k).map(t=>t.id);
 function doRoboUp(pid,i,lvl){
@@ -1717,11 +1719,11 @@ function winEst(att,def,o){
   if(_est.size>5000) _est.clear(); _est.set(key,p); return p;
 }
 // the Robots' factory, for the Build panel, How to play and the faction screen
-const roboKeyHtml=lvl=>[['market',`${BUILD_INFO.market.desc}. Every Robot building starts as one, one per hex`],
+const roboKeyHtml=lvl=>[['market',`${BUILD_INFO.market.desc}. Every Robot building starts as one. Add more markets on its hex (up to ${ROBO_MARKETS}, ${costOf('market',lvl||0)} gold each) to make a resource hex, or upgrade it into a factory`],
   ['barracks','added to a factory from your home castle: recruits here and trains barracks units, upgraded with Advancements'],
   ['fort','added to a factory that has a barracks, from your home castle: +1 on the defenders\' best die, trains fortress units and holds a trebuchet']]
   .map(([k,d])=>`<li>${bldImg(k+'_robots').replace('<img','<img style="height:1.5em;vertical-align:-.4em"')} <b>${k==='market'?'Factory (market)':ROBO_NAME[k]}</b> ${priceTxt(k,costOf(k,lvl||0))}: ${d}</li>`).join('');
-const roboSpecialsHtml=()=>`Robots build one <b>factory</b> per hex. It starts as a market (gold). Then, during Build, tap your home castle and pick <b>Barracks</b> or <b>Fortress</b> (materials) and tap a factory to upgrade it: first a barracks, then a fortress. Each factory is upgraded on its own, and only while you hold your home castle.<ul class="bkey">${roboKeyHtml(0)}</ul>`;
+const roboSpecialsHtml=()=>`Every Robot building starts as a market (gold), one per hex, and then takes one of two paths. A <b>resource hex</b>: build more markets on that hex, up to ${ROBO_MARKETS}. Or a defensive <b>factory</b>: during Build, tap your home castle, pick <b>Barracks</b> or <b>Fortress</b> (materials) and tap the market to upgrade it, first a barracks, then a fortress. Never both. Each is upgraded on its own, and factory upgrades only while you hold your home castle.<ul class="bkey">${roboKeyHtml(0)}</ul>`;
 // the Dinosaurs' volcano and Alamosaurus guards, for How to play and the faction screen
 const dinoSpecialsHtml=()=>`<img src="${ART.castle_dinos.uri}" alt="" style="height:1.3em;vertical-align:-.3em"> <b>Volcano</b>: the Dinosaurs build no forts and no trebuchets. Instead, Advancements at your home castle wake its volcano and stoke it higher: ${VOLC.map((v,i)=>`level ${i+1} (${v.cost} gold) ${volcSay(i+1)}`).join('; ')}. When it's due it erupts at the start of your turn, once, at an enemy hex with units in reach (you pick): every ${TREB_HIT} or higher does ${TREB_DMG} damage to the front of their line, and walls don't stop it. If your home castle falls, the volcano is lost.
   <img src="${UNIT_ART.alamo}" alt="" style="height:1.3em;vertical-align:-.3em"> <b>Alamosaurus guards</b>: Advancements at a barracks hire them, ${GUARD_COST} gold each, up to ${GUARD_MAX} per barracks. A guard never moves or attacks; it joins the fight whenever that hex is attacked, and can hold it on its own. Each stomp hits up to 4 enemies. A guard that dies is gone until you hire another.`;
@@ -2318,7 +2320,7 @@ function leftoverWarning(){
     return can?`You have <b>${me.gold} gold</b>, enough to recruit or train more units.`:null;
   }
   if(a==='build'){
-    const can=mine.some(t=>t.terrain==='plain'&&bCount(t)<bMax()&&(t.castle||isRobo(0)?['market']:BUILD_KINDS).concat(mammNow(0,'build')&&!t.wh?['wh']:[]).some(k=>canPayB(0,k,costOf(k,lvl))))
+    const can=mine.some(t=>t.terrain==='plain'&&bCount(t)<bMax()&&(!isRobo(0)||roboCanMarket(t))&&(t.castle||isRobo(0)?['market']:BUILD_KINDS).concat(mammNow(0,'build')&&!t.wh?['wh']:[]).some(k=>canPayB(0,k,costOf(k,lvl))))
       ||(isRobo(0)&&homeMarket(0)&&['barracks','fort'].some(k=>roboUpTargets(0,k).length&&canPayB(0,k,costOf(k,lvl))));
     return can?`You have <b>${me.gold} gold</b> and <b>${matTxt(matOf(0))}</b>, and room to build more.`:null;
   }
@@ -2476,7 +2478,7 @@ function executeMove(from,to,n,lvl,ar){
   B.tree=0; B.root=0; B.dome=0;   // a Life Tree is destroyed and a dome falls when the hex is captured
   if(B.treb===1){ B.treb=0; B.trebDue=0; addLog('A trebuchet under construction is wrecked.',p.id); }
   if(isRobo(p.id)&&!B.castle&&bCount(B)){ const bk=!!(B.barracks||B.fort), ft=!!(B.fort&&B.barracks);
-    B.market=1; B.barracks=bk?1:0; B.fort=ft?1:0; B.wh=0; if(!bk) B.bk=0; addLog(`${p.name} turn the captured buildings into a factory.`,p.id); }
+    B.market=bk?1:Math.min(ROBO_MARKETS,Math.max(1,B.market|0)); B.barracks=bk?1:0; B.fort=ft?1:0; B.wh=0; if(!bk) B.bk=0; addLog(`${p.name} turn the captured buildings into a factory.`,p.id); }
   if(isDino(p.id)&&(B.treb||B.treb2)){ B.treb=0; B.trebDue=0; B.treb2=0; B.trebDue2=0; addLog('The Dinosaurs wreck the trebuchets they captured.',p.id); }
   if(B.treb2===1){ B.treb2=0; B.trebDue2=0; addLog('A trebuchet under construction is wrecked.',p.id); }
   if(!B.treb&&B.treb2){ B.treb=B.treb2; B.trebDue=B.trebDue2; B.treb2=0; B.trebDue2=0; }   // keep the first slot filled   // a finished one changes hands with the hex
@@ -2639,7 +2641,7 @@ function build(id,k){
   if(k==='wh'&&(!mammNow(0,'build')||t.wh)) return;   // Watering Hole: Mammals with the upgraded Build, one per hex
   if(t.castle&&k!=='market'&&k!=='wh') return;
   if(k==='fort'&&isDino(0)) return;   // the Dinosaurs build no forts
-  if(isRobo(0)&&k!=='market') return;   // Robots: barracks and fortresses are factory upgrades, made at the home castle
+  if(isRobo(0)&&(k!=='market'||!roboCanMarket(t))) return;   // Robots: barracks and fortresses are factory upgrades, made at the home castle
   payB(0,k,price); dinoBuilt(0,k,price); t[k]=(t[k]|0)+1; noteUnlock(0,k,t);
   addLog(`You build a ${BUILD_INFO[k].name}.`,0);
   render();
@@ -2841,6 +2843,10 @@ function aiBuild(pid,lvl,later){
   for(let n=0;n<(smart?8:6);n++){
     let plan=smart?aiBuildPlan2(pid,{treb,lvl,keep:keepR}):aiBuildPlan(pid,{treb,lvl});
     if(!plan) break;
+    if(isRobo(pid)&&plan.k==='market'&&!roboCanMarket(S.tiles[plan.id])){
+      const dE=bfs(foeTiles(pid)), c=S.tiles.filter(t=>t.owner===pid&&t.terrain==='plain'&&roboCanMarket(t)).sort((a,b)=>fin(dE[b.id])-fin(dE[a.id]))[0];
+      if(!c) break; plan={k:'market',id:c.id};
+    }
     if(isRobo(pid)&&plan.k!=='market'){   // Robots: upgrade the factory nearest where the plan wanted it; with none, build a factory there first
       const tg=homeMarket(pid)?roboUpTargets(pid,plan.k).sort((a,b)=>man(a,plan.id)-man(b,plan.id)):[];
       if(tg.length) plan={k:plan.k,id:tg[0]};
@@ -3444,6 +3450,12 @@ function placeBubbles(show){
       html+=`<button class="bub${can?'':' off'}" data-bk="rup_${kind}" ${pos} ${can?'':'disabled'} aria-label="${tg.length?`Add a ${ROBO_NAME[kind]} to one of your factories: ${priceTxt(kind,price)}`:kind==='fort'?'Fortress: first give a factory a barracks':'Barracks: first build a factory (a market)'}">${bldImg(kind+'_robots')}<b>${ROBO_NAME[kind]}</b><small>${note}</small></button>`;
       continue;
     }
+    if(isRobo(0)&&kind==='market'&&!isHomeCastle(t)&&bCount(t)){   // a Robot market: add another (a resource hex), or it's a factory
+      const price=costOf('market',lvl,t), ok=roboCanMarket(t), can=ok&&canPayB(0,'market',price), m=t.market|0;
+      const note=ok?`${price} gold`:t.barracks?'Factory':'Full';
+      html+=`<button class="bub${can?'':' off'}" data-bk="market" ${pos} ${can?'':'disabled'} aria-label="${ok?`Add market ${m+1} of ${ROBO_MARKETS} (a resource hex: no barracks or fortress here): ${price} gold`:t.barracks?'This hex is a factory, so it takes no more markets':`This resource hex already has ${ROBO_MARKETS} markets`}">${bldImg('market_robots')}<b>${ok?'Market '+(m+1):'Market'}</b><small>${note}</small></button>`;
+      continue;
+    }
     const price=costOf(kind,lvl,t), castleNo=t.castle&&kind!=='market'&&kind!=='wh', has=kind==='wh'&&!!t.wh, can=!full&&!castleNo&&!has&&canPayB(0,kind,price);
     const nt=has?'Has one':full?'Full':castleNo?'Not here':price===0?'Free':priceTxt(kind,price), note=has||full||castleNo||price===0?nt:priceIc(kind,price);
     html+=`<button class="bub${can?'':' off'}" data-bk="${kind}" ${pos} ${can?'':'disabled'} aria-label="Build a ${BUILD_INFO[kind].name}: ${nt}">${bldImg(kind==='wh'?'wh':kind+'_'+me.faction)}<b>${kind==='wh'?'Watering':BUILD_INFO[kind].name}</b><small>${note}</small></button>`;
@@ -3501,6 +3513,10 @@ function renderMap(){
     const blds=[]; for(const k of ['fort','barracks','market','wh']) for(let q=0;q<(t[k]|0);q++) blds.push(k);
     const swords=i===swordHex(), village=blds.length>0&&!t.castle&&!swords;
     if(swords) castles+=`<image href="${ART.swords}" x="${(cx-11).toFixed(2)}" y="${(cy-11.5).toFixed(2)}" width="22" height="22" style="image-rendering:pixelated"/>`;
+    else if(owned&&!t.castle&&S.players[t.owner].faction==='robots'&&(t.market|0)>=2&&!t.barracks){
+      const n=Math.min(t.market|0,ROBO_MARKETS), z=n>2?11.5:13, at=[null,null,[[-6.4,1],[6.4,1]],[[0,-5.6],[-6.6,5],[6.6,5]],[[-6,-5],[6,-5],[-6,6],[6,6]]][n];
+      at.forEach(([ox,oy])=>{ const x=cx+ox-z/2, y=cy+oy-z/2; castles+=`<use href="#b-market_robots" transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${(z/16).toFixed(4)})"/>`; });
+    }
     else if(owned&&!t.castle&&S.players[t.owner].faction==='robots'&&roboLv(t)){
       const lv=roboLv(t), z=[0,17,19,21][lv], bk=['','market','barracks','fort'][lv]+'_robots', x=cx-z/2, y=cy-z/2+1.2;
       castles+=`<use href="#b-${bk}" transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${(z/16).toFixed(4)})"/>`;
@@ -3777,7 +3793,9 @@ function stepBody(){
     } else if(isRobo(0)&&sel&&sel.owner===0&&isHomeCastle(sel)){
       h+=matRow()+`<p class="hint">Your home castle upgrades your factories: tap <b>Barracks</b> or <b>Fortress</b> on the map, then tap the factory to upgrade. Or tap <b>Market</b> to build one here. Tap the castle again to zoom back out.</p>`;
     } else if(isRobo(0)&&sel&&sel.owner===0&&sel.terrain==='plain'){
-      h+=matRow()+`<p class="hint">${bCount(sel)?`This hex already has a factory${roboNext(sel)?`. Upgrade it from your home castle with a ${roboNext(sel)==='fort'?'fortress':'barracks'}`:', fully upgraded'}.`:`Tap <b>Market</b> to build a factory here. It starts as a market; your home castle can then add a barracks, then a fortress.`} Tap the hex again to zoom back out.</p>`;
+      h+=matRow()+`<p class="hint">${(sel.market|0)>=2?`A resource hex: ${sel.market} of ${ROBO_MARKETS} markets${roboCanMarket(sel)?'. Tap <b>Market</b> to add another':''}. It can't take a barracks or fortress.`
+        :sel.barracks?`A factory${roboNext(sel)?`. Add its fortress from your home castle`:', fully upgraded'}. It can't take more markets.`
+        :bCount(sel)?`Choose what this market becomes: tap <b>Market</b> to add a second one and make it a <b>resource hex</b> (up to ${ROBO_MARKETS} markets), or give it a <b>barracks</b> from your home castle to make it a defensive <b>factory</b>. Not both.`:`Tap <b>Market</b> to build a factory here. It starts as a market; your home castle can then add a barracks, then a fortress.`} Tap the hex again to zoom back out.</p>`;
     } else if(sel&&sel.owner===0&&sel.terrain==='plain'){
       const cap=bMax(), room=cap-bCount(sel);
       h+=matRow()+`<p class="hint">${room>0?`Tap a building around the hex on the map to build it. ${room} of ${cap} spaces free.${sel.castle?' Castles take markets only.':''}`:`This hex is full (${cap} buildings). Tap another of your hexes.`} Tap the hex again to zoom back out.</p>`;
