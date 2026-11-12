@@ -1,7 +1,7 @@
 # Crown & Coin — Godot port status
 
 Project folder: C:\Users\ethan\Documents\CrownAndCoin-Godot (Godot 4.7.2). The browser version stays the reference for rules and numbers.
-Self-test: open scenes/test_rules.tscn and press F6; every line should say PASS (215 checks as of 2026-11-11; the scene stays open when done).
+Self-test: open scenes/test_rules.tscn and press F6; every line should say PASS (237 checks as of 2026-11-11, evening; the scene stays open when done).
 Map preview: scenes/arena_preview.tscn (pick the map and holder in the Inspector).
 
 ## Done
@@ -65,16 +65,24 @@ Ethan asked for the Godot version to catch up with the browser. Written into the
 - **Balance note:** the Mammal computer wins less than before (Godot quick test 5 of 24 against Dinosaurs and Robots, was 15 of 24). The browser shows the same drop with the new rules (bal.js: Mammals 28% → 11%, Robots 44% → 67%), so it comes from the rules, not the port.
 - Port scripts and checks: repo dev/godot-port-nov11/ (commit 9c91a69).
 
+## 2026-11-11 (evening): Mage numbers, Mage requirements, three-player mode
+Godot now matches the browser (link version 138) except online play. Written through the file bridge, each with its own backup folder (`.gdignore` in each):
+- **Mage reach and damage** (`_backup_before_mage_levels/`): levels 0–3 reach 30 / 45 / 60 / 90, damage 2 / 3 / 4 / 5 (arena_battle.gd mage0–3, data/units.json for board battles, the level 3 note).
+- **Mage level requirements** (`_backup_before_mage_requirements/`): 1 Life Tree; 3 trees and 1 captured castle; 5 trees and 2 captured castles (rules.json mythical.mage_req, game_state.gd `mage_req_ok`). Checked when raising the level; a castle lost later keeps it. The Mages button shows "0/1 trees" etc.; the computer follows it.
+- **Three-player mode** (`_backup_before_three_players/`), offline part of browser commit b3b855e:
+  - hex_grid.gd: the board size is a setting of each game (`HexGrid.use_board(np)`, static SIZE 8 or 11, `rot3`); rules.json `board3` (79 hexes, homes 78/16/86, 10 mountains, 4 lakes, 6 neutral castles, 15 forests, 15 ferns, 26 coins).
+  - board_gen.gd `_generate3`: castles, mountains and lakes in 120° sets, a centre peak, the 4th lake where it favours no one, balanced coins.
+  - game_state.gd: `new_game(fid, [], opp, np, opps)`, catch-up 6 / 12 gold (Mythical +2 / +5 magic), turns skip sides that are out, `knock_out` (land neutral, buildings stay, the old home an ordinary castle), last side standing wins (`over_why` "last"; "out" when you're knocked out), no castle-count win or siege, `foes_of` / `foe_homes` / `foe_tiles`, `arena_team(pid, other)`, computer-vs-computer battles settled on the board (`needs_arena`). Saves remember their board.
+  - ai_player.gd: every rival still in the game; a rival's home worth 2500 (1e4 with 2 sides); each of two rivals counts 0.6x.
+  - board_view.gd: draws either board; the hexagon is framed to its hexes.
+  - main.gd: Players 2 / 3 and "Rivals (pick 2)" on the faction screen (remembered), computer turns one after another, both rivals in the header (castles a–b–c, struck through when out) and stats, the right sides and colours in Arena battles, the 3-player end screen and How to play.
+  - Checked: self-test 237 passed (16 three-player checks), headless click-throughs of 2- and 3-player games with no script errors, screenshots.
+  - **Difference from the browser:** Godot's computer-only 3-player games run long. In 8 games on Medium, 4 finished (17–54 rounds) and 4 were still going at 80 rounds with very big armies; the browser reported 15–45. The Godot computer judges fights with its quicker estimate. Raising a rival home's value from 2500 to 6000 finished 6 of 8 in a quick try; not applied, to keep the browser's numbers.
+- Port scripts: repo dev/godot-port-nov11/ p8–p14.
+
 ## Still to bring over
 1. Online play (later, likely through Steam).
-2. **Three-player mode** (browser commit b3b855e, 2026-11-10; Ethan chose "browser first, Godot after"). Not in the 2026-11-11 update. Everything needed is in three-player-mode.md and the repo's dev/three-player/:
-   - the 79-hex board and its symmetric map maker;
-   - turn order that skips sides who are out, and knock-outs where the land goes neutral;
-   - starting gold for the second and third sides;
-   - the computer weighing two rivals;
-   - computer-vs-computer battles settled on the board;
-   - the Players 2/3 toggle and a picker for each rival.
-   The online half waits for online play.
+2. **Three-player online** waits for online play.
 
 ## Notes
 - The Godot computer uses a fast strength estimate instead of full battle simulations, so Medium's edge over Easy is smaller than in the browser.
