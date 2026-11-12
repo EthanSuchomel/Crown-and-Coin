@@ -13,3 +13,6 @@ What a level changes in battle: lightning reach 30 / 60 / 90 / 120, damage 5 / 6
 
 - Level 0 is weak (0% on the open field); the jump to level 1 (reach 30 → 60) is the big one. After that each level adds only a little.
 - Their worst map at every level is the Mountain (29–92%).
+
+## Changed after the test (Ethan, 2026-11-11)
+Mage reach is now 30 / 45 / 60 / 90 and damage 2 / 3 / 4 / 5 for levels 0–3 (Minotaur chances unchanged). Done in the claude.ai link (version 137), the iPad app (repo commit f8aea99) and the Godot folder (arena_battle.gd, data/units.json for board battles, the level 3 note; old files in `_backup_before_mage_levels/`). The arena-only "Mage" in the Megaraptor Arena army picker (reach 120, damage 5) is unchanged. The win rates above are from before this change; not re-tested yet.
