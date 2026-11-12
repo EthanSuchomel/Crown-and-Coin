@@ -1,0 +1,5 @@
+RESULT level 0: Mythical win 10% of 144 (wins 14, losses 130, stalemates 0) | vs Dinosaurs 15%, Robots 6%, Mammals 8% | maps open 0%, ferns 0%, trees 0%, mountain 8%, castle 33%, fortress 17%  [475 s]
+RESULT level 1: Mythical win 30% of 144 (wins 43, losses 100, stalemates 1) | vs Dinosaurs 38%, Robots 29%, Mammals 23% | maps open 4%, ferns 21%, trees 25%, mountain 33%, castle 54%, fortress 42%  [511 s]
+RESULT level 2: Mythical win 58% of 144 (wins 83, losses 61, stalemates 0) | vs Dinosaurs 69%, Robots 50%, Mammals 54% | maps open 42%, ferns 50%, trees 50%, mountain 50%, castle 83%, fortress 71%  [458 s]
+RESULT level 3: Mythical win 83% of 144 (wins 119, losses 25, stalemates 0) | vs Dinosaurs 90%, Robots 75%, Mammals 83% | maps open 96%, ferns 83%, trees 79%, mountain 67%, castle 92%, fortress 79%  [442 s]
+RESULT level 3, 3 Mages: Mythical win 97% of 144 (wins 139, losses 5, stalemates 0) | vs Dinosaurs 94%, Robots 98%, Mammals 98% | maps open 100%, ferns 100%, trees 96%, mountain 92%, castle 100%, fortress 92%  [434 s]

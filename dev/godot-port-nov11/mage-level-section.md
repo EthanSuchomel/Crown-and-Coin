@@ -15,4 +15,19 @@ What a level changes in battle: lightning reach 30 / 60 / 90 / 120, damage 5 / 6
 - Their worst map at every level is the Mountain (29–92%).
 
 ## Changed after the test (Ethan, 2026-11-11)
-Mage reach is now 30 / 45 / 60 / 90 and damage 2 / 3 / 4 / 5 for levels 0–3 (Minotaur chances unchanged). Done in the claude.ai link (version 137), the iPad app (repo commit f8aea99) and the Godot folder (arena_battle.gd, data/units.json for board battles, the level 3 note; old files in `_backup_before_mage_levels/`). The arena-only "Mage" in the Megaraptor Arena army picker (reach 120, damage 5) is unchanged. The win rates above are from before this change; not re-tested yet.
+Mage reach is now 30 / 45 / 60 / 90 and damage 2 / 3 / 4 / 5 for levels 0–3 (Minotaur chances unchanged). Done in the claude.ai link (version 137), the iPad app (repo commit f8aea99) and the Godot folder (arena_battle.gd, data/units.json for board battles, the level 3 note; old files in `_backup_before_mage_levels/`). The arena-only "Mage" in the Megaraptor Arena army picker (reach 120, damage 5) is unchanged. The win rates above are from before this change.
+
+## Re-test with the new numbers (2026-11-11 evening)
+Same test (144 battles per level, 6 maps, both sides, Minion every 2 s). No stalemates except 1 at level 1.
+
+| Mages | Before | Now | vs Dinosaurs | vs Robots | vs Mammals |
+|---|---|---|---|---|---|
+| 2 at level 0 | 26% | **10%** | 15% | 6% | 8% |
+| 2 at level 1 | 80% | **30%** | 38% | 29% | 23% |
+| 2 at level 2 | 88% | **58%** | 69% | 50% | 54% |
+| 2 at level 3 | 92% | **83%** | 90% | 75% | 83% |
+| 3 at level 3 | 99% | **97%** | 94% | 98% | 98% |
+
+- Each level now matters: a steady climb from 10% to 83%. Level 2 is close to even.
+- Level 3 is still strong, and with a third Mage almost unbeatable (the third Mage is the biggest single boost left).
+- Open field is now their worst map at low levels (0% at level 0, 4% at level 1); castles their best (33–92%).
