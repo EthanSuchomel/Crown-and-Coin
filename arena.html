@@ -661,7 +661,7 @@ const ORDER=['galli','dilo','ptero','mega','bow','quetz','alamo','robot','rarch'
 // a fresh army for each faction, picked when a side switches faction
 // Crown & Coin's Mages by level (the board sends these): reach in field units and damage. Not in the army controls.
 // and each level's chance, every 2 s, to turn a Minion into a Minotaur: 20%, 30%, 40%, 50%
-[['mage0',30,5,.2],['mage1',60,6,.3],['mage2',90,7,.4],['mage3',120,7,.5]].forEach(([k,r,d,c])=>{ TYPES[k]={...TYPES.mage,label:'Mage',range:r,dmg:d,morph:{...TYPES.mage.morph,chance:c},hidden:true,maxN:3}; ORDER.push(k); });
+[['mage0',30,2,.2],['mage1',45,3,.3],['mage2',60,4,.4],['mage3',90,5,.5]].forEach(([k,r,d,c])=>{ TYPES[k]={...TYPES.mage,label:'Mage',range:r,dmg:d,morph:{...TYPES.mage.morph,chance:c},hidden:true,maxN:3}; ORDER.push(k); });
 const FACTIONS=['Dinosaurs','Robots','Mammals','Mythical'];
 const DEFAULT_ARMY={Dinosaurs:{galli:15,dilo:6,ptero:5,mega:5,bow:2,quetz:1},Robots:{robot:4,rarch:28,rdrone:8,rknight:6,rlong:4,rtank:1},Mammals:{ape:14,porc:6,bat:10,rhino:3,gbat:2,eleph:1},Mythical:{minion:25,mage:2,minotaur:3,griffin:1,dragon:1}};
 const armyFor=fac=>{ const c={}; ORDER.forEach(k=>c[k]=0); return Object.assign(c,DEFAULT_ARMY[fac]); };
