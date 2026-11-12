@@ -80,9 +80,16 @@ Godot now matches the browser (link version 138) except online play. Written thr
   - **Difference from the browser:** Godot's computer-only 3-player games run long. In 8 games on Medium, 4 finished (17–54 rounds) and 4 were still going at 80 rounds with very big armies; the browser reported 15–45. The Godot computer judges fights with its quicker estimate. Raising a rival home's value from 2500 to 6000 finished 6 of 8 in a quick try; not applied, to keep the browser's numbers.
 - Port scripts: repo dev/godot-port-nov11/ p8–p14.
 
+## 2026-11-11 (night) and 2026-11-12: small fixes
+Each written through the file bridge with the old file in its own backup folder:
+- `_backup_before_tree_fix/`: the Life Tree button said "Mage busy" for a Mage that had just moved; it, the Build hint and the leftover warning now accept any Mage on the hex (p15).
+- `_backup_before_icon_fix/`: unit pictures inside text (hex details, battle results, regroup/move lists) keep their shape (`[img height=22]`; they were forced to 30 x 20) (p16).
+- `_backup_before_card_layout/`: Dinosaur cards show their picture on the left and no card name (hand cards and the playing card), as in the browser (Ethan, 2026-11-12) (p17).
+
 ## Still to bring over
-1. Online play (later, likely through Steam).
-2. **Three-player online** waits for online play.
+1. **The Robot rework** (browser 2026-11-11 night and 2026-11-12, another session; see robot-cards.md and robot-factory-buildings.md): the war-factory home castle, one factory per hex, resource hexes with up to 4 markets, each Robot card's own upgrades, and the punch-card pictures (then no names, picture on the left). Godot still has the old Robot cards and abilities.
+2. Online play (later, likely through Steam).
+3. **Three-player online** waits for online play.
 
 ## Notes
 - The Godot computer uses a fast strength estimate instead of full battle simulations, so Medium's edge over Easy is smaller than in the browser.
