@@ -1019,6 +1019,13 @@ const mageCap=pid=>mlvOf(pid)>=3?3:2;              // Mages on one hex at a time
 const mageLvAt=t=>{ for(let l=3;l>=0;l--) if(t.army&&t.army[MAGES[l]]>0) return l; return -1; };   // the best Mage on the hex
 const mageTotal=pid=>S.tiles.reduce((s,t)=>s+(t.owner===pid?magesOn(t):0),0);
 // a new Mage: the base price, +1 for each Mage past the 5th, +1 for each level, and level 3 takes 1 off every unit
+// Ethan, 2026-11-11: each Mage level also needs Life Trees and captured castles when you raise it (a castle lost later doesn't take the level away)
+const MAGE_REQ=[{trees:1,castles:0},{trees:3,castles:1},{trees:5,castles:2}];
+const treesOf=pid=>S.tiles.filter(t=>t.owner===pid&&t.tree>0).length;
+const capCastlesOf=pid=>S.tiles.filter(t=>t.castle&&t.owner===pid&&t.id!==S.homes[pid]).length;
+const mageReqOk=(pid,l)=>l<3&&treesOf(pid)>=MAGE_REQ[l].trees&&capCastlesOf(pid)>=MAGE_REQ[l].castles;
+const mageReqTxt=l=>{ const r=MAGE_REQ[l]; return `${r.trees} Life Tree${r.trees>1?'s':''}`+(r.castles?` and ${r.castles} captured castle${r.castles>1?'s':''}`:''); };
+const mageReqAll=()=>MAGE_REQ.map((r,l)=>`level ${l+1}: ${mageReqTxt(l)}`).join('; ');
 const magePrice=pid=>MYTH.mageBase+Math.max(0,mageTotal(pid)-4)+mlvOf(pid)-(mlvOf(pid)>=3?1:0);
 const convPrice=(t,k)=>MYTH_CONV[k].m-(mageLvAt(t)>=3?1:0);
 const mythHome=pid=>{ const h=S.tiles[S.homes[pid]]; return h&&h.owner===pid?h:null; };
@@ -1069,7 +1076,7 @@ function mythDome(pid,id){ const t=S.tiles[id], p=S.players[pid];
   if(t.owner!==pid||t.dome>0||!magesOn(t)||t.terrain==='water'||p.gold<MYTH.domeCost) return false;
   p.gold-=MYTH.domeCost; t.dome=WALL_HP; addLog(`${poss(pid)} Mage raises a magic dome.`,pid); return true; }
 function mythUpMages(pid){ const p=S.players[pid], l=mlvOf(pid);
-  if(l>=3||!mythHome(pid)||p.gold<MYTH.mageUp[l]) return false;
+  if(l>=3||!mythHome(pid)||p.gold<MYTH.mageUp[l]||!mageReqOk(pid,l)) return false;
   p.gold-=MYTH.mageUp[l]; p.mlv=l+1; addLog(`${p.name} raise their Mages to level ${l+1}: new Mages come out at that level.`,pid); return true; }
 function mythUpCastle(pid){ const p=S.players[pid], l=clvOf(pid);
   if(l>=3||!mythHome(pid)||p.gold<MYTH.castleUp[l]) return false;
@@ -1096,7 +1103,7 @@ function mythActionDesc(a,pid){
   if(a==='recruit') return `At your castles: Minions (${MYTH.minionPack} for 1 magic) and Mages (${magePrice(pid)} magic, at most ${mageCap(pid)} on a hex). Where a Mage stands: turn Minions into Minotaurs, Griffins and Dragons`;
   if(a==='build') return `Plant Life Trees: a Mage (even one that moved this turn) stays on its hex for ${MYTH.treeTurns} turns; the tree makes ${MYTH.treeMagic} magic a turn (${MYTH.treeRich} with ${MYTH.treeMinions}+ Minions there)`;
   if(a==='move') return `Make up to ${movesLimit(pid)} moves. Mages and Minions go up to 2 hexes anywhere; other units 1 hex into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle`;
-  if(a==='advance') return `Upgrade your Mages (${MYTH.mageUp.join(', ')} magic for levels 1 to 3) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or raise a magic dome where a Mage stands (${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn)`;
+  if(a==='advance') return `Upgrade your Mages (${MYTH.mageUp.join(', ')} magic for levels 1 to 3; ${mageReqAll()}) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or raise a magic dome where a Mage stands (${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn)`;
   if(a==='channel') return `No other actions this turn: +${MYTH.chMage} magic for every Mage you have and +${MYTH.chCastle} for every castle you hold`;
   return actionDescBase(a,pid,0);
 }
@@ -1121,7 +1128,7 @@ function mythStepBody(a,sel){
   if(mine&&sel.troops) h+=`<div class="harmy">Here: ${armyList(sel.army)}</div>`;
   if(a==='recruit') return h+`<p class="hint">Tap one of your castles to make Minions (${MYTH.minionPack} for 1 magic) or a Mage (${magePrice(0)} magic, at most ${mageCap(0)} on a hex). Tap a hex with a Mage to turn its Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1), Griffins (${MYTH_CONV.griffin.m} + 2, level 1 Mage) and Dragons (${MYTH_CONV.dragon.m} + 4, level 2 Mage).</p>`;
   if(a==='build') return h+`<p class="hint">Tap a hex where one of your Mages stands to plant a Life Tree (it can have moved this turn). It costs no magic, but that Mage can't move for ${MYTH.treeTurns} whole turns. A tree makes ${MYTH.treeMagic} magic a turn, or ${MYTH.treeRich} with ${MYTH.treeMinions} or more Minions on its hex. One per hex, not on castles; it's destroyed if the hex is captured.</p>`;
-  return h+`<p class="hint">Tap any of your hexes to upgrade your Mages (${MYTH.mageUp.join(', ')} magic) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or to raise a magic dome where a Mage stands: ${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} every turn (if you can't pay, it fades). A dome guards every side like a full wall.</p>`;
+  return h+`<p class="hint">Tap any of your hexes to upgrade your Mages (${MYTH.mageUp.join(', ')} magic; ${mageReqAll()}) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or to raise a magic dome where a Mage stands: ${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} every turn (if you can't pay, it fades). A dome guards every side like a full wall.</p>`;
 }
 // the round buttons on posts round the zoomed-in hex, like the other factions' Recruit, Build and Advancements buttons
 function mythBubbleItems(t){
@@ -1143,8 +1150,10 @@ function mythBubbleItems(t){
       {sm:true,label:ok?`Plant a Life Tree: this hex's Mage stays ${MYTH.treeTurns} turns`:'A Life Tree needs a Mage on a plain hex without one'});
   } else if(a==='advance'){
     const ml=mlvOf(0), cl=clvOf(0), home=!!mythHome(0), dok=!(t.dome>0)&&magesOn(t)>0&&me.gold>=MYTH.domeCost;
-    it('upm',0,UNIT_ART.mage0,ml>=3?'Mages 3':`Mages ${ml+1}`,ml>=3?'Max level':!home?'No castle':`${MYTH.mageUp[ml]} magic`,ml<3&&home&&me.gold>=MYTH.mageUp[ml],
-      {label:ml>=3?'Mages are at the top level':`Raise new Mages to level ${ml+1} for ${MYTH.mageUp[ml]} magic: ${MAGE_LV_NOTE[ml]}`});
+    const rq=ml<3&&mageReqOk(0,ml), rqn=ml<3?MAGE_REQ[ml]:null;
+    const rqShort=rqn?(treesOf(0)<rqn.trees?`${treesOf(0)}/${rqn.trees} trees`:`${capCastlesOf(0)}/${rqn.castles} castles`):'';
+    it('upm',0,UNIT_ART.mage0,ml>=3?'Mages 3':`Mages ${ml+1}`,ml>=3?'Max level':!home?'No castle':!rq?rqShort:`${MYTH.mageUp[ml]} magic`,ml<3&&home&&rq&&me.gold>=MYTH.mageUp[ml],
+      {label:ml>=3?'Mages are at the top level':!rq?`Mages level ${ml+1} needs ${mageReqTxt(ml)} (you have ${treesOf(0)} tree${treesOf(0)===1?'':'s'} and ${capCastlesOf(0)} captured castle${capCastlesOf(0)===1?'':'s'})`:`Raise new Mages to level ${ml+1} for ${MYTH.mageUp[ml]} magic: ${MAGE_LV_NOTE[ml]}`});
     it('dome',0,ART.icons.dome,'Dome',t.dome>0?`Up ${t.dome}/${WALL_HP}`:!magesOn(t)?'Needs Mage':`${MYTH.domeCost}, ${MYTH.domeUpkeep}/turn`,dok,
       {sm:true,label:t.dome>0?'This hex already has a dome':`Raise a magic dome over this hex: ${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn`});
     it('upc',0,MYTH_ART.castle,cl>=3?'Castle 3':`Castle ${cl+1}`,cl>=3?'Max level':!home?'No castle':`${MYTH.castleUp[cl]} magic`,cl<3&&home&&me.gold>=MYTH.castleUp[cl],
@@ -1182,7 +1191,7 @@ function mythAi(pid,a,later){
     return ids;
   }
   // Recruit: Mages first (about one for every 4 hexes held), then the best units the Mages allow, then Minions with some magic kept back
-  const keep=(later||[]).includes('advance')?Math.min(p.gold>>1,clvOf(pid)<3?MYTH.castleUp[clvOf(pid)]:MYTH.mageUp[Math.min(2,mlvOf(pid))]):0;
+  const keep=(later||[]).includes('advance')?Math.min(p.gold>>1,clvOf(pid)<3?MYTH.castleUp[clvOf(pid)]:(mageReqOk(pid,mlvOf(pid))?MYTH.mageUp[Math.min(2,mlvOf(pid))]:0)):0;
   const want=Math.max(2,Math.ceil(own.length/4)), castles=own.filter(t=>t.castle).sort((x,y)=>dist(x)-dist(y));
   for(const t of castles) while(mageTotal(pid)<want&&p.gold-keep>=magePrice(pid)&&mythBuyMage(pid,t.id)) ids.push(t.id);
   for(const t of own.filter(t=>mageLvAt(t)>=0).sort((x,y)=>dist(x)-dist(y)))
@@ -1201,6 +1210,7 @@ function mythFactionInfo(fid){
     <ul><li>Made at your castles: ${MYTH.mageBase} magic, +1 for each Mage past your 5th and +1 for each Mage level. At most 2 on a hex (3 at level 3).</li>
       <li>Where a Mage stands it turns Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1 Minion), Griffins (${MYTH_CONV.griffin.m} + 2, level 1) and Dragons (${MYTH_CONV.dragon.m} + 4, level 2).</li>
       <li>Levels (${MYTH.mageUp.join(', ')} magic, at the castle): 1 Griffins, 2 Dragons, 3 every unit 1 magic cheaper and 3 Mages a hex. Each level also lengthens the Mage's lightning; a Mage keeps the level it was made at.</li>
+      <li>Each level also needs Life Trees and captured castles when you raise it (${mageReqAll()}). Losing a castle later doesn't take the level away.</li>
       <li>Mages plant Life Trees (the Mage stays ${MYTH.treeTurns} turns) and raise magic domes (${MYTH.domeCost} magic, ${MYTH.domeUpkeep} a turn): a dome guards every side like a full wall.</li>
       <li>Mages and Minions move 2 hexes anywhere, and a Move action has 3 moves.</li></ul>
     <h3>Your cards</h3>
