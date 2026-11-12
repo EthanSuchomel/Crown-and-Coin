@@ -13,3 +13,4 @@ python3 p12_view3.py work
 python3 p13_ui3.py work
 python3 p14_test3.py work
 python3 p15_plant_ui.py work
+python3 p16_unit_icons.py work
