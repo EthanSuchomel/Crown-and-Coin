@@ -259,7 +259,7 @@ html,body{height:100%;overflow:hidden}
 .handlist .gcard .cname{font-size:1.08em;margin-bottom:.15em}
 .handlist .acts{display:flex;flex-direction:column;gap:.1em}
 .handlist .gcard .act{font-size:.88em}
-.gcard .cart{flex:none;align-self:center;height:min(5.2em,90%);width:auto;max-width:28%;object-fit:contain;margin:0 .45em 0 .1em;filter:drop-shadow(0 .12em 0 rgba(0,0,0,.45))}
+.gcard .cart{flex:none;align-self:center;height:min(5.2em,90%);width:auto;max-width:28%;object-fit:contain;margin:0 .3em 0 .35em;filter:drop-shadow(0 .12em 0 rgba(0,0,0,.45))}
 .bc-art{height:2.4em;width:auto;align-self:center;filter:drop-shadow(0 .1em 0 rgba(0,0,0,.45))}
 .gcard .ut{color:var(--gold);font-size:.92em;overflow:hidden;text-overflow:ellipsis;min-width:0}
 /* card favors and upgrades: a strip down the card's left side. The number counts its upgrades; the 2 marks fill with favor toward the next one. */
@@ -3844,10 +3844,11 @@ function shotHtml(x){
 }
 function handCard(cid){
   const c=cardOf(0,cid);
-  return `<button class="gcard" data-act="pick" data-cid="${cid}" style="--fc:${S.players[0].color}">${favStrip(0,cid)}<span class="gc-body">
-    <span class="cname">${c.name}</span>
+  const art=CARD_ART[cid]&&cardUps(0);   // Robot and Dinosaur cards: the picture on the left, no name (Ethan, 2026-11-12)
+  return `<button class="gcard" data-act="pick" data-cid="${cid}" style="--fc:${S.players[0].color}"${art?` aria-label="${c.name}"`:''}>${favStrip(0,cid)}${art?`<img class="cart" src="${CARD_ART[cid]}" alt="">`:''}<span class="gc-body">
+    ${art?'':`<span class="cname">${c.name}</span>`}
     <span class="acts">${c.actions.map((a,i)=>{const l=lvlOf(0,cid,i);
-      return `<span class="act"><span class="num">${i+1}</span>${ACTIONS[a].icon} ${actName(a,S.players[0].faction)}${l?lvPips(l)+`<span class="ut">${upNow(a,0,l,cid)}</span>`:''}</span>`;}).join('')}</span></span>${CARD_ART[cid]&&cardUps(0)?`<img class="cart" src="${CARD_ART[cid]}" alt="">`:''}</button>`;
+      return `<span class="act"><span class="num">${i+1}</span>${ACTIONS[a].icon} ${actName(a,S.players[0].faction)}${l?lvPips(l)+`<span class="ut">${upNow(a,0,l,cid)}</span>`:''}</span>`;}).join('')}</span></span></button>`;
 }
 // one card filling the column: its three actions, with the current one marked
 function bigCard(pid,cid,opts){
@@ -3859,7 +3860,7 @@ function bigCard(pid,cid,opts){
     return `<li class="${cls}"><span class="num">${i+1}</span><span>${ACTIONS[a].icon}</span><div><b>${actName(a,S.players[pid].faction)}</b>${up}${desc}</div></li>`;
   }).join('');
   return `<div class="bigcard ${opts.cls||''}" style="--fc:${S.players[pid].color}">${favStrip(pid,cid)}<div class="bc-main">
-    <div class="bc-head">${CARD_ART[cid]&&cardUps(pid)?`<img class="bc-art" src="${CARD_ART[cid]}" alt="">`:''}<span class="bc-name">${c.name}</span><span class="bc-tag">${opts.tag||''}</span></div>
+    <div class="bc-head">${CARD_ART[cid]&&cardUps(pid)?`<img class="bc-art" src="${CARD_ART[cid]}" alt="${c.name}">`:`<span class="bc-name">${c.name}</span>`}<span class="bc-tag">${opts.tag||''}</span></div>
     <ol class="bc-acts">${acts}</ol>
     <div class="bc-step">${opts.body||''}</div>
     ${opts.foot?`<div class="bc-foot">${opts.foot}</div>`:''}</div></div>`;
