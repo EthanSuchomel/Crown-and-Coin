@@ -283,6 +283,11 @@ html,body{height:100%;overflow:hidden}
 .lv{display:inline-flex;gap:.15em;margin:0 .35em 0 .45em;vertical-align:middle;flex:none}
 .lv i{display:block;width:.44em;height:.44em;background:var(--edge)}
 .lv i.on{background:var(--gold)}
+.tro{display:inline-flex;gap:1px;margin-left:.35em;vertical-align:-.15em;flex:none}
+.tro img{width:1.05em;height:1.05em;image-rendering:pixelated}
+.ainfo{display:inline-flex;cursor:pointer;border-radius:50%;flex:none;-webkit-tap-highlight-color:transparent}
+.ainfo:hover,.ainfo:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.sheet h3 .tro img{width:.9em;height:.9em}
 .upl{display:block;color:var(--gold);font-size:.84em;line-height:1.25;margin:.05em 0 .1em}
 .upl .lv{margin-left:0;vertical-align:.08em}
 /* a card that isn't being played: its actions scroll if they run long, and the buttons stay at the bottom */
@@ -338,7 +343,7 @@ html,body{height:100%;overflow:hidden}
 .bc-name{font-family:var(--font-display);font-weight:700;font-size:1.3em;text-shadow:2px 2px 0 var(--outline)}
 .bc-tag{font-size:.8em;color:var(--lichen)}
 .bc-acts{list-style:none;margin:.45em 0 .3em;padding:0;display:flex;flex-direction:column;gap:.25em}
-.bc-acts li{display:flex;gap:.5em;align-items:flex-start;padding:.25em .4em;border-radius:3px;border:2px solid transparent;color:var(--lichen)}
+.bc-acts li{display:flex;gap:.5em;align-items:center;padding:.25em .4em;border-radius:3px;border:2px solid transparent;color:var(--lichen)}
 .bc-acts li b{color:var(--bone);font-family:var(--font-display);font-weight:600}
 .bc-acts li small{display:block;font-size:.85em;line-height:1.25}
 .bc-acts li.on{background:var(--night);border-color:var(--bone)}
@@ -391,7 +396,8 @@ html,body{height:100%;overflow:hidden}
 .mvrow input{width:100%;accent-color:var(--gold)}
 .mvstep{width:2.1em;height:2.1em;padding:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-num);font-weight:800;font-size:1.15em;line-height:1;flex:none}
 .mvrow output{font-family:var(--font-num);font-weight:800;min-width:3.6em;text-align:right;font-variant-numeric:tabular-nums}
-.mvodds{min-height:1.4em;margin-bottom:.6em;color:var(--lichen)}
+.mvodds{margin-bottom:.6em;color:var(--lichen)}
+.mvodds:empty{display:none}
 .mvodds b{color:var(--gold)}
 .mvfoe{display:inline-flex;flex-wrap:wrap;vertical-align:middle}
 /* unit stats tables */
@@ -2663,7 +2669,8 @@ function openMove(from,to){
   m.innerHTML=`<div class="sheet mvsheet"><h3>${title}</h3><p>${text}</p><div class="mvrows">${rows}</div><div id="mvodds" class="mvodds"></div>
     <div class="btns"><button id="mc">Cancel</button><button id="mvall">${verb} all</button>${lz?'<button id="mvlaser">Laser strike</button>':''}<button class="primary" id="mvsel" disabled>${verb} picked</button></div></div>`;
   const all={}; ks.forEach(k=>all[k]=s.ready[k]);
-  const odds=()=>{ if(!fight){ $('#mvodds').innerHTML=''; return; }
+  const odds=()=>{ $('#mvodds').innerHTML=''; return;   // no win chance shown before a battle (Ethan, 2026-11-12)
+    if(!fight){ $('#mvodds').innerHTML=''; return; }
     const o={wall:W,bonus:defBonus(b),advD,map:arenaMap(b),...ao}, n=cnt(pick);
     $('#mvodds').innerHTML=`Chance to win: ${n?`with the ${n} picked <b>${Math.round(winOdds(pick,defArmy(b),o)*100)}%</b> · `:''}with all ${cnt(all)} <b>${Math.round(winOdds(all,defArmy(b),o)*100)}%</b>`; };
   const upd=()=>{ const n=cnt(pick); $('#mvsel').disabled=!n; $('#mvsel').textContent=`${verb} ${n||''} picked`.replace('  ',' '); };
@@ -3847,6 +3854,19 @@ function favStrip(pid,cid){
   const tip=`${n} upgrade${n===1?'':'s'}`+(max?', fully upgraded':`, ${pos} of ${LAP} on this round${due?': playing it now earns an upgrade':''}`);
   return `<span class="fav" title="${tip}" aria-label="${tip}"><span class="fbar l${lap}">${marks}</span></span>`;
 }
+const TROPHY='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABaUlEQVR4Xu2aMQ7CMAxFWwQ7F2BloBOX4B4M3IU7cBK4A+pCO7CyIQZ2BpjjSv2KYqK4/m9tpSa/345tpaoIIZ6p0eY3q8UXvVMy/eMzusdZyYvPAQXIoXLJDOIDxXzXnoL9vLtL1v3db93o9/bHfvS5zAnuHUABsvq3QGoU8zJm5Pu5c4LMATLm0Xol7h1AAQoMy6zM5ddQ7WwNlBPcO4ACWLO0NhRAW1FrUABrf0ybQR0ga33rdQHqddw7gAJox5Q1omeCqLbWng9o9/+cCQrch4B7AdTnAc32EJhMOydIUusW9w6gANbObW3g/YBYUO2NcgI697VnmO4dQAFiLT41BnVAKqhXkPcJZMxf2+foErTnE+4dQAFSLW8dCmD9D6ZCAVIVtI56HYB6gWWzCzRbIwXPr+CN1P6fIzHOBEPc54DkecC/7w3G3g2O7RXcO4ACoFNo6qjngNJAOcG9AyhAaZYlhJCc/ABaV4THlihozQAAAABJRU5ErkJggg==';
+// a trophy for each upgrade on an action (in place of the upgrade's name)
+const trophies=l=>`<span class="tro" title="${l} upgrade${l===1?'':'s'}" aria-label="${l} upgrade${l===1?'':'s'}">${('<img src="'+TROPHY+'" alt="">').repeat(l)}</span>`;
+// an action's icon: tap it for a box explaining the action (with its upgrades)
+const actIcon=(pid,cid,i,a)=>`<span class="ainfo" data-ainfo="${i}" data-cid="${cid}" data-pid="${pid}" role="button" tabindex="0" title="What does ${ACTIONS[a].name} do?" aria-label="About ${actName(a,S.players[pid].faction)}">${ACTIONS[a].icon}</span>`;
+function openActionInfo(pid,cid,i){
+  const c=cardOf(pid,cid), a=c.actions[i], l=lvlOf(pid,cid,i);
+  openInfo(`${ACTIONS[a].icon} ${actName(a,S.players[pid].faction)}${l?' '+trophies(l):''}`,`<p>${actionDesc(a,pid,l,cid)}</p>`,[{label:'Close',primary:true}]);
+}
+document.addEventListener('click',e=>{ const el=e.target.closest('[data-ainfo]'); if(!el) return; e.preventDefault(); e.stopPropagation();
+  openActionInfo(+el.dataset.pid,el.dataset.cid,+el.dataset.ainfo); },true);
+document.addEventListener('keydown',e=>{ if(e.key!=='Enter'&&e.key!==' ') return; const el=e.target.closest&&e.target.closest('[data-ainfo]'); if(!el) return; e.preventDefault(); e.stopPropagation();
+  openActionInfo(+el.dataset.pid,el.dataset.cid,+el.dataset.ainfo); },true);
 const lvPips=l=>`<span class="lv" aria-label="level ${l}">${[0,1,2].map(i=>`<i class="${i<l?'on':''}"></i>`).join('')}</span>`;
 // one trebuchet shot: the 5 dice (hits bright, misses faded) and what they did
 function shotHtml(x){
@@ -3860,16 +3880,15 @@ function handCard(cid){
   return `<button class="gcard" data-act="pick" data-cid="${cid}" style="--fc:${S.players[0].color}"${art?` aria-label="${c.name}"`:''}>${favStrip(0,cid)}${art?`<img class="cart" src="${CARD_ART[cid]}" alt="">`:''}<span class="gc-body">
     ${art?'':`<span class="cname">${c.name}</span>`}
     <span class="acts">${c.actions.map((a,i)=>{const l=lvlOf(0,cid,i);
-      return `<span class="act"><span class="num">${i+1}</span>${ACTIONS[a].icon} ${actName(a,S.players[0].faction)}${l?lvPips(l)+`<span class="ut">${upNow(a,0,l,cid)}</span>`:''}</span>`;}).join('')}</span></span></button>`;
+      return `<span class="act"><span class="num">${i+1}</span>${actIcon(0,cid,i,a)} ${actName(a,S.players[0].faction)}${l?trophies(l):''}</span>`;}).join('')}</span></span></button>`;
 }
 // one card filling the column: its three actions, with the current one marked
 function bigCard(pid,cid,opts){
   const c=cardOf(pid,cid), step=opts.step;
   const acts=c.actions.map((a,i)=>{
     const cls=step==null?'':i===step?'on':i<step?'done':'', l=lvlOf(pid,cid,i);
-    const desc=(step==null||i===step)?`<small>${actionDesc(a,pid,l,cid)}</small>`:'';
-    const up=l?`<span class="upl">${lvPips(l)}${upNow(a,pid,l,cid)}</span>`:'';   // applied upgrades, under the action
-    return `<li class="${cls}"><span class="num">${i+1}</span><span>${ACTIONS[a].icon}</span><div><b>${actName(a,S.players[pid].faction)}</b>${up}${desc}</div></li>`;
+    // no explanation here (Ethan): tap the icon for it; a trophy for each upgrade
+    return `<li class="${cls}"><span class="num">${i+1}</span>${actIcon(pid,cid,i,a)}<div><b>${actName(a,S.players[pid].faction)}</b>${l?trophies(l):''}</div></li>`;
   }).join('');
   return `<div class="bigcard ${opts.cls||''}" style="--fc:${S.players[pid].color}">${favStrip(pid,cid)}<div class="bc-main">
     <div class="bc-head">${CARD_ART[cid]&&cardUps(pid)?`<img class="bc-art" src="${CARD_ART[cid]}" alt="${c.name}">`:`<span class="bc-name">${c.name}</span>`}<span class="bc-tag">${opts.tag||''}</span></div>
@@ -4028,7 +4047,7 @@ function renderPanel(){
     const fvTxt=isMyth(0)?'Mythical cards don\'t upgrade yet.':upsOf(0,c.id).every(v=>v>=MAX_UP)?'This card is fully upgraded.'
       :upgradeDue(0,c.id)?`Playing it now earns its ${nth(fv+1)} favor, so first you'll <b>upgrade</b> one of its actions.`
       :'Playing it earns a favor. Every 2nd favor upgrades one of its actions.';
-    P.innerHTML=bigCard(0,ui.pick,{tag:'Your card',body:`<p class="hint"><span class="bc-how">${c.actions.length===1?'This card has no other actions. ':'You\'ll carry out these 3 actions in order and can skip any of them. '}</span>${fvTxt}</p>`,
+    P.innerHTML=bigCard(0,ui.pick,{tag:'Your card',body:`<p class="hint"><span class="bc-how">${c.actions.length===1?'This card has no other actions. ':'You\'ll carry out these 3 actions in order and can skip any of them. '}</span>${fvTxt} Tap an action's icon to read what it does.</p>`,
       foot:`<button data-act="back">Back</button><button class="primary" data-act="play" data-cid="${c.id}">Play<span class="pl-name"> ${c.name}</span></button>`});
     return;
   }
