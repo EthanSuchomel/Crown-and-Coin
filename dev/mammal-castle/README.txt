@@ -18,3 +18,9 @@ framed by iron-capped tusks, ballista platforms on the ledges, an armored watcht
   player could still recruit Procoptodons, which then vanished in arena battles.
   test.js            title, faction and board screenshots, quill checks (10 Gorillas attacking 10 Porcupines lose
                      about 7 instead of about 5; shooters lose the same), and computer games with the Mammals
+
+Godot version (2026-11-12, Ethan asked for the new castle there too): castle_mammals.png written into
+art/terrain/ of CrownAndCoin-Godot through the file bridge (same picture; its .import now makes mipmaps, like the
+Robot castle's, since the board draws with linear mipmaps). The old picture and .import are in
+_backup_before_mammal_castle/ (with .gdignore). Godot sizes castles from the picture's shape, so no script changes.
+The Godot board still has the old Mammal numbers (Porcupine 16, Rhino 15, Procoptodon in the barracks).
