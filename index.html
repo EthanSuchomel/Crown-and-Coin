@@ -1034,8 +1034,8 @@ const MYTH={startMagic:5, castleMagic:[10,15,20,25], castleUp:[10,15,20], minion
 const MAGIC_VAL=3;                                  // the computer's rough worth of 1 magic, in gold
 const MAGES=['mage0','mage1','mage2','mage3'];      // a Mage keeps the level it was made at
 const isMage=k=>MAGES.includes(k);
-const MYTH_CONV={minotaur:{m:7,min:1,lv:0},griffin:{m:10,min:2,lv:1},dragon:{m:15,min:4,lv:2}};   // magic, Minions used up, Mage level needed
-const MAGE_LV_NOTE=['Griffins, longer lightning, +1 damage','Dragons, longer lightning, +1 damage','units 1 magic cheaper, longer lightning, +1 damage, 3 Mages a hex'];
+const MYTH_CONV={minotaur:{m:7,min:1,lv:0},griffin:{m:10,min:2,lv:1},dragon:{m:20,min:10,lv:3}};   // magic, Minions used up, Mage level needed
+const MAGE_LV_NOTE=['Griffins, longer lightning, +1 damage','longer lightning, +1 damage','Dragons, units 1 magic cheaper, longer lightning, +1 damage, 3 Mages a hex'];
 const isMyth=pid=>!!(S&&S.players&&S.players[pid]&&S.players[pid].faction==='mythical');
 const cur$=pid=>isMyth(pid)?'magic':'gold';
 const poss=pid=>pid===0?'Your':`The ${S.players[pid].name}'`;
@@ -1174,7 +1174,7 @@ function mythStepBody(a,sel){
   const me=S.players[0], mine=!!sel&&sel.owner===0;
   let h=`<div class="row-label"><span class="px px-magic" aria-hidden="true"></span> You have <b>${me.gold} magic</b></div>`;
   if(mine&&sel.troops) h+=`<div class="harmy">Here: ${armyList(sel.army)}</div>`;
-  if(a==='recruit') return h+`<p class="hint">Tap one of your castles to make Minions (${MYTH.minionPack} for 1 magic) or a Mage (${magePrice(0)} magic, at most ${mageCap(0)} on a hex). Tap a hex with a Mage to turn its Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1), Griffins (${MYTH_CONV.griffin.m} + 2, level 1 Mage) and Dragons (${MYTH_CONV.dragon.m} + 4, level 2 Mage).</p>`;
+  if(a==='recruit') return h+`<p class="hint">Tap one of your castles to make Minions (${MYTH.minionPack} for 1 magic) or a Mage (${magePrice(0)} magic, at most ${mageCap(0)} on a hex). Tap a hex with a Mage to turn its Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1), Griffins (${MYTH_CONV.griffin.m} + 2, level 1 Mage) and Dragons (${MYTH_CONV.dragon.m} + ${MYTH_CONV.dragon.min}, level ${MYTH_CONV.dragon.lv} Mage).</p>`;
   if(a==='build') return h+`<p class="hint">Tap a hex where one of your Mages stands to plant a Life Tree (it can have moved this turn). It costs no magic, but that Mage can't move for ${MYTH.treeTurns} whole turns. A tree makes ${MYTH.treeMagic} magic a turn, or ${MYTH.treeRich} with ${MYTH.treeMinions} or more Minions on its hex. One per hex, not on castles; it's destroyed if the hex is captured.</p>`;
   return h+`<p class="hint">Tap any of your hexes to upgrade your Mages (${MYTH.mageUp.join(', ')} magic; ${mageReqAll()}) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or to raise a magic dome where a Mage stands: ${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} every turn (if you can't pay, it fades). A dome guards every side like a full wall.</p>`;
 }
@@ -1256,8 +1256,8 @@ function mythFactionInfo(fid){
       <li><b>Life Trees</b>: ${MYTH.treeMagic} magic a turn, or ${MYTH.treeRich} with ${MYTH.treeMinions}+ Minions on the hex.</li></ul>
     <h3>Mages</h3>
     <ul><li>Made at your castles: ${MYTH.mageBase} magic, +1 for each Mage past your 5th and +1 for each Mage level. At most 2 on a hex (3 at level 3).</li>
-      <li>Where a Mage stands it turns Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1 Minion), Griffins (${MYTH_CONV.griffin.m} + 2, level 1) and Dragons (${MYTH_CONV.dragon.m} + 4, level 2).</li>
-      <li>Levels (${MYTH.mageUp.join(', ')} magic, at the castle): 1 Griffins, 2 Dragons, 3 every unit 1 magic cheaper and 3 Mages a hex. Each level also lengthens the Mage's lightning; a Mage keeps the level it was made at.</li>
+      <li>Where a Mage stands it turns Minions into Minotaurs (${MYTH_CONV.minotaur.m} magic + 1 Minion), Griffins (${MYTH_CONV.griffin.m} + 2, level 1) and Dragons (${MYTH_CONV.dragon.m} + ${MYTH_CONV.dragon.min}, level ${MYTH_CONV.dragon.lv}).</li>
+      <li>Levels (${MYTH.mageUp.join(', ')} magic, at the castle): 1 Griffins, 3 Dragons, every unit 1 magic cheaper and 3 Mages a hex. Each level also lengthens the Mage's lightning; a Mage keeps the level it was made at.</li>
       <li>Each level also needs Life Trees and captured castles when you raise it (${mageReqAll()}). Losing a castle later doesn't take the level away.</li>
       <li>Mages plant Life Trees (the Mage stays ${MYTH.treeTurns} turns) and raise magic domes (${MYTH.domeCost} magic, ${MYTH.domeUpkeep} a turn): a dome guards every side like a full wall.</li>
       <li>Mages and Minions move 2 hexes anywhere, and a Move action has 3 moves.</li></ul>
