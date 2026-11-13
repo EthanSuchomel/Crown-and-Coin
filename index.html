@@ -457,6 +457,7 @@ html,body{height:100%;overflow:hidden}
 .ts-start{font-size:1.35em;padding:.6em 1.8em}
 .ts-continue{font-size:.95em}
 .ts-full{font-size:.85em;margin-top:.2em}
+.ts-ver{font-size:.75em;color:var(--lichen);opacity:.75;min-height:1em}
 .sh-btns button[aria-pressed="true"],.ts-full[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
 .fs-grid{width:100%;height:100%;max-width:1100px;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:.9em}
 .fs-choices{display:flex;flex-direction:column;gap:.9em;min-height:0}
@@ -576,7 +577,7 @@ html,body{height:100%;overflow:hidden}
   <div class="ts-inner">
     <div class="ts-art"><span class="ts-castle px-c-dinos" aria-hidden="true"></span><span class="ts-castle px-c-mammals" aria-hidden="true"></span><span class="ts-castle px-c-robots" aria-hidden="true"></span></div>
     <h1 class="ts-title">Crown <span>&amp;</span> Coin</h1>
-    <div class="ts-btns"><button class="primary ts-start" data-scr="start">Start Game</button><button class="ts-online" data-scr="online">Play online</button><button class="ts-continue" data-scr="continue" hidden>Continue game</button><button class="ghost ts-full" data-scr="full" data-full aria-pressed="false">⛶ <span class="fl">Full screen</span></button></div>
+    <div class="ts-btns"><button class="primary ts-start" data-scr="start">Start Game</button><button class="ts-online" data-scr="online">Play online</button><button class="ts-continue" data-scr="continue" hidden>Continue game</button><button class="ghost ts-full" data-scr="full" data-full aria-pressed="false">⛶ <span class="fl">Full screen</span></button></div><small id="tsVer" class="ts-ver" aria-live="polite"></small>
   </div>
 </div>
 <div id="scrFaction" class="screen faction-screen" hidden>
@@ -5376,7 +5377,30 @@ window.ARENA_HTML="<!doctype html><html><head><meta charset=utf8><meta name=view
 </script>
 <script>
 // offline: keep the game on the iPad so it opens without WiFi (updates download in the background when online)
-if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')) addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+  const t0=Date.now(), had=!!navigator.serviceWorker.controller;
+  const onTitle=()=>{ const t=document.getElementById('scrTitle'); return t&&!t.hidden; };
+  // a new version took over: reload now if nothing's being played, otherwise offer it
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!had) return;   // the very first install: this page is already the newest
+    if(onTitle()||Date.now()-t0<15000){ location.reload(); return; }
+    if(document.getElementById('updBar')) return;
+    const b=document.createElement('div'); b.id='updBar';
+    b.style.cssText='position:fixed;left:50%;top:max(.6em,env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:99;display:flex;gap:.6em;align-items:center;background:#16241a;color:#ece4cf;border:2px solid #efc15a;box-shadow:0 0 0 2px #060907;border-radius:3px;padding:.4em .5em .4em .8em;font:600 15px Oswald,sans-serif';
+    b.innerHTML='A new version of the game is ready <button class="primary" style="padding:.3em .8em">Update now</button><button class="ghost" style="padding:.3em .6em" aria-label="Later">Later</button>';
+    b.children[0].onclick=()=>location.reload(); b.children[1].onclick=()=>b.remove();
+    document.body.appendChild(b);
+  });
+  addEventListener('load',async()=>{
+    try{
+      const reg=await navigator.serviceWorker.register('sw.js',{updateViaCache:'none'});
+      reg.update().catch(()=>{});
+      document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') reg.update().catch(()=>{}); });
+    }catch(_){}
+    // the version on the title screen, so you can tell which one you have
+    try{ const k=(await caches.keys()).find(x=>x.startsWith('cc-')); const v=document.getElementById('tsVer'); if(k&&v) v.textContent='Version '+k.slice(3,11); }catch(_){}
+  });
+}
 </script>
 
 </body></html>

@@ -1,9 +1,9 @@
-// Crown & Coin offline worker. Version 2c0c9818ce41
-const V='cc-f6788621fdba';
+// Crown & Coin offline worker. Version 7ab715dfd8f2
+const V='cc-7ab715dfd8f2';
 const FILES=["./", "index.html", "arena.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "myth/minion_blue.png", "myth/minion_red.png", "myth/mage_blue.png", "myth/mage_red.png", "myth/minotaur_blue.png", "myth/minotaur_red.png", "myth/griffin_blue.png", "myth/griffin_red.png", "myth/dragon_blue.png", "myth/dragon_red.png", "myth/griffin_hover_blue.png", "myth/griffin_hover_red.png", "myth/griffin_soar_blue.png", "myth/griffin_soar_red.png", "myth/minotaur_swing_blue.png", "myth/minotaur_swing_red.png", "myth/flame_lone.png", "myth/flame_arc.png", "myth/flame_blast.png", "myth/flame_row.png", "myth/dragon_walk_blue.png", "myth/dragon_walk_red.png", "myth/griffin_walk_blue.png", "myth/griffin_walk_red.png", "myth/dragon_hover_blue.png", "myth/dragon_hover_red.png", "myth/dragon_soar_blue.png", "myth/dragon_soar_red.png", "dino/pachy_blue.png", "dino/pachy_red.png", "dino/dilo_blue.png", "dino/dilo_red.png", "dino/mega_blue.png", "dino/mega_red.png", "dino/trike_blue.png", "dino/trike_red.png", "dino/stego_blue.png", "dino/stego_red.png", "dino/pachy_sheet_blue.png", "dino/pachy_sheet_red.png", "dino/dilo_sheet_blue.png", "dino/dilo_sheet_red.png", "dino/mega_sheet_blue.png", "dino/mega_sheet_red.png", "dino/trike_sheet_blue.png", "dino/trike_sheet_red.png", "dino/stego_sheet_blue.png", "dino/stego_sheet_red.png"];
 const EXTRA=["https://fonts.googleapis.com/css2?family=Alegreya:wght@800&family=Alegreya+Sans:wght@400;500;700&display=swap", "https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap", "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"];   // fonts and the 3D trebuchet: kept too when there's internet, never required
 self.addEventListener('install',e=>{ self.skipWaiting(); e.waitUntil((async()=>{
-  const c=await caches.open(V); await c.addAll(FILES);
+  const c=await caches.open(V); await c.addAll(FILES.map(f=>new Request(f,{cache:'reload'})));   // fresh copies, not the browser's saved ones
   for(const u of EXTRA){ try{ const r=await fetch(u,{mode:'cors'}); if(!r.ok) continue; await c.put(u,r.clone());
       if(u.includes('fonts.googleapis')){ const css=await r.text();
         for(const m of css.matchAll(/url\((https:[^)]+)\)/g)){ try{ const f=await fetch(m[1],{mode:'cors'}); if(f.ok) await c.put(m[1],f); }catch(_){} } }
