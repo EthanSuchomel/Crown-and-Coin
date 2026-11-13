@@ -189,8 +189,8 @@ html,body{height:100%;overflow:hidden}
 .hexinfo .tc-castle{width:3em;height:2.2em}
 .hexinfo .x{position:absolute;top:.15em;right:.2em;padding:.1em .45em;font-size:1em;box-shadow:none;border:0;background:transparent}
 /* your numbers in the board's bottom-left corner (Ethan's sketch): coins a turn, units, coins, materials, castles */
-.stats{position:absolute;left:0;bottom:0;z-index:2;display:flex;flex-direction:column;gap:.05em;background:var(--moss);
-  border:2px solid var(--edge);border-left:0;border-bottom:0;box-shadow:2px -2px 0 0 var(--outline);border-radius:0 3px 0 0;padding:.3em .6em .35em .45em;
+.stats{position:absolute;right:0;bottom:0;z-index:2;display:flex;flex-direction:column;gap:.05em;background:var(--moss);
+  border:2px solid var(--edge);border-right:0;border-bottom:0;box-shadow:-2px -2px 0 0 var(--outline);border-radius:3px 0 0 0;padding:.3em .45em .35em .6em;
   font-size:.86em;line-height:1.2;pointer-events:none}
 .stats .st{display:flex;align-items:center;gap:.35em;white-space:nowrap}
 .stats .st b{font-family:var(--font-num);font-weight:800;font-variant-numeric:tabular-nums}
@@ -204,7 +204,7 @@ html,body{height:100%;overflow:hidden}
 .stats .st.cas small{font-family:var(--font-body);font-weight:500}
 #stage.short #app{padding-top:max(.25em,var(--sa-t,0px));padding-bottom:max(.25em,var(--sa-b,0px))}
 #stage.short .board .mapwrap{border-width:2px}
-#stage.short .stats{font-size:.74em;padding:.2em .45em .25em .35em}
+#stage.short .stats{font-size:.74em;padding:.2em .35em .25em .45em}
 #stage.short .hexinfo{font-size:.7em;max-width:66%}
 #stage.short .side{gap:.45em}
 #stage.short .bc-acts{margin:.3em 0 .2em}
@@ -3760,7 +3760,7 @@ function renderHead(){
   $('#sidehead').innerHTML=`<span class="sh-turn">${turn}</span>
     <span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶ Full</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
 }
-// in the board's bottom-left corner (Ethan's sketch): +coins a turn, units, coins, materials, and every side's castles
+// in the board's bottom-right corner (Ethan, 2026-11-12): +coins a turn, units, coins, materials, and every side's castles
 function renderStats(){
   const me=S.players[0], myth=isMyth(0), cur1=myth?'magic':'coin';
   const units=S.tiles.filter(t=>t.owner===0).reduce((n,t)=>n+t.troops,0);
