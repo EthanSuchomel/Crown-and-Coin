@@ -176,8 +176,8 @@ html,body{height:100%;overflow:hidden}
 #stage{position:fixed;top:0;left:0;transform-origin:0 0;overflow:hidden;font-size:clamp(12px,min(calc(var(--H,700px)*.036),calc(var(--W,1200px)*.026)),16px)}   /* text scales with the window, so a small window keeps the cards column readable */
 #app{display:grid;height:100%;box-sizing:border-box;gap:0 .8em;   /* no row gaps: the empty rows above and below the board would add them and push everything down */
   padding:max(.6em,var(--sa-t,0px)) max(.8em,var(--sa-r,0px)) max(.6em,var(--sa-b,0px)) max(.8em,var(--sa-l,0px));   /* the phone's notch and home-bar margins, set by fitStage for whichever way the game is turned */
-  grid-template-columns:minmax(0,66fr) minmax(0,34fr);   /* the map gets about 2/3 of the width */grid-template-rows:minmax(0,1fr) auto var(--maph,70vh) minmax(0,1fr);
-  grid-template-areas:". side" "stats side" "board side" ". side"}   /* your numbers sit above the board */
+  grid-template-columns:minmax(0,66fr) minmax(0,34fr);   /* the map gets about 2/3 of the width */grid-template-rows:minmax(0,1fr) var(--maph,70vh) minmax(0,1fr);
+  grid-template-areas:". side" "board side" ". side"}   /* your numbers sit in the board's bottom-left corner */
 .board{grid-area:board;min-width:0;min-height:0}
 .board{justify-self:center;width:var(--mapw,100%)}
 .board .mapwrap{position:relative;width:100%;height:var(--maph)}
@@ -188,24 +188,23 @@ html,body{height:100%;overflow:hidden}
 .hexinfo .tname{font-size:1.15em}
 .hexinfo .tc-castle{width:3em;height:2.2em}
 .hexinfo .x{position:absolute;top:.15em;right:.2em;padding:.1em .45em;font-size:1em;box-shadow:none;border:0;background:transparent}
-/* your numbers under the board */
-.stats{grid-area:stats;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5em;margin-bottom:.6em}
-.stat{background:var(--moss);border:2px solid var(--edge);box-shadow:0 0 0 2px var(--outline);border-radius:3px;padding:.35em .55em;min-width:0;display:flex;flex-direction:column}
-.stat .sl{font-family:var(--font-display);font-weight:600;font-size:.72em;letter-spacing:.4px;text-transform:uppercase;color:var(--lichen);line-height:1.15}
-.stat .sv{font-family:var(--font-num);font-weight:800;font-size:1.35em;line-height:1.15;font-variant-numeric:tabular-nums}
-.stat .sv small{font-family:var(--font-body);font-weight:500;font-size:.6em;color:var(--lichen);margin-left:.15em}
-.stat .ss{font-size:.72em;color:var(--lichen);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stat .sv{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stat.coin .sv{color:var(--gold)}
+/* your numbers in the board's bottom-left corner (Ethan's sketch): coins a turn, units, coins, materials, castles */
+.stats{position:absolute;left:0;bottom:0;z-index:2;display:flex;flex-direction:column;gap:.05em;background:var(--moss);
+  border:2px solid var(--edge);border-left:0;border-bottom:0;box-shadow:2px -2px 0 0 var(--outline);border-radius:0 3px 0 0;padding:.3em .6em .35em .45em;
+  font-size:.86em;line-height:1.2;pointer-events:none}
+.stats .st{display:flex;align-items:center;gap:.35em;white-space:nowrap}
+.stats .st b{font-family:var(--font-num);font-weight:800;font-variant-numeric:tabular-nums}
+.stats .st small{color:var(--lichen)}
+.stats .st .px{width:1.15em!important;height:1.15em!important;flex:none;vertical-align:middle}
+.stats .st.inc b{color:var(--gold)}
+.stats .st.have b{color:var(--gold)}
+.stats button.st{pointer-events:auto;padding:0 .3em 0 0;margin:0;background:transparent;border:0;box-shadow:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.stats button.st:hover b,.stats button.st:focus-visible b{text-decoration:underline}
+.stats .st.cas{font-family:var(--font-num);font-weight:800;margin-top:.1em}
+.stats .st.cas small{font-family:var(--font-body);font-weight:500}
 #stage.short #app{padding-top:max(.25em,var(--sa-t,0px));padding-bottom:max(.25em,var(--sa-b,0px))}
-#stage.short .stats{margin-bottom:.25em}
 #stage.short .board .mapwrap{border-width:2px}
-#stage.short .stat{padding:.12em .45em;flex-direction:row;align-items:baseline;gap:.4em}
-#stage.short .stat .sl{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#stage.short .stat .sv{flex:none}
-#stage.short .stat .sl{font-size:.6em}
-#stage.short .stat .sv{font-size:1.02em}
-#stage.short .stat .ss{display:none}
+#stage.short .stats{font-size:.74em;padding:.2em .45em .25em .35em}
 #stage.short .hexinfo{font-size:.7em;max-width:66%}
 #stage.short .side{gap:.45em}
 #stage.short .bc-acts{margin:.3em 0 .2em}
@@ -217,7 +216,7 @@ html,body{height:100%;overflow:hidden}
 .side{grid-area:side;display:flex;flex-direction:column;min-width:0;min-height:0;gap:.6em}
 .side-head{background:var(--moss);border:2px solid var(--edge);box-shadow:0 0 0 2px var(--outline);border-radius:3px;padding:.35em .6em;display:flex;align-items:center;gap:.6em;flex-wrap:wrap}
 .sh-title{font-family:var(--font-display);font-weight:700;font-size:1.25em;text-shadow:2px 2px 0 var(--outline)}
-.sh-turn{font-size:.85em;color:var(--lichen);flex:1;min-width:8em}
+.sh-turn{font-size:.9em;color:var(--lichen);flex:1;min-width:8em;padding:.25em 0}
 .sh-turn b{font-family:var(--font-display)}
 .sh-gold{font-family:var(--font-num);font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
 .sh-btns{display:flex;gap:.35em}
@@ -434,9 +433,8 @@ html,body{height:100%;overflow:hidden}
 .bub.picked{border-color:var(--gold);box-shadow:0 0 0 2px var(--outline),0 0 0 4px var(--gold)}
 /* ===== upright layout: an iPad held upright, or a game panel taller than it is wide. Nothing is turned sideways;
    the board sits on top with your numbers under it, and the cards fill the space below. ===== */
-#stage.tall #app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto var(--maph,50vh) minmax(0,1fr);grid-template-areas:"stats" "board" "side";gap:.6em 0}
+#stage.tall #app{grid-template-columns:minmax(0,1fr);grid-template-rows:var(--maph,50vh) minmax(0,1fr);grid-template-areas:"board" "side";gap:.6em 0}
 #stage.tall .board{justify-self:center;width:var(--mapw)}
-#stage.tall .stats{margin-bottom:0}
 #stage.tall.wide .handlist{flex-direction:row}
 #stage.tall .fs-grid{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);max-width:760px}
 #stage.tall .fs-choices{flex-direction:row}
@@ -561,9 +559,8 @@ html,body{height:100%;overflow:hidden}
 <div id="stage">
 <div id="app">
   <section class="board" aria-label="Game board">
-    <div class="mapwrap"><svg id="map" viewBox="0 0 269 229" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Game board"></svg><div id="hexinfo" class="hexinfo" hidden></div><div id="bldov" class="bldov" hidden></div></div>
+    <div class="mapwrap"><svg id="map" viewBox="0 0 269 229" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Game board"></svg><div id="hexinfo" class="hexinfo" hidden></div><div id="bldov" class="bldov" hidden></div><section class="stats" id="stats" aria-label="Your empire"></section></div>
   </section>
-  <section class="stats" id="stats" aria-label="Your empire"></section>
   <aside class="side">
     <div class="side-head" id="sidehead"></div>
     <div class="side-body" id="panel"></div>
@@ -3746,8 +3743,6 @@ function renderHead(){
   const c=cur();
   const turn=S.over?'Game over':`Turn ${S.turn} · <b style="color:${inkOf(c)}">${S.players[0].out&&!S.over?'You are out, watching · ':''}${c.ai?(NET?(c.cpu?c.name+' (computer) are playing':netNameOf(c.id)?escH(netNameOf(c.id))+"'s move":'Their move'):c.name+' are playing'+(c.diff&&AI_LEVEL_NAME[c.diff]?` <small>(${AI_LEVEL_NAME[c.diff]})</small>`:'')):'your move'}</b>`;
   const online=NET?`<div class="netbar${NET.err?' bad':''}"><span>Online game <b>${escH(NET.code)}</b>${netVs()?` · vs ${escH(netVs())}`:''}</span>${NET.err?`<span>${escH(NET.err)}</span>`:''}</div>`:'';
-  let race=S.players.length>2?`<span class="sh-castles" title="Castles held"><span class="px px-c-neutral" aria-hidden="true"></span> ${S.players.map(p=>`<b style="color:${inkOf(p)}${p.out?';opacity:.4;text-decoration:line-through':''}">${castleCount(p.id)}</b>`).join('–')}</span>`
-   :`<span class="sh-castles" title="Hold ${CASTLES_TO_WIN} castles to win"><span class="px px-c-neutral" aria-hidden="true"></span> <b style="color:${inkOf(S.players[0])}">${castleCount(0)}</b>–<b style="color:${inkOf(S.players[1])}">${castleCount(1)}</b> <small>of ${CASTLES_TO_WIN}</small></span>`;
   let siege='';
   if(S.siege&&!S.over){
     const L=S.siege.left, tw=L===1?'turn':'turns';
@@ -3755,19 +3750,20 @@ function renderHead(){
       ?`<div class="siege mine"><span class="px px-crown" aria-hidden="true"></span> You hold ${CASTLES_TO_WIN} castles. Keep them through ${L===1?'the':'the next '+L} ${S.players[1].name} ${tw} to win.</div>`
       :`<div class="siege theirs">⚠ The ${S.players[1].name} hold ${CASTLES_TO_WIN} castles. Take one back within ${L} ${tw} of yours or they win.</div>`;
   }
-  $('#sidehead').innerHTML=`<span class="sh-title">Cards</span><span class="sh-turn">${turn}</span>${race}<span class="sh-gold" title="${isMyth(0)?'Magic':'Gold'}"><span class="px px-${isMyth(0)?'magic':'coin'}" aria-hidden="true"></span> ${S.players[0].gold}</span>${usesMat(0)?`<button class="ghost sh-mat" data-head="trade" title="Materials: tap to buy more at your markets" aria-label="Materials: ${matOf(0)}. Buy more at your markets">${MAT_IC} ${matOf(0)}</button>`:''}
-    <span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
+  $('#sidehead').innerHTML=`<span class="sh-turn">${turn}</span>
+    <span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶ Full</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
 }
-// under the board: coin production, territories captured, unit total (yours, with the opponent's for comparison)
+// in the board's bottom-left corner (Ethan's sketch): +coins a turn, units, coins, materials, and every side's castles
 function renderStats(){
-  const me=S.players[0], op=S.players[1], ops=S.players.filter(q=>q.id!==0&&!q.out);
-  const own=pid=>S.tiles.filter(t=>t.owner===pid);
-  const units=pid=>own(pid).reduce((s,t)=>s+t.troops,0);
-  const open=S.tiles.filter(t=>t.terrain==='plain').length;
+  const me=S.players[0], myth=isMyth(0), cur1=myth?'magic':'coin';
+  const units=S.tiles.filter(t=>t.owner===0).reduce((n,t)=>n+t.troops,0);
+  const cas=S.players.map(p=>`<b style="color:${inkOf(p)}${p.out?';opacity:.4;text-decoration:line-through':''}">${castleCount(p.id)}</b>`).join(' – ');
   $('#stats').innerHTML=`
-    <div class="stat coin"><span class="sl">${isMyth(0)?'Magic':'Coin'} production</span><span class="sv">+${incomeOf(0).total}<small>/ turn</small></span><span class="ss">${ops.map(o=>`${o.name} +${incomeOf(o.id).total}${isMyth(o.id)!==isMyth(0)?' '+cur$(o.id):''}`).join(' · ')}</span></div>
-    <div class="stat"><span class="sl">Territories captured</span><span class="sv">${own(0).length}<small>of ${open}</small></span><span class="ss">${own(0).filter(t=>t.castle).length} castle${own(0).filter(t=>t.castle).length===1?'':'s'} · ${ops.map(o=>`${o.name} ${own(o.id).length}`).join(' · ')}</span></div>
-    <div class="stat"><span class="sl">Unit total</span><span class="sv">${units(0)}</span><span class="ss">${ops.map(o=>`${o.name} ${units(o.id)}`).join(' · ')}</span></div>`;
+    <span class="st inc" title="${myth?'Magic':'Coins'} you collect each turn"><b>+${incomeOf(0).total}</b> ${myth?'magic':'coins'} / turn</span>
+    <span class="st" title="Your units on the board"><b>${units}</b> unit${units===1?'':'s'}</span>
+    <span class="st have" title="${myth?'Magic':'Gold'} you have"><span class="px px-${cur1}" aria-hidden="true"></span><b>${me.gold}</b> ${myth?'magic':'coins'}</span>
+    ${usesMat(0)?`<button class="st" data-head="trade" title="Materials: tap to buy more at your markets" aria-label="Materials: ${matOf(0)}. Buy more at your markets">${MAT_IC}<b>${matOf(0)}</b> material${matOf(0)===1?'':'s'}</button>`:''}
+    <span class="st cas" title="${S.players.length>2?'Castles held':`Castles held: hold ${CASTLES_TO_WIN} to win`}"><span class="px px-c-neutral" aria-hidden="true"></span>${cas}${S.players.length>2?'':` <small>of ${CASTLES_TO_WIN}</small>`}</span>`;
 }
 // details of the tapped hex, floating in the board's corner
 function renderHexInfo(){
@@ -4629,6 +4625,7 @@ $('#stage').addEventListener('click',e=>{
   else if(k==='continue'){ showScreen(null); render(); if(cur().ai&&!S.over) runAI(); }
   else if(k==='go'){ showScreen(null); newGame(fsPick,{np:fsNP,opp:fsOpp,opps:fsOpps}); }
 });
+$('#stats').addEventListener('click',e=>{ if(e.target.closest('button[data-head="trade"]')) openTrade(); });
 $('#sidehead').addEventListener('click',e=>{
   const b=e.target.closest('button[data-head]'); if(!b) return;
   const k=b.dataset.head;
@@ -4695,7 +4692,7 @@ function fitStage(){
   const fs=parseFloat(getComputedStyle(st).fontSize)||14;
   const ap=getComputedStyle($('#app')), px=v=>parseFloat(v)||0;
   const padT=px(ap.paddingTop), padB=px(ap.paddingBottom), padL=px(ap.paddingLeft), padR=px(ap.paddingRight);
-  const gap=px(ap.columnGap)||.8*fs, statsH=($('#stats').offsetHeight||3.6*fs)+px(getComputedStyle($('#stats')).marginTop)+px(getComputedStyle($('#stats')).marginBottom);
+  const gap=px(ap.columnGap)||.8*fs, statsH=0;   // your numbers sit inside the board's corner now
   const R=VB_H/VB_W;       // the board's height for each unit of width
   let mw, mh;
   if(tall){
