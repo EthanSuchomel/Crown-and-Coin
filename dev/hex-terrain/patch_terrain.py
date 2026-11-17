@@ -10,7 +10,7 @@ p, d = sys.argv[1], sys.argv[2]
 s = open(p, encoding='utf-8').read()
 uri = lambda f: 'data:image/png;base64,' + base64.b64encode(open(os.path.join(d, f), 'rb').read()).decode()
 grass = sorted(f for f in os.listdir(d) if re.fullmatch(r'grass_\d\.png', f))
-line = ('/*HEX_TERRAIN*/const HEX_TERRAIN={"grass":[' + ','.join('"%s"' % uri(f) for f in grass) + '],"mountain":"%s","castle_neutral":"%s"};' % (uri('mountain.png'), uri('castle_neutral.png'))
+line = ('/*HEX_TERRAIN*/const HEX_TERRAIN={"grass":[' + ','.join('"%s"' % uri(f) for f in grass) + '],"mountain":"%s","castle_neutral":"%s","forest":"%s","fern":"%s"};' % (uri('mountain.png'), uri('castle_neutral.png'), uri('forest.png'), uri('fern.png'))
         + '   // hex-shaped tiles (222x256): the grass under every hex, and the mountain hex\n')
 
 
@@ -52,5 +52,15 @@ if '/*CASTLE_TILE*/' not in s:
         "      if(!gnd&&!ctile) h+=`<polygon class=\"ico\" points=\"${hexPts(cx,cy,HR)}\" fill=\"${col}\" opacity=\".2\"/>`;")
     rep("    if(t.castle){\n      const f=castleArt(t), w=castleW(f), ch=w*ART['castle_'+f].ratio;\n      castles+=",
         "    if(t.castle&&!castleTile(t)){\n      const f=castleArt(t), w=castleW(f), ch=w*ART['castle_'+f].ratio;\n      castles+=")
+if '/*GROVE_TILES*/' not in s:
+    # forest and fern hexes (2026-11-16): Ethan's own trees and ferns built into whole-hex tiles in OpenArt, in place of
+    # the trees and ferns placed one by one over the grass
+    rep("  d+=img('ctn',HEX_TERRAIN.castle_neutral,",
+        "  d+=img('fot',HEX_TERRAIN.forest,+(GND_R*Math.sqrt(3)).toFixed(2),2*GND_R,0)+img('fnt',HEX_TERRAIN.fern,+(GND_R*Math.sqrt(3)).toFixed(2),2*GND_R,0);   // /*GROVE_TILES*/ forest and fern hexes\n"
+        "  d+=img('ctn',HEX_TERRAIN.castle_neutral,")
+    rep("    if((t.forest||t.fern)&&t.owner<0) h+=forestSvg(cx,cy,i);\n",
+        "    if(t.forest||t.fern) h+=`<use class=\"ico\" href=\"#${t.forest?'fot':'fnt'}\" x=\"${gx}\" y=\"${gy}\"/>`;   // the whole hex is forest / ferns\n")
+    rep("      if(t.forest||t.fern) h+=forestSvg(cx,cy,i);\n", "")
+    rep("    if(t.fern) trees+=fernPatch(cx,cy,i);\n    if(t.forest) trees+=forestTrees(cx,cy,i);", "")
 open(p, 'w', encoding='utf-8').write(s)
 print('patched;', len(grass), 'grass tiles')

@@ -50,6 +50,11 @@ def mountain_tile(src):
     inside = np.sqrt(((im - bg) ** 2).sum(-1)) > 90
     rows = np.where(inside.any(1))[0]
     top, bot = rows.min(), rows.max()
+    # a tree top poking above the hexagon (the forest) mustn't count as the hex's top point: take the top and bottom from
+    # the middle column, where the hexagon's own points are
+    cx = int(np.median(np.where(inside[(top + bot) // 2])[0]))
+    col = np.where(inside[:, cx - 3:cx + 4].any(1))[0]
+    top, bot = col.min(), col.max()
     SW, SH = W * S, H * S
     d = hex_dist(SW, SH)
     out = np.zeros((SH, SW, 3))
@@ -57,7 +62,11 @@ def mountain_tile(src):
     pad = 7   # source pixels kept clear of the picture's own edge line
     for v in range(SH):
         sy = top + pad + (bot - top - 2 * pad) * (v + .5) / SH
-        r = inside[int(round(sy))]
+        r = inside[int(round(sy))].copy()
+        # only the hexagon's own span on this row: the run that contains the middle column (a tree poking out beside the
+        # top point isn't part of it)
+        lab = np.cumsum(np.r_[0, np.diff(r.astype(int)) != 0])
+        if r[cx]: r &= lab == lab[cx]
         xs = np.where(r)[0]
         if len(xs) < 2 * pad + 2: continue
         l, rr = xs.min() + pad, xs.max() - pad

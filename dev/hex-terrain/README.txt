@@ -13,3 +13,7 @@ placing that over the entire map can you use that texture for each individual he
   castle_neutral (2026-11-16): Ethan's OpenArt hex castle (src/castle_neutral_openart.png), drawn on every neutral
                              castle hex in place of the stone castle picture and the grass; no colour wash, the team border
                              still shows the owner
+  forest, fern (2026-11-16): Ethan's own four trees / four ferns (sheets uploaded to OpenArt) built into whole-hex tiles
+                             in the mountain's style (OpenArt image2image); drawn on forest / fern hexes in place of the
+                             trees and ferns placed one by one; fitted by the hexagon's own points (the forest has a tree tip
+                             poking above the top edge, which is trimmed)
