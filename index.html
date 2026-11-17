@@ -3527,6 +3527,26 @@ const castleTile=t=>!!(t.castle&&castleArt(t)==='neutral'&&HEX_TERRAIN.castle_ne
 const castleGnd=t=>{ if(!t.castle) return null; const f=castleArt(t); return CASTLE_GND[f]?f:null; };   // the castle's own ground, if it has one
 const hexPts=(cx,cy,rad)=>{let p='';for(let k=0;k<6;k++){const [x,y]=hexV(cx,cy,rad,k);p+=`${x.toFixed(2)},${y.toFixed(2)} `;}return p.trim();};
 const hexV=(cx,cy,rad,k)=>{const a=Math.PI/3*k;return [cx-rad*Math.sin(a),cy-rad*Math.cos(a)];};
+// a player's border: the edges chained into closed outlines, drawn as one path (round joins), clipped to their own hexes so
+// only the inner half shows (a thin band, 1.3 wide), with a thin dark line on the edge itself (Ethan, 2026-11-17)
+function borderSvg(bord){
+  let out='';
+  for(const o in bord){
+    const B=bord[o], key=([x,y])=>Math.round(x*20)+','+Math.round(y*20), next=new Map(), used=new Set();
+    B.edges.forEach((e,n)=>{ const k=key(e[0]); if(!next.has(k)) next.set(k,[]); next.get(k).push(n); });
+    let d='';
+    B.edges.forEach((e0,n0)=>{
+      if(used.has(n0)) return;
+      used.add(n0); let pts=[e0[0],e0[1]], cur=e0[1];
+      for(let g=0;g<400;g++){ const c=(next.get(key(cur))||[]).find(n=>!used.has(n)); if(c==null) break; used.add(c); cur=B.edges[c][1]; pts.push(cur); }
+      d+='M'+pts.map(([x,y])=>x.toFixed(2)+' '+y.toFixed(2)).join('L')+(key(cur)===key(pts[0])?'Z':'');
+    });
+    const col=S.players[o].color;
+    out+=`<clipPath id="bc-${o}">${B.hexes}</clipPath><path d="${d}" fill="none" stroke="${col}" stroke-width="2.6" stroke-linejoin="round" clip-path="url(#bc-${o})"/>`
+        +`<path d="${d}" fill="none" stroke="#060907" stroke-width=".6" stroke-linejoin="round" opacity=".75"/>`;
+  }
+  return out;
+}
 // a forest hex: a little grove of trees, back row first so the front trees overlap them.
 // Which trees, which way they face and their size come from the hex number, so a grove looks the same every turn.
 // Fern hexes: the user's four ferns (made in OpenArt), shrunk for the map. ar = height/width; bx, by = where the stump sits.
@@ -3808,7 +3828,7 @@ function renderMap(){
   if(isHumanTurn()&&curAction()==='advance'&&ui.roboUp) roboUpTargets(0,ui.roboUp).forEach(j=>hl.add(j));
   if(isHumanTurn()&&curAction()==='advance'&&ui.mvBk!=null) mammBkSpots(0,ui.mvBk).forEach(j=>hl.add(j));   // Den Move
   const moving=curAction()==='move';
-  let h='', marks='', castles='', tops='', walls='', trees='', grs='', terr='', own='';
+  let h='', marks='', castles='', tops='', walls='', trees='', grs='', terr='', own='', bord={};
   S.tiles.forEach((t,i)=>{
     if(t.terrain==='void') return;                 // not part of the board
     const[cx,cy]=hexCenter(i), owned=t.owner>=0;
@@ -3827,12 +3847,10 @@ function renderMap(){
     if(owned){
       const col=S.players[t.owner].color;
       if(!gnd&&!ctile) own+=`<polygon points="${hexPts(cx,cy,HR)}" fill="${col}" opacity=".2"/>`;   // no colour wash over a castle's own ground
-      // territory edge: a band along every edge that borders someone else's land, with a dark outer line
-      nbrDirs(i).forEach((j,k)=>{
-        if(j>=0&&S.tiles[j].owner===t.owner) return;
-        const[a1,b1]=hexV(cx,cy,HR-1.7,k),[a2,b2]=hexV(cx,cy,HR-1.7,k+1),[o1,p1]=hexV(cx,cy,HR-.35,k),[o2,p2]=hexV(cx,cy,HR-.35,k+1);
-        own+=`<line class="ico" x1="${a1.toFixed(2)}" y1="${b1.toFixed(2)}" x2="${a2.toFixed(2)}" y2="${b2.toFixed(2)}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"/><line class="ico" x1="${o1.toFixed(2)}" y1="${p1.toFixed(2)}" x2="${o2.toFixed(2)}" y2="${p2.toFixed(2)}" stroke="#060907" stroke-width=".8" opacity=".7"/>`;
-      });
+      // territory edge: every edge that borders someone else's land (drawn after the loop as one joined outline per player)
+      const B=bord[t.owner]||(bord[t.owner]={edges:[],hexes:''});
+      B.hexes+=`<polygon points="${hexPts(cx,cy,HR)}"/>`;
+      nbrDirs(i).forEach((j,k)=>{ if(j>=0&&S.tiles[j].owner===t.owner) return; B.edges.push([hexV(cx,cy,HR,k),hexV(cx,cy,HR,k+1)]); });
     }
    // over the outline and the owner's colour, so tree tops can spill past the edge
     if(t.dome>0) walls+=domeSvg(cx,cy,t.dome);
@@ -3894,6 +3912,7 @@ function renderMap(){
   });
   const bh=buildHex();
   $('#dim').innerHTML=bh==null?'':(()=>{const[cx,cy]=hexCenter(bh); return `<path d="M-400,-400H700V700H-400Z M${hexPts(cx,cy,HR+.3).replace(/ /g,'L')}Z" fill="#060907" fill-opacity=".42" fill-rule="evenodd"/>`;})();
+  own+=borderSvg(bord);
   $('#cells').innerHTML=h; $('#grs').innerHTML=grs; $('#terr').innerHTML=terr; $('#own').innerHTML=own; $('#forest').innerHTML=trees; $('#walls').innerHTML=walls; $('#castles').innerHTML=castles; $('#tops').innerHTML=tops; $('#marks').innerHTML=marks;
   updateZoom();
 }

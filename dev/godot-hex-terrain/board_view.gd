@@ -301,14 +301,27 @@ func _draw() -> void:
 		var c2: Vector2 = center(i2)
 		var col2: Color = _player_color(owner2)
 		var dirs: Array[int] = HexGrid.neighbor_dirs(i2)
+		# the border (Ethan, 2026-11-17: thinner, and wrapping cleanly round the territory's corners, like the browser):
+		# a 1.3-wide band just inside every edge that borders other land, the corners filled in so the band turns without
+		# notches, and a thin dark line on the edge itself
+		var bd: Array[bool] = []
 		for k in 6:
 			var j: int = dirs[k]
-			if j >= 0 and int(game.tiles[j].owner) == owner2:
-				continue
-			var outer: Color = OUTLINE
-			outer.a = 0.7
-			draw_line(_corner(c2, (HR - 1.7) * u, k), _corner(c2, (HR - 1.7) * u, k + 1), col2, 2.6 * u)
-			draw_line(_corner(c2, (HR - 0.35) * u, k), _corner(c2, (HR - 0.35) * u, k + 1), outer, maxf(1.0, 0.8 * u))
+			bd.append(not (j >= 0 and int(game.tiles[j].owner) == owner2))
+		var outer: Color = OUTLINE
+		outer.a = 0.75
+		for k in 6:
+			var v: Vector2 = _corner(c2, HR * u, k)
+			if bd[k]:
+				draw_colored_polygon(PackedVector2Array([v, _corner(c2, HR * u, k + 1), _corner(c2, (HR - 1.5) * u, k + 1), _corner(c2, (HR - 1.5) * u, k)]), col2)
+			if bd[k] or bd[(k + 5) % 6]:
+				var da: Vector2 = (_corner(c2, HR * u, k + 1) - v).normalized() * 1.3 * u
+				var db: Vector2 = (_corner(c2, HR * u, k + 5) - v).normalized() * 1.3 * u
+				draw_colored_polygon(PackedVector2Array([v, v + da, _corner(c2, (HR - 1.5) * u, k), v + db]), col2)
+		for k in 6:
+			if bd[k]:
+				draw_line(_corner(c2, HR * u, k), _corner(c2, HR * u, k + 1), outer, maxf(1.0, 0.6 * u))
+				draw_circle(_corner(c2, HR * u, k), maxf(0.5, 0.3 * u), outer)
 
 	# 2. vegetation, top rows first so lower groves overlap the ones behind them
 	var veg: Array = live.filter(func(t): return (t.forest or t.fern) and _whole_tile(t) == "")   # (none while the forest and fern tiles exist)
