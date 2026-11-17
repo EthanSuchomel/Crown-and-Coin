@@ -4,3 +4,6 @@ on the mountain tile; falls back to the old grass and mountain picture if the ti
 _backup_before_hex_terrain/ in the Godot project. Parse-checked with Godot 4.7.2 only (not run on a board).
 Later the same night: hex_castle_neutral.png, hex_forest.png and hex_fern.png too (_whole_tile(t): mountain, neutral castle,
 forest, fern fill the whole hex; the old vegetation sprites and neutral castle picture are skipped while the tiles exist).
+2026-11-17 soft edges: board_view.gd here draws the hex_*_soft.png tiles (in art/terrain/ here) in a pass before the
+ground loop. NOT yet copied to the Godot project (the computer was not reachable): copy board_view.gd to scripts/ui/ and the
+six *_soft.png files to art/terrain/.

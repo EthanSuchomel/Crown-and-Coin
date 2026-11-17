@@ -78,6 +78,8 @@ func _ready() -> void:
 	names["hex_mountain"] = "res://art/terrain/hex_mountain.png"   # the mountain hex: the whole hex is mountain
 	for k in ["castle_neutral", "forest", "fern"]:
 		names["hex_" + k] = "res://art/terrain/hex_%s.png" % k   # whole-hex tiles: neutral castles, forests, ferns (2026-11-16)
+	for k in ["grass_0", "grass_1", "grass_2", "mountain", "forest", "fern"]:
+		names["hex_%s_soft" % k] = "res://art/terrain/hex_%s_soft.png" % k   # soft-edged versions that blend into neighbours (2026-11-17)
 	for v in 6:
 		names["forest_%d" % v] = "res://art/vegetation/forest_%d.png" % v
 		names["fern_%d" % v] = "res://art/vegetation/fern_%d.png" % v
@@ -227,6 +229,26 @@ func _draw() -> void:
 		if t.terrain != "void":
 			live.append(t)
 
+	# 0. soft ground (Ethan, 2026-11-17: "flow together better"): every hex's grass, then the mountain, forest and fern tiles,
+	# each fading out at its edge and drawn 10% bigger than the hex, so neighbours overlap and blend (like the browser)
+	var soft_ok: bool = tex("hex_grass_0_soft") != null
+	if soft_ok:
+		var sk: float = (HR + 0.3) * 1.10
+		for t in live:
+			var c0: Vector2 = center(int(t.id))
+			draw_colored_polygon(_hex_points(c0, (HR + 0.3) * u), Color("2f7d22"))
+		for pass_n in 2:
+			for t in live:
+				var i0: int = int(t.id)
+				var c0: Vector2 = center(i0)
+				var rr := Rect2(c0 - Vector2(sk * sqrt(3.0) / 2.0, sk) * u, Vector2(sk * sqrt(3.0), 2.0 * sk) * u)
+				if pass_n == 0:
+					_draw_rect_tex(tex("hex_grass_%d_soft" % ((((i0 + 5) * 2654435761 & 0xFFFFFFFF) >> 7) % 3)), rr)
+				else:
+					var w0: String = _whole_tile(t)
+					if w0 in ["hex_mountain", "hex_forest", "hex_fern"] and tex(w0 + "_soft") != null:
+						_draw_rect_tex(tex(w0 + "_soft"), rr)
+
 	# 1. ground: grass, water, mountains, owner tint and territory edges
 	for t in live:
 		var i: int = int(t.id)
@@ -237,7 +259,9 @@ func _draw() -> void:
 		# every hex sits on its own grass tile (one of three, by hex number, like the browser), and a mountain hex is all mountain
 		var hex_grass: Texture2D = tex("hex_grass_%d" % (((i + 5) * 2654435761 & 0xFFFFFFFF) >> 7) % 3)
 		var whole: String = _whole_tile(t)
-		if whole != "":
+		if soft_ok and (whole == "" or whole in ["hex_mountain", "hex_forest", "hex_fern"]):
+			pass   # already drawn soft above
+		elif whole != "":
 			draw_colored_polygon(pts, Color("2f7d22"))
 			_draw_rect_tex(tex(whole), tile_rect)
 		elif hex_grass != null:
