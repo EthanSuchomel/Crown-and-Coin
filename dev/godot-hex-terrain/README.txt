@@ -6,4 +6,3 @@ Later the same night: hex_castle_neutral.png, hex_forest.png and hex_fern.png to
 forest, fern fill the whole hex; the old vegetation sprites and neutral castle picture are skipped while the tiles exist).
 2026-11-17 soft edges: board_view.gd here draws the hex_*_soft.png tiles (in art/terrain/ here) in a pass before the
 ground loop. NOT yet copied to the Godot project (the computer was not reachable): copy board_view.gd to scripts/ui/ and the
-six *_soft.png files to art/terrain/.
