@@ -26,3 +26,4 @@ placing that over the entire map can you use that texture for each individual he
   2026-11-17 (later): forest and ferns made clearly different: a dark, cool, dense forest (tips of the back row kept
   above the hex as forest_top.png, drawn over the hex behind) and a bright, low, muddy fern meadow with puddles, a creek,
   horsetails and mist (previous sources kept as *_v2.png)
+  2026-11-17: ferns without the yellow tint: src/fern_openart_green.png (yellow-greens shifted toward green in code)
