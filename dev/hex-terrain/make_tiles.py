@@ -5,7 +5,8 @@
   - mountain: "a mountain hex that actually has the whole hex as a mountain". Ethan's OpenArt hex is cut out of its
     magenta and fitted to the hex.
 Each tile is 222x256 (pointy top, like the water and castle-ground tiles), transparent outside the hex.
-  python3 make_tiles.py OUTDIR src/grass_openart.png src/mountain_openart.png"""
+  python3 make_tiles.py OUTDIR src/grass_openart.png src/mountain_openart.png [castle_neutral=src/castle_neutral_openart.png ...]
+  - castle_neutral (2026-11-16): Ethan's OpenArt hex castle, drawn on neutral castle hexes in place of the stone castle picture."""
 import sys, os
 import numpy as np
 from PIL import Image
@@ -71,13 +72,22 @@ def mountain_tile(src):
         a = im[y0, x0] * (1 - fx[:, None]) + im[y0, x0 + 1] * fx[:, None]
         b = im[y0 + 1, x0] * (1 - fx[:, None]) + im[y0 + 1, x0 + 1] * fx[:, None]
         out[v] = a * (1 - fy) + b * fy
-    return Image.fromarray(out.clip(0, 255).astype(np.uint8)).resize((W, H), Image.LANCZOS)
+    out = out.clip(0, 255)
+    # magenta caught inside the hex (e.g. between the castle's flags): take the nearest colour that isn't magenta
+    mag = (np.abs(out - bg).sum(-1) < 160) | ((out[..., 0] > 150) & (out[..., 2] > 150) & (out[..., 1] < 120))
+    if mag.any():
+        from scipy import ndimage
+        idx = ndimage.distance_transform_edt(mag, return_distances=False, return_indices=True)
+        out = out[idx[0], idx[1]]
+    return Image.fromarray(out.astype(np.uint8)).resize((W, H), Image.LANCZOS)
 
 
 out, gsrc, msrc = sys.argv[1:4]
+extra = dict(a.split('=', 1) for a in sys.argv[4:])   # more whole-hex tiles fitted the same way as the mountain: name=src.png
 os.makedirs(out, exist_ok=True)
 m = mask()
 for n, t in enumerate(grass_tiles(gsrc)):
     t = t.convert('RGBA'); t.putalpha(m); t.save(os.path.join(out, 'grass_%d.png' % n), optimize=True)
-t = mountain_tile(msrc).convert('RGBA'); t.putalpha(m); t.save(os.path.join(out, 'mountain.png'), optimize=True)
+for name, src in [('mountain', msrc)] + list(extra.items()):
+    t = mountain_tile(src).convert('RGBA'); t.putalpha(m); t.save(os.path.join(out, name + '.png'), optimize=True)
 print(sorted(os.listdir(out)))

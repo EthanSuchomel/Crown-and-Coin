@@ -10,3 +10,6 @@ placing that over the entire map can you use that texture for each individual he
   tiles/                     the tiles used in the game
   patch_terrain.py           index.html tiles/: HEX_TERRAIN; every hex drawn on its own grass tile (one of three, by hex
                              number), mountain hexes on the mountain tile; the terrain key icon uses the new mountain
+  castle_neutral (2026-11-16): Ethan's OpenArt hex castle (src/castle_neutral_openart.png), drawn on every neutral
+                             castle hex in place of the stone castle picture and the grass; no colour wash, the team border
+                             still shows the owner
