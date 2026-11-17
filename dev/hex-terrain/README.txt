@@ -21,3 +21,5 @@ placing that over the entire map can you use that texture for each individual he
                              (the tile fading out over a ragged band; mountains wider and more uneven); the board draws grass,
                              mountain, forest and fern soft tiles 10% bigger than the hex in their own layers (grass, then
                              terrain, then owner tint and borders), so neighbours overlap and blend; the hex grid lines are faint
+  2026-11-17: new forest (small trees, full canopy) and fern field (small clumps) tiles that thin out to grass at the
+  edges, and a beach lake for water (src/water_openart.png; old forest/fern sources kept as *_v1.png)

@@ -12,7 +12,7 @@ uri = lambda f: 'data:image/png;base64,' + base64.b64encode(open(os.path.join(d,
 grass = sorted(f for f in os.listdir(d) if re.fullmatch(r'grass_\d\.png', f))
 soft = lambda f: uri(f.replace('.png', '_soft.png'))
 line = ('/*HEX_TERRAIN*/const HEX_TERRAIN={"grass":[' + ','.join('"%s"' % uri(f) for f in grass) + '],"mountain":"%s","castle_neutral":"%s","forest":"%s","fern":"%s",' % (uri('mountain.png'), uri('castle_neutral.png'), uri('forest.png'), uri('fern.png'))
-        + '"soft":{"scale":1.10,"grass":[' + ','.join('"%s"' % soft(f) for f in grass) + '],"mountain":"%s","forest":"%s","fern":"%s"}};' % (soft('mountain.png'), soft('forest.png'), soft('fern.png'))
+        + '"soft":{"scale":1.10,"grass":[' + ','.join('"%s"' % soft(f) for f in grass) + '],"mountain":"%s","forest":"%s","fern":"%s","water":"%s"}};' % (soft('mountain.png'), soft('forest.png'), soft('fern.png'), soft('water.png'))
         + '   // hex-shaped tiles (222x256): the grass under every hex, and the mountain hex\n')
 
 
@@ -98,5 +98,11 @@ if '/*SOFT_TILES*/' not in s:
     rep("  $('#cells').innerHTML=h;", "  $('#cells').innerHTML=h; $('#grs').innerHTML=grs; $('#terr').innerHTML=terr; $('#own').innerHTML=own;")
     rep('d+=`</defs><g id="cells"></g><path class="ico" d="${grid}" stroke="#060907" stroke-width=".7" opacity=".45" fill="none"/>',
         'd+=`</defs><g id="cells"></g><g id="grs" class="ico"></g><g id="terr" class="ico"></g><g id="own" class="ico"></g><path class="ico" d="${grid}" stroke="#060907" stroke-width=".6" opacity=".16" fill="none"/>')
+if '/*BEACH_WATER*/' not in s:
+    # water (Ethan, 2026-11-17: "change the water tile to have a beach instead of rocks"): the OpenArt beach lake, soft-edged
+    rep("    for(const k of ['mountain','forest','fern']) d+=img('s-'+k,HEX_TERRAIN.soft[k],sw,sh,0); }",
+        "    for(const k of ['mountain','forest','fern','water']) d+=img('s-'+k,HEX_TERRAIN.soft[k],sw,sh,0); }   // /*BEACH_WATER*/")
+    rep("    if(t.terrain==='water') terr+=`<use href=\"#wa\" x=\"${(cx-HH/2).toFixed(2)}\" y=\"${(cy-HR).toFixed(2)}\"/>`;\n",
+        "    if(t.terrain==='water') terr+=`<use href=\"#s-water\" x=\"${sx}\" y=\"${sy}\"/>`;   // the beach lake\n")
 open(p, 'w', encoding='utf-8').write(s)
 print('patched;', len(grass), 'grass tiles')

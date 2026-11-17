@@ -78,7 +78,7 @@ func _ready() -> void:
 	names["hex_mountain"] = "res://art/terrain/hex_mountain.png"   # the mountain hex: the whole hex is mountain
 	for k in ["castle_neutral", "forest", "fern"]:
 		names["hex_" + k] = "res://art/terrain/hex_%s.png" % k   # whole-hex tiles: neutral castles, forests, ferns (2026-11-16)
-	for k in ["grass_0", "grass_1", "grass_2", "mountain", "forest", "fern"]:
+	for k in ["grass_0", "grass_1", "grass_2", "mountain", "forest", "fern", "water"]:
 		names["hex_%s_soft" % k] = "res://art/terrain/hex_%s_soft.png" % k   # soft-edged versions that blend into neighbours (2026-11-17)
 	for v in 6:
 		names["forest_%d" % v] = "res://art/vegetation/forest_%d.png" % v
@@ -246,7 +246,9 @@ func _draw() -> void:
 					_draw_rect_tex(tex("hex_grass_%d_soft" % ((((i0 + 5) * 2654435761 & 0xFFFFFFFF) >> 7) % 3)), rr)
 				else:
 					var w0: String = _whole_tile(t)
-					if w0 in ["hex_mountain", "hex_forest", "hex_fern"] and tex(w0 + "_soft") != null:
+					if t.terrain == "water":
+						w0 = "hex_water"   # the beach lake (2026-11-17)
+					if w0 in ["hex_mountain", "hex_forest", "hex_fern", "hex_water"] and tex(w0 + "_soft") != null:
 						_draw_rect_tex(tex(w0 + "_soft"), rr)
 
 	# 1. ground: grass, water, mountains, owner tint and territory edges
@@ -274,7 +276,7 @@ func _draw() -> void:
 			draw_polygon(pts, PackedColorArray([Color.WHITE]), uvs, grass)
 		else:
 			draw_colored_polygon(pts, Color("2a5529"))
-		if t.terrain == "water":
+		if t.terrain == "water" and not (soft_ok and tex("hex_water_soft") != null):
 			_draw_rect_tex(tex("water"), Rect2(c - Vector2(_hh / 2.0, HR) * u, Vector2(_hh, 2.0 * HR) * u))
 		elif t.terrain == "mountain" and tex("hex_mountain") == null:
 			var mh: float = MW * 0.8127
