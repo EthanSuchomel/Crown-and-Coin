@@ -76,6 +76,8 @@ func _ready() -> void:
 	for v in 3:
 		names["hex_grass_%d" % v] = "res://art/terrain/hex_grass_%d.png" % v   # each hex's own grass tile (Ethan, 2026-11-16)
 	names["hex_mountain"] = "res://art/terrain/hex_mountain.png"   # the mountain hex: the whole hex is mountain
+	for k in ["castle_neutral", "forest", "fern"]:
+		names["hex_" + k] = "res://art/terrain/hex_%s.png" % k   # whole-hex tiles: neutral castles, forests, ferns (2026-11-16)
 	for v in 6:
 		names["forest_%d" % v] = "res://art/vegetation/forest_%d.png" % v
 		names["fern_%d" % v] = "res://art/vegetation/fern_%d.png" % v
@@ -234,9 +236,10 @@ func _draw() -> void:
 		var tile_rect := Rect2(c - Vector2(gr0 * sqrt(3.0) / 2.0, gr0) * u, Vector2(gr0 * sqrt(3.0), 2.0 * gr0) * u)
 		# every hex sits on its own grass tile (one of three, by hex number, like the browser), and a mountain hex is all mountain
 		var hex_grass: Texture2D = tex("hex_grass_%d" % (((i + 5) * 2654435761 & 0xFFFFFFFF) >> 7) % 3)
-		if t.terrain == "mountain" and tex("hex_mountain") != null:
+		var whole: String = _whole_tile(t)
+		if whole != "":
 			draw_colored_polygon(pts, Color("2f7d22"))
-			_draw_rect_tex(tex("hex_mountain"), tile_rect)
+			_draw_rect_tex(tex(whole), tile_rect)
 		elif hex_grass != null:
 			draw_colored_polygon(pts, Color("2f7d22"))
 			_draw_rect_tex(hex_grass, tile_rect)
@@ -258,7 +261,7 @@ func _draw() -> void:
 			var gr: float = HR + 0.3
 			_draw_rect_tex(tex(gnd), Rect2(c - Vector2(gr * sqrt(3.0) / 2.0, gr) * u, Vector2(gr * sqrt(3.0), 2.0 * gr) * u))
 		var owner: int = int(t.owner)
-		if owner >= 0 and gnd == "":   # no colour wash over a castle's own ground; the team border still shows the owner
+		if owner >= 0 and gnd == "" and whole != "hex_castle_neutral":   # no colour wash over a castle's own ground; the team border still shows the owner
 			var col: Color = _player_color(owner)
 			var tint: Color = col
 			tint.a = 0.2
@@ -284,7 +287,7 @@ func _draw() -> void:
 			draw_line(_corner(c2, (HR - 0.35) * u, k), _corner(c2, (HR - 0.35) * u, k + 1), outer, maxf(1.0, 0.8 * u))
 
 	# 2. vegetation, top rows first so lower groves overlap the ones behind them
-	var veg: Array = live.filter(func(t): return t.forest or t.fern)
+	var veg: Array = live.filter(func(t): return (t.forest or t.fern) and _whole_tile(t) == "")   # (none while the forest and fern tiles exist)
 	veg.sort_custom(func(a, b): return center(int(a.id)).y < center(int(b.id)).y)
 	for t in veg:
 		var i3: int = int(t.id)
@@ -337,6 +340,21 @@ func _draw() -> void:
 		_draw_lava(u)
 
 
+## A tile that fills the whole hex, in place of the grass and anything placed on it (browser: the mountain, the neutral
+## castle, forest and fern hexes; Ethan, 2026-11-16). "" when the hex is grass (or the tile is missing).
+func _whole_tile(t: Dictionary) -> String:
+	var key: String = ""
+	if t.terrain == "mountain":
+		key = "hex_mountain"
+	elif t.castle and not (game.homes.has(int(t.id)) and int(t.owner) >= 0):
+		key = "hex_castle_neutral"
+	elif t.forest:
+		key = "hex_forest"
+	elif t.fern:
+		key = "hex_fern"
+	return key if tex(key) != null else ""
+
+
 ## The ground tile for a castle's hex (browser castleGnd): it follows the castle picture drawn there, so a home castle
 ## shows its owner's faction ground and any other castle the neutral one (none yet: neutral castles keep the grass).
 func _castle_gnd(t: Dictionary) -> String:
@@ -359,6 +377,8 @@ func _draw_hex_things(font: Font, t: Dictionary, u: float) -> void:
 		if game.homes.has(i) and owner >= 0:
 			art = "castle_" + fac
 		var ct: Texture2D = tex(art)
+		if art == "castle_neutral" and _whole_tile(t) == "hex_castle_neutral":
+			ct = null   # the neutral castle tile already fills the hex
 		if ct != null:
 			var ratio: float = ct.get_size().y / ct.get_size().x
 			var w: float = 26.0 if art == "castle_mythical" else minf(_hh - 3.5, 2.0 * HFIT / (ratio + 1.0 / sqrt(3.0)))   # the Floating Castle is drawn big, filling its hex (Ethan, 2026-11-10)
