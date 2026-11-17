@@ -12,7 +12,7 @@ uri = lambda f: 'data:image/png;base64,' + base64.b64encode(open(os.path.join(d,
 grass = sorted(f for f in os.listdir(d) if re.fullmatch(r'grass_\d\.png', f))
 soft = lambda f: uri(f.replace('.png', '_soft.png'))
 line = ('/*HEX_TERRAIN*/const HEX_TERRAIN={"grass":[' + ','.join('"%s"' % uri(f) for f in grass) + '],"mountain":"%s","castle_neutral":"%s","forest":"%s","fern":"%s",' % (uri('mountain.png'), uri('castle_neutral.png'), uri('forest.png'), uri('fern.png'))
-        + '"soft":{"scale":1.10,"grass":[' + ','.join('"%s"' % soft(f) for f in grass) + '],"mountain":"%s","forest":"%s","fern":"%s","water":"%s"}};' % (soft('mountain.png'), soft('forest.png'), soft('fern.png'), soft('water.png'))
+        + '"soft":{"scale":1.10,"grass":[' + ','.join('"%s"' % soft(f) for f in grass) + '],"mountain":"%s","forest":"%s","fern":"%s","water":"%s"},"forest_top":"%s","top_pad":0.30};' % (soft('mountain.png'), soft('forest.png'), soft('fern.png'), soft('water.png'), uri('forest_top.png'))
         + '   // hex-shaped tiles (222x256): the grass under every hex, and the mountain hex\n')
 
 
@@ -104,5 +104,10 @@ if '/*BEACH_WATER*/' not in s:
         "    for(const k of ['mountain','forest','fern','water']) d+=img('s-'+k,HEX_TERRAIN.soft[k],sw,sh,0); }   // /*BEACH_WATER*/")
     rep("    if(t.terrain==='water') terr+=`<use href=\"#wa\" x=\"${(cx-HH/2).toFixed(2)}\" y=\"${(cy-HR).toFixed(2)}\"/>`;\n",
         "    if(t.terrain==='water') terr+=`<use href=\"#s-water\" x=\"${sx}\" y=\"${sy}\"/>`;   // the beach lake\n")
+if '/*TREETOPS*/' not in s:
+    # the forest's tallest treetops rise above its hex (Ethan, 2026-11-17: forests should look tall)
+    rep("    if(whole) terr+=`<use href=\"#s-${whole}\" x=\"${sx}\" y=\"${sy}\"/>`;",
+        "    if(whole) terr+=`<use href=\"#s-${whole}\" x=\"${sx}\" y=\"${sy}\"/>`;\n"
+        "    if(t.forest) trees+=`<image href=\"${HEX_TERRAIN.forest_top}\" x=\"${sx}\" y=\"${(cy-GND_R*SK-2*GND_R*SK*HEX_TERRAIN.top_pad).toFixed(2)}\" width=\"${(GND_R*Math.sqrt(3)*SK).toFixed(2)}\" height=\"${(2*GND_R*SK*(1+HEX_TERRAIN.top_pad)).toFixed(2)}\"/>`;   // /*TREETOPS*/")
 open(p, 'w', encoding='utf-8').write(s)
 print('patched;', len(grass), 'grass tiles')

@@ -23,3 +23,6 @@ placing that over the entire map can you use that texture for each individual he
                              terrain, then owner tint and borders), so neighbours overlap and blend; the hex grid lines are faint
   2026-11-17: new forest (small trees, full canopy) and fern field (small clumps) tiles that thin out to grass at the
   edges, and a beach lake for water (src/water_openart.png; old forest/fern sources kept as *_v1.png)
+  2026-11-17 (later): forest and ferns made clearly different: a dark, cool, dense forest (tips of the back row kept
+  above the hex as forest_top.png, drawn over the hex behind) and a bright, low, muddy fern meadow with puddles, a creek,
+  horsetails and mist (previous sources kept as *_v2.png)

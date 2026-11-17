@@ -75,6 +75,7 @@ func _ready() -> void:
 		names["gnd_" + f] = "res://art/terrain/gnd_%s.png" % f   # castle hex grounds (the ones that exist)
 	for v in 3:
 		names["hex_grass_%d" % v] = "res://art/terrain/hex_grass_%d.png" % v   # each hex's own grass tile (Ethan, 2026-11-16)
+	names["hex_forest_top"] = "res://art/terrain/hex_forest_top.png"   # the forest's treetops that rise above its hex (2026-11-17)
 	names["hex_mountain"] = "res://art/terrain/hex_mountain.png"   # the mountain hex: the whole hex is mountain
 	for k in ["castle_neutral", "forest", "fern"]:
 		names["hex_" + k] = "res://art/terrain/hex_%s.png" % k   # whole-hex tiles: neutral castles, forests, ferns (2026-11-16)
@@ -326,6 +327,15 @@ func _draw() -> void:
 				draw_circle(_corner(c2, HR * u, k), maxf(0.5, 0.3 * u), outer)
 
 	# 2. vegetation, top rows first so lower groves overlap the ones behind them
+	if soft_ok and tex("hex_forest_top") != null:
+		var sk2: float = (HR + 0.3) * 1.10
+		var tops: Array = live.filter(func(t): return t.forest)
+		tops.sort_custom(func(a, b): return center(int(a.id)).y < center(int(b.id)).y)
+		for t in tops:
+			var c4: Vector2 = center(int(t.id))
+			var tw: float = sk2 * sqrt(3.0)
+			var th: float = 2.0 * sk2
+			_draw_rect_tex(tex("hex_forest_top"), Rect2(c4 - Vector2(tw / 2.0, sk2 + th * 0.30) * u, Vector2(tw, th * 1.30) * u))
 	var veg: Array = live.filter(func(t): return (t.forest or t.fern) and _whole_tile(t) == "")   # (none while the forest and fern tiles exist)
 	veg.sort_custom(func(a, b): return center(int(a.id)).y < center(int(b.id)).y)
 	for t in veg:

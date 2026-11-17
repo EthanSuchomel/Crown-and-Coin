@@ -133,7 +133,7 @@ def soft_alpha(seed, fade_in=None, fade_out=None, ragged=None):
     return Image.fromarray((a * 255).astype(np.uint8)).resize((W, H), Image.LANCZOS)
 
 
-for k, name in enumerate(sorted(f[:-4] for f in os.listdir(out) if f.endswith('.png') and not f.endswith('_soft.png'))):
+for k, name in enumerate(sorted(f[:-4] for f in os.listdir(out) if f.endswith('.png') and not f.endswith(('_soft.png', '_top.png')))):
     t = Image.open(os.path.join(out, name + '.png')).convert('RGBA')
     # the picture under the cut is needed all the way to the edge: refill the transparent corners from the nearest pixels
     arr = np.array(t).astype(float); inside = arr[..., 3] > 200
@@ -143,3 +143,46 @@ for k, name in enumerate(sorted(f[:-4] for f in os.listdir(out) if f.endswith('.
     soft = Image.fromarray(rgb.astype(np.uint8)).convert('RGBA'); soft.putalpha(soft_alpha(1000 + k, *SOFT_PER.get(name, (None, None, None))))
     soft.save(os.path.join(out, name + '_soft.png'), optimize=True)
 print('soft tiles made')
+
+
+# ---- treetops above the hex (Ethan, 2026-11-17: the forest should look tall) ----
+# Whatever the OpenArt picture draws above the hexagon's two upper edges (the back row's tallest treetops) is kept as
+# NAME_top.png: the tile's width, TOP_PAD of its height taller at the top, transparent except for those treetops. The
+# board draws it over the hex above, like the old forest's trees spilling past the edge.
+TOP_PAD = .30
+
+
+def overhang(src):
+    im = np.array(Image.open(src).convert('RGB')).astype(float)
+    bg = np.median(np.concatenate([im[:8].reshape(-1, 3), im[-8:].reshape(-1, 3)]), 0)
+    inside = np.sqrt(((im - bg) ** 2).sum(-1)) > 90
+    rows = np.where(inside.any(1))[0]
+    mid = (rows.min() + rows.max()) // 2
+    cx = int(np.median(np.where(inside[mid])[0]))
+    col = np.where(inside[:, cx - 3:cx + 4].any(1))[0]
+    top, bot = col.min(), col.max()
+    xs = np.where(inside[mid])[0]; l, r = xs.min(), xs.max()
+    h, w = im.shape[:2]
+    ys, xx = np.mgrid[0:h, 0:w].astype(float)
+    hx = np.abs((xx - (l + r) / 2) / ((r - l) / 2)); hy = np.abs((ys - (top + bot) / 2) / ((bot - top) / 2))
+    out_hex = np.maximum(hx, hy + hx / 2) > 1.015
+    m = inside & out_hex & (ys < mid)
+    from scipy import ndimage
+    m = ndimage.binary_opening(m, iterations=2)
+    if m.sum() < 400:
+        return None
+    sx = W / (r - l); sy = H / (bot - top)
+    CW, CH = W, round(H * (1 + TOP_PAD))
+    rgba = np.dstack([im, m * 255.]).astype(np.uint8)
+    pic = Image.fromarray(rgba, 'RGBA').transform((CW * S, CH * S), Image.AFFINE,
+        (1 / (sx * S), 0, l, 0, 1 / (sy * S), top - H * TOP_PAD / sy), resample=Image.BILINEAR)
+    return pic.resize((CW, CH), Image.LANCZOS)
+
+
+for name, src in list(extra.items()):
+    if name == 'forest':
+        t = overhang(src)
+        if t is not None:
+            t.save(os.path.join(out, name + '_top.png'), optimize=True); print('treetops kept above the hex:', name)
+        elif os.path.exists(os.path.join(out, name + '_top.png')):
+            os.remove(os.path.join(out, name + '_top.png'))
