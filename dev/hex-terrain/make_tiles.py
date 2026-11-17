@@ -100,3 +100,46 @@ for n, t in enumerate(grass_tiles(gsrc)):
 for name, src in [('mountain', msrc)] + list(extra.items()):
     t = mountain_tile(src).convert('RGBA'); t.putalpha(m); t.save(os.path.join(out, name + '.png'), optimize=True)
 print(sorted(os.listdir(out)))
+
+
+# ---- soft edges (Ethan, 2026-11-17: "everything looks very choppy now... flow together better so it doesn't have such
+# sharp lines for the tree, fern, and mountain tiles") ----
+# Each tile also gets a *_soft.png: the same picture, but instead of a hard hex cut its edge fades out over a slightly
+# ragged band. The board draws the soft tiles SOFT_SCALE times bigger than the hex, so the fade spills a little past the
+# hex edge and neighbouring tiles overlap and blend (two forests side by side stay solid: each is ~85% opaque at the
+# shared edge).
+SOFT_SCALE = 1.10
+FADE_IN, FADE_OUT = .88, 1.0      # tile-space hex distance: fully opaque inside FADE_IN, gone by FADE_OUT
+RAGGED = .035                     # how far the fade wanders in and out along the edge
+
+
+# mountains get a wider, more uneven fade, so the rock breaks up into the land around it instead of reading as a hexagon
+SOFT_PER = {'mountain': (.80, 1.0, .07)}
+
+
+def soft_alpha(seed, fade_in=None, fade_out=None, ragged=None):
+    fi = FADE_IN if fade_in is None else fade_in; fo = FADE_OUT if fade_out is None else fade_out
+    rg = RAGGED if ragged is None else ragged
+    rng = np.random.default_rng(seed)
+    SW, SH = W * S, H * S
+    d = hex_dist(SW, SH)
+    n = np.zeros((SH, SW))
+    for cells, amp in [(7, 1.0), (16, .5), (34, .25)]:   # a few octaves of smooth noise for a natural, uneven edge
+        g = rng.uniform(-1, 1, (cells + 1, cells + 1)).astype(np.float32)
+        n += amp * np.array(Image.fromarray(g, 'F').resize((SW, SH), Image.BICUBIC))
+    n /= 1.75
+    t = np.clip((fo - (d + rg * n)) / (fo - fi), 0, 1)
+    a = t * t * (3 - 2 * t)
+    return Image.fromarray((a * 255).astype(np.uint8)).resize((W, H), Image.LANCZOS)
+
+
+for k, name in enumerate(sorted(f[:-4] for f in os.listdir(out) if f.endswith('.png') and not f.endswith('_soft.png'))):
+    t = Image.open(os.path.join(out, name + '.png')).convert('RGBA')
+    # the picture under the cut is needed all the way to the edge: refill the transparent corners from the nearest pixels
+    arr = np.array(t).astype(float); inside = arr[..., 3] > 200
+    from scipy import ndimage
+    idx = ndimage.distance_transform_edt(~inside, return_distances=False, return_indices=True)
+    rgb = arr[..., :3][idx[0], idx[1]]
+    soft = Image.fromarray(rgb.astype(np.uint8)).convert('RGBA'); soft.putalpha(soft_alpha(1000 + k, *SOFT_PER.get(name, (None, None, None))))
+    soft.save(os.path.join(out, name + '_soft.png'), optimize=True)
+print('soft tiles made')

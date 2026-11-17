@@ -17,3 +17,7 @@ placing that over the entire map can you use that texture for each individual he
                              in the mountain's style (OpenArt image2image); drawn on forest / fern hexes in place of the
                              trees and ferns placed one by one; fitted by the hexagon's own points (the forest has a tree tip
                              poking above the top edge, which is trimmed)
+  soft edges (2026-11-17, "everything looks very choppy... flow together better"): make_tiles.py also writes *_soft.png
+                             (the tile fading out over a ragged band; mountains wider and more uneven); the board draws grass,
+                             mountain, forest and fern soft tiles 10% bigger than the hex in their own layers (grass, then
+                             terrain, then owner tint and borders), so neighbours overlap and blend; the hex grid lines are faint
