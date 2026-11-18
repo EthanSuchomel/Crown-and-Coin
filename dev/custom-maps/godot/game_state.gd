@@ -111,7 +111,7 @@ func new_game(your_faction: String = "dinos", board: Array = [], opponent: Strin
 	if np == 3:
 		add_log("A new age begins: you, the %s and the %s. Take a side's home castle, or wipe them off the map, and they're out. The last side standing wins." % [players[1].name, players[2].name])
 	else:
-		add_log("A new age begins. Win by taking the enemy home castle, holding %d castles, or wiping them off the map." % int(GameData.rules.castles.to_win))
+		add_log("A new age begins. Win by taking the enemy home castle, holding %d castles, or wiping them off the map." % win_castles())
 
 
 ## Extra gold (or magic) for a seat that moves later: 2 players, the 2nd seat gets it all; 3 players, 3/4 of it per seat behind.
@@ -1945,7 +1945,7 @@ func _advance_turn() -> void:
 	if not siege.is_empty() and done != int(siege.pid):
 		siege.left = int(siege.left) - 1
 		if int(siege.left) <= 0:
-			add_log("%s held %d castles and win!" % [players[int(siege.pid)].name, int(GameData.rules.castles.to_win)])
+			add_log("%s held %d castles and win!" % [players[int(siege.pid)].name, win_castles()])
 			_end_game(int(siege.pid), "hold")
 			return
 	# the next side still in the game; a new round starts each time play passes the first seat
@@ -1963,6 +1963,36 @@ func _advance_turn() -> void:
 		turn += 1
 		if turn == int(GameData.rules.castles.new_neutral_after_round) + 1 and extra_castle < 0:
 			_spawn_castle()
+		_map_events()
+
+
+## Castles to hold to win: the map's own number, or the usual (rules.json, 2 players; none with 3). 0 = no castle win.
+func win_castles() -> int:
+	var m: Dictionary = GameData.map_by_id(map_id) if map_id != "" else {}
+	if not m.is_empty() and m.has("castles"):
+		return int(m.castles)
+	return 0 if players.size() > 2 else int(GameData.rules.castles.to_win)
+
+
+## A hand-made map's events at the start of a round (e.g. Control: a castle on the centre hex in round 20).
+func _map_events() -> void:
+	var m: Dictionary = GameData.map_by_id(map_id) if map_id != "" else {}
+	for e in m.get("events", []):
+		if int(e.get("round", -1)) != turn or not e.has("castle"):
+			continue
+		var i: int = int(e.castle[0]) * HexGrid.SIZE + int(e.castle[1])
+		if i < 0 or i >= tiles.size():
+			continue
+		var t: Dictionary = tiles[i]
+		if t.castle or t.terrain == "void":
+			continue
+		t.terrain = "plain"
+		t.forest = false
+		t.castle = true
+		if int(t.owner) < 0:
+			t.bounty = false
+			t.crate = false
+		add_log("Round %d: a new castle rises at the centre of the map." % turn)
 
 
 func _end_game(winner: int, why: String) -> void:
@@ -1974,34 +2004,38 @@ func _end_game(winner: int, why: String) -> void:
 func check_castles() -> void:
 	if over >= 0:
 		return
-	if players.size() > 2:   # 3 players: no castle-count win; a side with no land left is out
+	var to_win: int = win_castles()
+	if players.size() > 2:   # 3 players: a side with no land left is out (a castle win only on maps that have one)
 		for q in players:
 			if bool(q.get("out", false)) or over >= 0:
 				continue
 			if not tiles.any(func(t): return int(t.owner) == int(q.id)):
 				knock_out(int(q.id), -1, "wipe")
-		return
-	for pid in [0, 1]:
-		var has_land: bool = false
-		for t in tiles:
-			if int(t.owner) == pid:
-				has_land = true
-				break
-		if not has_land:
-			add_log("%s have no land left." % players[pid].name)
-			_end_game(1 - pid, "wipe")
+		if over >= 0 or to_win <= 0:
 			return
-	var to_win: int = int(GameData.rules.castles.to_win)
+	else:
+		for pid in [0, 1]:
+			var has_land: bool = false
+			for t in tiles:
+				if int(t.owner) == pid:
+					has_land = true
+					break
+			if not has_land:
+				add_log("%s have no land left." % players[pid].name)
+				_end_game(1 - pid, "wipe")
+				return
 	var holder: int = -1
-	for pid in [0, 1]:
-		if castle_count(pid) >= to_win:
-			holder = pid
+	for q2 in players:
+		if not bool(q2.get("out", false)) and castle_count(int(q2.id)) >= to_win:
+			holder = int(q2.id)
+			break
 	if not siege.is_empty() and holder != int(siege.pid):
 		add_log("%s no longer hold %d castles." % [players[int(siege.pid)].name, to_win])
 		siege = {}
 	if holder >= 0 and siege.is_empty():
-		siege = {"pid": holder, "left": int(GameData.rules.castles.hold_turns)}
-		add_log("%s hold %d castles! %s have %d turns to take one back." % [players[holder].name, to_win, players[1 - holder].name, int(GameData.rules.castles.hold_turns)])
+		var rivals: int = players.filter(func(q3): return int(q3.id) != holder and not bool(q3.get("out", false))).size()
+		siege = {"pid": holder, "left": int(GameData.rules.castles.hold_turns) * rivals}   # every rival gets its turns to take one back
+		add_log("%s hold %d castles! %s %d turns%s to take one back." % [players[holder].name, to_win, ("%s have" % players[1 - holder].name) if players.size() == 2 else "Their rivals have", int(GameData.rules.castles.hold_turns), "" if rivals < 2 else " each"])
 
 
 ## After round 18, a new neutral castle appears about as far from one home as the other.

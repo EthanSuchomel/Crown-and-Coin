@@ -8,3 +8,10 @@ Godot: port_godot.py made godot/: data/maps.json, GameData.maps / map_by_id / ma
   BoardGen.from_map, GameState.new_game(..., map) and map_id (saved), board view frames by shape_id, the Map row on the
   faction screen (pref_map, remembered).
 Tested: computer games on every map in both versions, save/load keeps the shape, a random game afterwards is normal.
+
+Win rules per map (Ethan, 2026-11-17): maps.json "castles" = castles to hold to win (0 = none; absent = usual: 4 with 2
+players, none with 3), "events" = a castle at [row, col] in a round. Quick play, Arena, The great divide, Race: 2.
+AOE 2 (3 players): 3, and the castle win now works with 3 players (each rival gets 2 turns to take one back). Divide and
+the other 3-player maps keep the usual rules. The 4-player maps are stored with their rules (AOE 2: knock everyone out;
+Control: 3 castles, a castle on the centre hex [7,7] in round 20) for when a 4-player mode exists.
+Browser: patch_wins.py (winCastles(), mapEvents()). Godot: port_godot_wins.py (GameState.win_castles(), _map_events()).

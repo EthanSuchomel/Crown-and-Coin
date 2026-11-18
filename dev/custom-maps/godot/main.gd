@@ -805,7 +805,7 @@ func _stats() -> void:
 	var parts: PackedStringArray = []
 	for q in g.players:
 		parts.append(("[s][color=%s]%d[/color][/s]" if g.is_out(int(q.id)) else "[color=%s]%d[/color]") % [_ink(int(q.id)), g.castle_count(int(q.id))])
-	var of: String = "" if g.players.size() > 2 else " [color=#a5b49e][font_size=11]of %d[/font_size][/color]" % int(GameData.rules.castles.to_win)
+	var of: String = "" if g.win_castles() <= 0 else " [color=#a5b49e][font_size=11]of %d[/font_size][/color]" % g.win_castles()
 	_stat_line("[img=20x15]res://art/terrain/castle_neutral.png[/img] [b]%s[/b]%s" % [" – ".join(parts), of], 14)
 
 
@@ -834,7 +834,7 @@ func _side_head() -> void:
 	turn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	turn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	top.add_child(turn)
-	var to_win: int = int(GameData.rules.castles.to_win)
+	var to_win: int = g.win_castles()
 	for spec in [["Full", func(): _toggle_full()], ["?", func(): _open_help()], ["Log", func(): _open_log()], ["New", func(): show_title()]]:
 		var b := _button(spec[0], spec[1])
 		b.add_theme_font_size_override("font_size", 13)
@@ -842,7 +842,7 @@ func _side_head() -> void:
 		top.add_child(b)
 	if not g.siege.is_empty():
 		var mine: bool = int(g.siege.pid) == 0
-		var txt: String = ("You hold %d castles! Keep them for %d more enemy turns to win." if mine else "The enemy holds %d castles! Take one back within %d turns.") % [to_win, int(g.siege.left)]
+		var txt: String = ("You hold %d castles! Keep them for %d more enemy turns to win." if mine else ("The %s hold %%d castles! Take one back within %%d turns." % String(g.players[int(g.siege.pid)].name))) % [to_win, int(g.siege.left)]
 		var sb := _box(NIGHT, GOLD if mine else Color("e0574c"), 2, 6)
 		var sp := PanelContainer.new()
 		sp.add_theme_stylebox_override("panel", sb)
@@ -2942,13 +2942,15 @@ func _open_log() -> void:
 
 func _open_help() -> void:
 	var box := _open_overlay("How to play", 680.0)
-	var to_win: int = int(GameData.rules.castles.to_win)
+	var to_win: int = g.win_castles() if g != null else int(GameData.rules.castles.to_win)
 	var txt: String = "[b]Each turn[/b] you collect gold, then play one of your 3 cards and carry out its 3 actions in order. The card then goes to your reserve and another takes its place.\n\n"
 	txt += "%s [b]Harvest[/b] gold.  %s [b]Recruit[/b] at castles and barracks.  %s [b]Build[/b] markets, forts and barracks.  %s [b]Move[/b] to claim land and attack.  %s [b]Fortify[/b]: a wild card (below).  %s [b]Advancements[/b]: barracks upgrades, trebuchets and walls.\n\n" % [_img("harvest", 22), _img("recruit", 22), _img("build", 22), _img("move", 22), _img("fortify", 22), _img("advance", 22)]
 	txt += "[b]Gold and materials.[/b] Gold pays for units and markets%s. Forts, barracks, barracks upgrades, walls and trebuchets cost [b]materials[/b] [img=18x18]res://art/ui/mat.png[/img]: each market sells up to %d a turn and your home castle counts as one, at %d gold each, any time on your turn. Tap the materials line in the map's bottom-right corner, or Buy materials during Build and Advancements. What you don't use keeps. (The Mythical use magic for everything.)\n\n" % [", Alamosaurus guards and the volcano" if (g != null and g.is_dinos(0)) else "", int(GameData.rules.materials.per_market), int(GameData.rules.materials.price)]
 	txt += "%s [b]Fortify[/b] is a wild card. First you regroup: move your units up to %d hexes between your own hexes, as often as you like (no attacks or claiming), and they can still move again later in the turn. Then pick one of Build, Advancements and Recruit (two once Fortify is upgraded twice, all three at three upgrades). Each plays like the basic action.\n\n" % [_img("fortify", 20), int(GameData.rules.fortify.regroup_reach)]
 	if g != null and g.players.size() > 2:
 		txt += "[b]Three players: the last side standing wins[/b]\n 1. Take a rival's home castle and they're out. Their units, walls and trebuchets are gone and all their land turns neutral, buildings and all, for anyone to walk into.\n 2. A side with no hexes left is out too.\n 3. When only one side remains, it wins. There's no castle count to win by with 3 players.\nThe 3-player map has 79 hexes: 6 neutral castles, 10 mountains, 4 lakes and 26 bonus coins. The 2nd and 3rd sides start with 6 and 12 extra gold.\n\n"
+		if to_win > 0:
+			txt += "[b]On this map you can also win by holding %d castles:[/b] each rival then gets %d turns to take one back.\n\n" % [to_win, int(GameData.rules.castles.hold_turns)]
 	else:
 		txt += "[b]Ways to win[/b]\n 1. Take the enemy's home castle.\n 2. Hold %d castles for %d enemy turns.\n 3. Wipe the enemy off the map.\n\n" % [to_win, int(GameData.rules.castles.hold_turns)]
 	txt += "%s Bonus coins pay %d gold to whoever takes the hex first. Every 2nd time you play a card, you upgrade one of its actions." % [_img("coin", 20), int(GameData.rules.coin.gold)]
@@ -3086,7 +3088,7 @@ func _game_over(body: VBoxContainer) -> void:
 		_game_over3(body)
 		return
 	var won: bool = g.over == 0
-	var why: Dictionary = {"home": "by taking the enemy home castle", "hold": "by holding %d castles" % int(GameData.rules.castles.to_win), "wipe": "by wiping the other side off the map"}
+	var why: Dictionary = {"home": "by taking the enemy home castle", "hold": "by holding %d castles" % g.win_castles(), "wipe": "by wiping the other side off the map"}
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", _frame(MOSS2, 16))
 	p.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -3135,12 +3137,14 @@ func _game_over3(body: VBoxContainer) -> void:
 				continue
 			var by: int = int(q.get("out_by", -1))
 			parts.append("The %s fell in round %d%s." % [q.name, int(q.get("out_round", g.turn)), " to you" if by == 0 else (" to the %s" % g.players[by].name if by > 0 else "")])
-		txt = "You're the last side standing. " + " ".join(parts)
+		txt = ("You held %d castles and no rival took one back." % g.win_castles()) if g.over_why == "hold" else ("You're the last side standing. " + " ".join(parts))
 	else:
 		var by2: int = int(me.get("out_by", -1))
 		var why: String = String(me.get("out_why", ""))
 		txt = ("The %s took your home castle" % g.players[by2].name) if (why == "home" and by2 >= 0) else ("You have no land left" if why == "wipe" else "You were knocked out")
 		txt += " in round %d." % int(me.get("out_round", g.turn))
+		if g.over_why == "hold" and not g.is_out(0):
+			txt = "The %s held %d castles and no one took one back in time." % [g.players[g.over].name, g.win_castles()]
 		if g.over_why == "last":
 			txt += " The %s were the last side standing." % g.players[g.over].name
 	var line := _label(txt, 17, BONE)
