@@ -260,7 +260,7 @@ func _draw() -> void:
 		var gr0: float = HR + 0.3
 		var tile_rect := Rect2(c - Vector2(gr0 * sqrt(3.0) / 2.0, gr0) * u, Vector2(gr0 * sqrt(3.0), 2.0 * gr0) * u)
 		# every hex sits on its own grass tile (one of three, by hex number, like the browser), and a mountain hex is all mountain
-		var hex_grass: Texture2D = tex("hex_grass_%d" % (((i + 5) * 2654435761 & 0xFFFFFFFF) >> 7) % 3)
+		var hex_grass: Texture2D = tex("hex_grass_%d" % ((((i + 5) * 2654435761 & 0xFFFFFFFF) >> 7) % 3))
 		var whole: String = _whole_tile(t)
 		if soft_ok and (whole == "" or whole in ["hex_mountain", "hex_forest", "hex_fern"]):
 			pass   # already drawn soft above
