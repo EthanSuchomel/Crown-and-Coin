@@ -86,7 +86,7 @@ def composite(canvas, img, alpha, cx, cy):
 def bridge(cv, terr, kind):
     """Joins neighbouring hexes of one kind: a patch of that tile's own middle (mirrored to fill) laid centre to centre
     across their shared edge, soft-edged, and over the corner where three of them meet."""
-    src = Image.open(T + kind + '.png').convert('RGB'); ww, wh = src.size; r = 46
+    src = Image.open(T + kind + '.png').convert('RGB'); ww, wh = src.size; r = 46 if kind == 'water' else 62
     patch = src.crop((ww // 2 - r, wh // 2 - r, ww // 2 + r, wh // 2 + r)).resize((int(2 * r * tw / ww), int(2 * r * tw / ww)), Image.LANCZOS)
     pr = np.array(patch).astype(np.float32) / 255
     tile2 = np.concatenate([np.concatenate([pr, pr[:, ::-1]], 1), np.concatenate([pr[::-1], pr[::-1, ::-1]], 1)], 0)
@@ -94,7 +94,7 @@ def bridge(cv, terr, kind):
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     m = np.zeros((H, W), np.float32)
     hs = [i for i in terr if cells[i] == kind]
-    wid = HR * PX * (.46 if kind == 'water' else .60)
+    wid = HR * PX * (.46 if kind == 'water' else .78)
     for i in hs:
         for j in nbr_dirs(i):
             if j < 0 or j < i or cells[j] != kind: continue
@@ -155,7 +155,10 @@ def render(edge_aware):
         for k in range(6):
             j = nb[k]; other = cells[j] if j >= 0 else 'void'
             d = DK[k] + (.06 if mnt else .03) * n
-            if other == cells[i]:
+            if other == cells[i] and cells[i] == 'forest':
+                df = DK[k] + .16 * noise(i * 31 + k, 1)                          # a ragged boundary, not a line
+                a = np.minimum(a, ss(.58, .84, df))                               # well before the grassy rim: the canopy shows
+            elif other == cells[i]:
                 a = np.minimum(a, ss(.90, 1.10, d))                               # cross-fade over the shared edge
             elif other in ('forest', 'mountain', 'water'):
                 a = np.minimum(a, ss(.92, 1.14, d))                               # overlap the neighbour, no grass between
