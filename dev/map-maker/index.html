@@ -80,6 +80,7 @@ table.fair th:first-child,table.fair td:first-child{text-align:left}
     <select class="btn" id="size" title="Board">
       <option value="2">2 players · 8×8</option>
       <option value="3">3 players · 11×11</option>
+      <option value="4">4 players · 16×16</option>
     </select>
     <button class="btn" id="newBtn">New</button>
     <button class="btn" id="undoBtn" disabled>Undo</button>
@@ -90,10 +91,9 @@ table.fair th:first-child,table.fair td:first-child{text-align:left}
     <h2>Paint</h2>
     <div class="tools" id="tools"></div>
     <h2>Options</h2>
-    <label class="opt"><input type="checkbox" id="mirror" checked> Mirror for fairness</label>
-    <p class="hint" id="mirrorHint">Everything you place is copied to the other side of the board, so each player gets the same map.</p>
     <label class="opt"><input type="checkbox" id="grid" checked> Show hex outlines</label>
     <p class="hint">Click a hex to paint it, or drag across hexes to paint many. With Coin or Materials, tapping a hex that already has one takes it off.</p>
+    <p class="hint">Home castles go anywhere: pick a Home and tap a hex. Tapping somewhere else moves it.</p>
   </aside>
 
   <main>
@@ -131,8 +131,9 @@ const BOARDS={
      std:{mountain:5,water:2,castle:3,forest:10,coin:15,mat:6}},
   3:{n:11, voids:[[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],[1,0],[1,1],[1,2],[1,8],[1,9],[1,10],[2,0],[2,1],[2,9],[2,10],[3,0],[3,10],[4,0],[4,10],[8,0],[8,10],[9,0],[9,1],[9,9],[9,10],[10,0],[10,1],[10,2],[10,3],[10,4],[10,5],[10,6],[10,7],[10,8],[10,9],[10,10]], homes:[[7,1],[1,5],[7,9]], center:[5,5],
      std:{mountain:10,water:4,castle:6,forest:15,coin:26,mat:9}},
+  4:{n:16, voids:[], homes:[], std:{}},   // 4 players (Ethan, 2026-11-17): the whole 16 x 16 grid; shape it with Remove hex
 };
-const PCOL=['#3b82f6','#e5484d','#e8a33a'];
+const PCOL=['#3b82f6','#e5484d','#e8a33a','#22a06b'];
 let NP=2, N=8, GRID_W, GRID_H;
 function setGeom(np){ NP=np; N=BOARDS[np].n; GRID_W=2*HM+HR*(1.5*(N-1)+2); GRID_H=2*HM+HH*(N+.5); }
 const rc=i=>[Math.floor(i/N),i%N];
@@ -153,35 +154,9 @@ function blankMap(np){
   setGeom(np);
   const b=BOARDS[np], voids=new Set(b.voids.map(([r,c])=>r*N+c));
   const cells=[]; for(let i=0;i<N*N;i++) cells.push({t:voids.has(i)?'void':'grass',home:0,coin:false,mat:false});
-  b.homes.forEach(([r,c],k)=>{ cells[r*N+c].t='castle'; cells[r*N+c].home=k+1; });
   return {name:'',players:np,cells};
 }
 const passable=c=>c.t==='grass'||c.t==='forest'||c.t==='castle';
-
-// ---------- mirror partners: rotate the hex centres about the board's middle ----------
-let PARTNERS=[];
-function buildPartners(){
-  const P=[], cen=[]; for(let i=0;i<N*N;i++) cen.push(hexCenter(i));
-  let mid;
-  if(NP===3){ const [r,c]=BOARDS[3].center; mid=hexCenter(r*N+c); }
-  else { const xs=cen.map(p=>p[0]), ys=cen.map(p=>p[1]); mid=[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2]; }
-  const angs=NP===3?[2*Math.PI/3,4*Math.PI/3]:[Math.PI];
-  for(let i=0;i<N*N;i++){
-    const out=[];
-    for(const a of angs){
-      const dx=cen[i][0]-mid[0], dy=cen[i][1]-mid[1];
-      const x=mid[0]+dx*Math.cos(a)-dy*Math.sin(a), y=mid[1]+dx*Math.sin(a)+dy*Math.cos(a);
-      let best=-1, bd=1e9; for(let j=0;j<N*N;j++){ const d=Math.hypot(cen[j][0]-x,cen[j][1]-y); if(d<bd){bd=d;best=j;} }
-      out.push(bd<HR*.5?best:-1);
-    }
-    P.push(out);
-  }
-  PARTNERS=P;
-  // which home a rotated copy of each home becomes, from the game's own home spots
-  const H=BOARDS[NP].homes.map(([r,c])=>r*N+c);
-  HOME_ROT=angs.map((_,k)=>H.map(h=>H.indexOf(P[h][k])+1));
-}
-let HOME_ROT=[];
 
 // ---------- tools ----------
 const TOOLS=[
@@ -195,13 +170,14 @@ const TOOLS=[
   {id:'home1',label:'Home 1',home:1},
   {id:'home2',label:'Home 2',home:2},
   {id:'home3',label:'Home 3',home:3},
+  {id:'home4',label:'Home 4',home:4},
   {id:'void',label:'Remove hex',voidt:true},
 ];
 let tool='forest';
 function drawTools(){
   const el=document.getElementById('tools'); el.innerHTML='';
   for(const t of TOOLS){
-    if(t.home===3&&NP<3) continue;
+    if(t.home>NP) continue;
     const b=document.createElement('button'); b.className='tool'+(tool===t.id?' on':''); b.dataset.tool=t.id;
     let sw;
     if(t.sw) sw=`<span class="sw hex" style="background-image:url(${t.sw})"></span>`;
@@ -215,7 +191,7 @@ function drawTools(){
 }
 function legend(){
   const t=TOOLS.find(x=>x.id===tool);
-  const msg={grass:'Grass: open land. Also puts a removed hex back.',forest:'Forest: a forest hex (its own battle map).',mountain:'Mountain: blocks the way.',water:'Water: a lake, blocks the way.',castle:'Castle: a neutral castle to capture.',coin:'Coin: bonus gold for the first side to take it.',mat:'Materials: bonus materials for the first side to take it.',home1:'Home 1: where player 1 starts.',home2:'Home 2: where player 2 starts.',home3:'Home 3: where player 3 starts.',void:'Remove hex: takes the hex off the board.'}[tool];
+  const msg={grass:'Grass: open land. Also puts a removed hex back.',forest:'Forest: a forest hex (its own battle map).',mountain:'Mountain: blocks the way.',water:'Water: a lake, blocks the way.',castle:'Castle: a neutral castle to capture.',coin:'Coin: bonus gold for the first side to take it.',mat:'Materials: bonus materials for the first side to take it.',home1:'Home 1: where player 1 starts.',home2:'Home 2: where player 2 starts.',home3:'Home 3: where player 3 starts.',home4:'Home 4: where player 4 starts.',void:'Remove hex: takes the hex off the board.'}[tool];
   document.getElementById('legend').textContent=msg||t.label;
 }
 
@@ -237,12 +213,7 @@ function applyOne(i,mode,homeFor){
   if(c.home) return;   // a home only moves with its own Home tool
   c.t=tool==='void'?'void':tool; if(c.t!=='grass'){ c.coin=c.mat=false; }
 }
-function paint(i,mode){
-  const mirror=document.getElementById('mirror').checked;
-  const h=tool.startsWith('home')?+tool.slice(4):0;
-  applyOne(i,mode,h);
-  if(mirror) PARTNERS[i].forEach((j,k)=>{ if(j<0) return; applyOne(j,mode, h?(HOME_ROT[k][h-1]||((h-1+k+1)%NP)+1):0); });
-}
+function paint(i,mode){ applyOne(i,mode,tool.startsWith('home')?+tool.slice(4):0); }
 const svg=document.getElementById('board');
 function hexAt(ev){
   const pt=svg.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY;
@@ -296,10 +267,7 @@ function render(){
 let hovI=-1;
 function hover(i){ hovI=i; const h=document.getElementById('hov'); if(!h) return;
   if(i<0){ h.setAttribute('points',''); return; }
-  const pts=[i,...(document.getElementById('mirror').checked?PARTNERS[i].filter(j=>j>=0):[])].map(j=>{const[x,y]=hexCenter(j);return hexPts(x,y,HR-.8);});
-  h.setAttribute('points',pts[0]);
-  document.querySelectorAll('.hovm').forEach(e=>e.remove());
-  pts.slice(1).forEach(p=>{ const e=document.createElementNS('http://www.w3.org/2000/svg','polygon'); e.setAttribute('class','hovm'); e.setAttribute('points',p); e.setAttribute('fill','none'); e.setAttribute('stroke','#efc15a'); e.setAttribute('stroke-width','1'); e.setAttribute('stroke-dasharray','2 1.5'); e.setAttribute('pointer-events','none'); svg.appendChild(e); });
+  const [x,y]=hexCenter(i); h.setAttribute('points',hexPts(x,y,HR-.8));
 }
 
 // ---------- checks and fairness ----------
@@ -338,7 +306,7 @@ function analyse(){
 }
 function report(){
   const a=analyse(), std=BOARDS[NP].std, c=a.counts;
-  const line=(label,k)=>`<span>${label} ${std[k]!=null?`<span class="std">(usual ${std[k]})</span>`:''}</span><span>${c[k]}</span>`;
+  const line=(label,k)=>`<span>${label} ${std&&std[k]!=null?`<span class="std">(usual ${std[k]})</span>`:''}</span><span>${c[k]}</span>`;
   document.getElementById('stats').innerHTML=`<span>Hexes on the board</span><span>${c.land}</span>`+line('Mountains','mountain')+line('Water','water')+line('Forests','forest')+line('Neutral castles','castle')+line('Coins','coin')+line('Materials','mat')+`<span>Open grass</span><span>${c.grass}</span>`;
   document.getElementById('checks').innerHTML=a.checks.map(x=>`<li class="${x.ok?'':x.level}">${x.msg}</li>`).join('');
   const f=document.getElementById('fair');
@@ -353,15 +321,15 @@ function toJSON(){
   const rows=[]; for(let r=0;r<N;r++){ let s=''; for(let c=0;c<N;c++){ const x=M.cells[r*N+c]; s+=x.home?String(x.home):CODE[x.t]; } rows.push(s); }
   const list=k=>M.cells.map((x,i)=>x[k]?rc(i):null).filter(Boolean);
   return {format:'crown-and-coin-map',version:1,name:(M.name||'Untitled map').trim(),players:NP,size:N,
-    key:'x off the board, g grass, f forest, m mountain, w water, c neutral castle, 1-3 home castles; coins and mats are [row, col]',
+    key:'x off the board, g grass, f forest, m mountain, w water, c neutral castle, 1-4 home castles; coins and mats are [row, col]',
     rows,coins:list('coin'),mats:list('mat'),updated:new Date().toISOString()};
 }
 function fromJSON(o){
   if(!o||o.format!=='crown-and-coin-map'||!Array.isArray(o.rows)) throw new Error('That is not a Crown & Coin map.');
-  const np=o.players===3?3:2; setGeom(np);
+  const np=[2,3,4].includes(o.players)?o.players:2; setGeom(np);
   if(o.rows.length!==N||o.rows.some(r=>r.length!==N)) throw new Error('The map is the wrong size for its board.');
   const cells=[]; for(let r=0;r<N;r++) for(let c=0;c<N;c++){ const ch=o.rows[r][c];
-    if('123'.includes(ch)) cells.push({t:'castle',home:+ch,coin:false,mat:false});
+    if('1234'.includes(ch)) cells.push({t:'castle',home:+ch,coin:false,mat:false});
     else cells.push({t:DECODE[ch]||'grass',home:0,coin:false,mat:false}); }
   (o.coins||[]).forEach(([r,c])=>{ const x=cells[r*N+c]; if(x&&x.t==='grass') x.coin=true; });
   (o.mats||[]).forEach(([r,c])=>{ const x=cells[r*N+c]; if(x&&x.t==='grass'&&!x.coin) x.mat=true; });
@@ -458,14 +426,12 @@ document.getElementById('size').onchange=e=>{
 document.getElementById('saveBtn').onclick=save;
 document.getElementById('mapName').oninput=e=>{ M.name=e.target.value; dirty=true; };
 document.getElementById('grid').onchange=render;
-document.getElementById('mirror').onchange=()=>hover(hovI);
 window.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='z'){ e.preventDefault(); document.getElementById('undoBtn').click(); } });
 
 function afterLoad(){
-  setGeom(M.players); buildPartners(); undo=[]; document.getElementById('undoBtn').disabled=true;
+  setGeom(M.players); undo=[]; document.getElementById('undoBtn').disabled=true;
   document.getElementById('size').value=String(NP); document.getElementById('mapName').value=M.name||'';
-  document.getElementById('mirrorHint').textContent=NP===3?'Everything you place is copied to the other two thirds of the board, so each player gets the same map.':'Everything you place is copied to the other side of the board, so each player gets the same map.';
-  if(tool==='home3'&&NP<3) tool='forest';
+  if(tool.startsWith('home')&&+tool.slice(4)>NP) tool='home1';
   drawTools(); legend(); render();
 }
 M=blankMap(2); afterLoad(); connect();
