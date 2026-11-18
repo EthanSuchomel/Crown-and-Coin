@@ -294,7 +294,7 @@ func _draw() -> void:
 			tint.a = 0.2
 			draw_colored_polygon(_hex_points(c, HR * u), tint)
 		# a thin dark seam between hexes
-		draw_polyline(_closed(_hex_points(c, (HR + 0.3) * u)), Color(0, 0, 0, 0.35), maxf(1.0, 0.5 * u))
+		draw_polyline(_closed(_hex_points(c, (HR + 0.3) * u)), Color(0, 0, 0, 0.22), maxf(0.6, 0.3 * u))   # thinner (Ethan, 2026-11-17)
 
 	for t in live:
 		var owner2: int = int(t.owner)
@@ -305,7 +305,7 @@ func _draw() -> void:
 		var col2: Color = _player_color(owner2)
 		var dirs: Array[int] = HexGrid.neighbor_dirs(i2)
 		# the border (Ethan, 2026-11-17: thinner, and wrapping cleanly round the territory's corners, like the browser):
-		# a 1.3-wide band just inside every edge that borders other land, the corners filled in so the band turns without
+		# (thinner again later that day: a 1.0-wide band) a 1.3-wide band just inside every edge that borders other land, the corners filled in so the band turns without
 		# notches, and a thin dark line on the edge itself
 		var bd: Array[bool] = []
 		for k in 6:
@@ -316,15 +316,15 @@ func _draw() -> void:
 		for k in 6:
 			var v: Vector2 = _corner(c2, HR * u, k)
 			if bd[k]:
-				draw_colored_polygon(PackedVector2Array([v, _corner(c2, HR * u, k + 1), _corner(c2, (HR - 1.5) * u, k + 1), _corner(c2, (HR - 1.5) * u, k)]), col2)
+				draw_colored_polygon(PackedVector2Array([v, _corner(c2, HR * u, k + 1), _corner(c2, (HR - 1.0) * u, k + 1), _corner(c2, (HR - 1.0) * u, k)]), col2)
 			if bd[k] or bd[(k + 5) % 6]:
-				var da: Vector2 = (_corner(c2, HR * u, k + 1) - v).normalized() * 1.3 * u
-				var db: Vector2 = (_corner(c2, HR * u, k + 5) - v).normalized() * 1.3 * u
-				draw_colored_polygon(PackedVector2Array([v, v + da, _corner(c2, (HR - 1.5) * u, k), v + db]), col2)
+				var da: Vector2 = (_corner(c2, HR * u, k + 1) - v).normalized() * 0.87 * u
+				var db: Vector2 = (_corner(c2, HR * u, k + 5) - v).normalized() * 0.87 * u
+				draw_colored_polygon(PackedVector2Array([v, v + da, _corner(c2, (HR - 1.0) * u, k), v + db]), col2)
 		for k in 6:
 			if bd[k]:
-				draw_line(_corner(c2, HR * u, k), _corner(c2, HR * u, k + 1), outer, maxf(1.0, 0.6 * u))
-				draw_circle(_corner(c2, HR * u, k), maxf(0.5, 0.3 * u), outer)
+				draw_line(_corner(c2, HR * u, k), _corner(c2, HR * u, k + 1), outer, maxf(0.7, 0.4 * u))
+				draw_circle(_corner(c2, HR * u, k), maxf(0.35, 0.2 * u), outer)
 
 	# 2. vegetation, top rows first so lower groves overlap the ones behind them
 	if soft_ok and tex("hex_forest_top") != null:
