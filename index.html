@@ -628,9 +628,9 @@ const HR=18, HH=HR*Math.sqrt(3), HM=2;        // hex radius (centre to corner), 
 // same shape around it; the homes are 8 hexes apart. Twice the 2-player board's mountains, water and bonus coins.
 const BOARDS={
   2:{n:8, voids:[[0,0],[0,1],[1,0], [0,7],[0,6],[1,7], [7,0],[7,1],[6,0], [7,7],[7,6],[6,7]], homes:[[6,2],[1,5]],
-     mountains:5, waters:2, castles:3, forests:10, ferns:10, coins:0},     // coins 0: a third of the open hexes
+     mountains:5, waters:2, castles:3, forests:10, ferns:0, coins:0},     // coins 0: a third of the open hexes
   3:{n:11, voids:[[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],[1,0],[1,1],[1,2],[1,8],[1,9],[1,10],[2,0],[2,1],[2,9],[2,10],[3,0],[3,10],[4,0],[4,10],[8,0],[8,10],[9,0],[9,1],[9,9],[9,10],[10,0],[10,1],[10,2],[10,3],[10,4],[10,5],[10,6],[10,7],[10,8],[10,9],[10,10]], homes:[[7,1],[1,5],[7,9]],
-     center:[5,5], mountains:10, waters:4, castles:6, forests:15, ferns:15, coins:26},
+     center:[5,5], mountains:10, waters:4, castles:6, forests:15, ferns:0, coins:26},
 };
 let N, GRID_W, GRID_H, BOARD_W, BOARD_H, VB_X, VB_Y, VB_W, VB_H, VOID, HOMES, MOUNTAINS, WATERS, NEUTRAL_CASTLES, FORESTS, FERNS, COINS, BOARD_NP=0;
 const VB_M=HM-1.4, MAP_SHARE=.66;
@@ -4439,7 +4439,7 @@ function load(){
         t.army=t.troops>0?{[b]:t.troops*per}:{}; t.ready=t.fresh>0?{[b]:t.fresh*per}:{}; }
       syncT(t); });
     if(!s.tiles.some(t=>t.forest)) placeForests(s.tiles);   // a game saved before forests existed
-    if(!s.tiles.some(t=>t.fern)) placeFerns(s.tiles);       // ...or before ferns existed
+    s.tiles.forEach(t=>{ delete t.fern; });                 // ferns taken off the map (2026-11-17): old saves too
     if(s.fight){ if(s.fight.att===0&&s.play) s.play.moves=Math.max(0,(s.play.moves||0)-1); delete s.fight; }
     S=s;
     if(S.play&&cardAction()==='fortify'&&!S.play.fx) S.play.fx={ph:'regroup',n:1,done:[],cur:null};   // saved before Fortify became a wild card

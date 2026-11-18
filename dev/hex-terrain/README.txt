@@ -28,3 +28,4 @@ placing that over the entire map can you use that texture for each individual he
   horsetails and mist (previous sources kept as *_v2.png)
   2026-11-17: ferns without the yellow tint: src/fern_openart_green.png (yellow-greens shifted toward green in code)
   2026-11-17: the dark forest with a grassy edge again (OpenArt edit of Ethan's pick; previous source *_v3.png)
+  2026-11-17: ferns taken off the map (Ethan: "get rid of the fern tiles" -> "Ferns just go away for now"); FERNS 0, old saves lose their ferns; fern art and the Ferns arena map left in place
