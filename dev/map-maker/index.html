@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crown &amp; Coin Map Maker</title>
+<style>
+:root{--bg:#0c1710;--panel:#13241a;--panel2:#1a3123;--line:#2b4a35;--bone:#ece4cf;--dim:#a9b8a6;--gold:#efc15a;--red:#ff6b5e;--ok:#7fd67a;--p1:#3b82f6;--p2:#e5484d;--p3:#e8a33a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--bone);font:15px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:230px 1fr 300px;grid-template-rows:auto 1fr;height:100vh}
+header{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:18px;margin:0 8px 0 0;letter-spacing:.3px;white-space:nowrap}
+header h1 b{color:var(--gold)}
+.name{flex:1 1 180px;min-width:140px;background:#0a140d;border:1px solid var(--line);border-radius:6px;padding:7px 9px}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:#4a7a58}
+.btn.gold{background:var(--gold);color:#241a06;border-color:#b8902f;font-weight:700}
+.btn:disabled{opacity:.45;cursor:default}
+aside{background:var(--panel);overflow:auto;padding:10px}
+aside.left{border-right:1px solid var(--line)}
+aside.right{border-left:1px solid var(--line)}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:14px 0 6px}
+h2:first-child{margin-top:2px}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tool{display:flex;align-items:center;gap:7px;padding:6px;border-radius:7px;background:var(--panel2);border:2px solid transparent;cursor:pointer;text-align:left;font-size:13px;min-height:44px}
+.tool.on{border-color:var(--gold);background:#2a3a1c}
+.tool .sw{width:30px;height:30px;flex:none;border-radius:5px;background-size:cover;background-position:center}
+.tool .sw.hex{clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background-size:115% auto}
+.tool .sw.ic{background-size:80%;background-repeat:no-repeat;background-color:#2f7d22;border-radius:50%}
+.home-sw{display:grid;place-items:center;font-weight:800;color:#fff;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.opt{display:flex;align-items:center;gap:8px;padding:5px 2px;cursor:pointer;font-size:14px}
+.opt input{width:18px;height:18px;accent-color:var(--gold)}
+.hint{color:var(--dim);font-size:12.5px;margin:6px 0 0}
+main{position:relative;overflow:hidden;background:#1b211d}
+svg#board{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
+.stat{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:14px}
+.stat span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+.std{color:var(--dim);font-size:12px}
+.checks{list-style:none;padding:0;margin:0;font-size:13.5px}
+.checks li{padding:4px 0 4px 22px;position:relative}
+.checks li::before{content:"✓";position:absolute;left:2px;color:var(--ok);font-weight:800}
+.checks li.bad::before{content:"!";color:var(--red);left:6px}
+.checks li.warn::before{content:"!";color:var(--gold);left:6px}
+table.fair{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+table.fair th,table.fair td{padding:3px 4px;text-align:center;border-bottom:1px solid var(--line)}
+table.fair th:first-child,table.fair td:first-child{text-align:left}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.maps{display:flex;flex-direction:column;gap:6px}
+.mapitem{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 8px}
+.mapitem .t{flex:1;min-width:0}
+.mapitem .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mapitem .t small{color:var(--dim)}
+.mapitem button{padding:5px 8px;font-size:13px}
+.where{font-size:12.5px;color:var(--dim);margin:4px 0 8px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#0a140d;border:1px solid var(--gold);color:var(--bone);padding:9px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
+.modal.show{display:flex}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;width:min(560px,100%);max-height:90vh;overflow:auto}
+.card h3{margin:0 0 8px}
+.card p{margin:6px 0;color:var(--dim)}
+.card textarea{width:100%;height:180px;background:#0a140d;border:1px solid var(--line);border-radius:6px;padding:8px;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+.legend{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--dim);background:rgba(12,23,16,.75);padding:4px 8px;border-radius:6px;pointer-events:none}
+@media (max-width:1000px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto auto minmax(380px,62vh) auto;height:auto;min-height:100vh}
+  aside.left{border-right:0;border-bottom:1px solid var(--line)}
+  .tools{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}
+  aside.right{border-left:0;border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Crown <b>&amp;</b> Coin · Map Maker</h1>
+    <input class="name" id="mapName" placeholder="Map name" maxlength="60">
+    <select class="btn" id="size" title="Board">
+      <option value="2">2 players · 8×8</option>
+      <option value="3">3 players · 11×11</option>
+    </select>
+    <button class="btn" id="newBtn">New</button>
+    <button class="btn" id="undoBtn" disabled>Undo</button>
+    <button class="btn gold" id="saveBtn">Save map</button>
+  </header>
+
+  <aside class="left">
+    <h2>Paint</h2>
+    <div class="tools" id="tools"></div>
+    <h2>Options</h2>
+    <label class="opt"><input type="checkbox" id="mirror" checked> Mirror for fairness</label>
+    <p class="hint" id="mirrorHint">Everything you place is copied to the other side of the board, so each player gets the same map.</p>
+    <label class="opt"><input type="checkbox" id="grid" checked> Show hex outlines</label>
+    <p class="hint">Click a hex to paint it, or drag across hexes to paint many. With Coin or Materials, tapping a hex that already has one takes it off.</p>
+  </aside>
+
+  <main>
+    <svg id="board" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="legend" id="legend"></div>
+  </main>
+
+  <aside class="right">
+    <h2>This map</h2>
+    <div class="stat" id="stats"></div>
+    <h2>Checks</h2>
+    <ul class="checks" id="checks"></ul>
+    <h2>Fairness</h2>
+    <div id="fair"></div>
+    <h2>Saved maps</h2>
+    <div class="where" id="where">Connecting…</div>
+    <div class="maps" id="maps"></div>
+    <h2>Share</h2>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn" id="copyBtn">Copy map code</button>
+      <button class="btn" id="pasteBtn">Load map code</button>
+      <button class="btn" id="dlBtn" hidden>Download file</button>
+    </div>
+  </aside>
+</div>
+
+<div class="modal" id="modal"><div class="card" id="modalCard"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- board geometry: the same as the game (Crown & Coin index.html) ----------
+const HR=18, HH=HR*Math.sqrt(3), HM=2, SOFT=1.10, GND_R=HR+.3;
+const BOARDS={
+  2:{n:8, voids:[[0,0],[0,1],[1,0],[0,7],[0,6],[1,7],[7,0],[7,1],[6,0],[7,7],[7,6],[6,7]], homes:[[6,2],[1,5]],
+     std:{mountain:5,water:2,castle:3,forest:10,coin:15,mat:6}},
+  3:{n:11, voids:[[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],[1,0],[1,1],[1,2],[1,8],[1,9],[1,10],[2,0],[2,1],[2,9],[2,10],[3,0],[3,10],[4,0],[4,10],[8,0],[8,10],[9,0],[9,1],[9,9],[9,10],[10,0],[10,1],[10,2],[10,3],[10,4],[10,5],[10,6],[10,7],[10,8],[10,9],[10,10]], homes:[[7,1],[1,5],[7,9]], center:[5,5],
+     std:{mountain:10,water:4,castle:6,forest:15,coin:26,mat:9}},
+};
+const PCOL=['#3b82f6','#e5484d','#e8a33a'];
+let NP=2, N=8, GRID_W, GRID_H;
+function setGeom(np){ NP=np; N=BOARDS[np].n; GRID_W=2*HM+HR*(1.5*(N-1)+2); GRID_H=2*HM+HH*(N+.5); }
+const rc=i=>[Math.floor(i/N),i%N];
+const toBoard=([x,y])=>[GRID_H-y, GRID_W-x];
+const hexCenter=i=>{const[r,c]=rc(i);return toBoard([HM+HR+c*1.5*HR, HM+HH/2+r*HH+(c&1)*HH/2]);};
+const hexV=(cx,cy,rad,k)=>{const a=Math.PI/3*k;return [cx-rad*Math.sin(a),cy-rad*Math.cos(a)];};
+const hexPts=(cx,cy,rad)=>{let p=[];for(let k=0;k<6;k++){const[x,y]=hexV(cx,cy,rad,k);p.push(x.toFixed(2)+','+y.toFixed(2));}return p.join(' ');};
+function nbrs(i){ const[r,c]=rc(i), odd=c&1;
+  const d=odd?[[1,1],[1,0],[1,-1],[0,-1],[-1,0],[0,1]]:[[0,1],[1,0],[0,-1],[-1,-1],[-1,0],[-1,1]];
+  return d.map(([dr,dc])=>{const rr=r+dr,cc=c+dc;return (rr<0||rr>=N||cc<0||cc>=N)?-1:rr*N+cc;}).filter(j=>j>=0); }
+const cube=i=>{const[r,c]=rc(i);const x=c,z=r-(c-(c&1))/2;return [x,-x-z,z];};
+const dist=(a,b)=>{const p=cube(a),q=cube(b);return Math.max(Math.abs(p[0]-q[0]),Math.abs(p[1]-q[1]),Math.abs(p[2]-q[2]));};
+
+// ---------- the map ----------
+// cell: {t:'void'|'grass'|'mountain'|'water'|'forest'|'castle', home:0|1..3, coin:bool, mat:bool}
+let M=null;
+function blankMap(np){
+  setGeom(np);
+  const b=BOARDS[np], voids=new Set(b.voids.map(([r,c])=>r*N+c));
+  const cells=[]; for(let i=0;i<N*N;i++) cells.push({t:voids.has(i)?'void':'grass',home:0,coin:false,mat:false});
+  b.homes.forEach(([r,c],k)=>{ cells[r*N+c].t='castle'; cells[r*N+c].home=k+1; });
+  return {name:'',players:np,cells};
+}
+const passable=c=>c.t==='grass'||c.t==='forest'||c.t==='castle';
+
+// ---------- mirror partners: rotate the hex centres about the board's middle ----------
+let PARTNERS=[];
+function buildPartners(){
+  const P=[], cen=[]; for(let i=0;i<N*N;i++) cen.push(hexCenter(i));
+  let mid;
+  if(NP===3){ const [r,c]=BOARDS[3].center; mid=hexCenter(r*N+c); }
+  else { const xs=cen.map(p=>p[0]), ys=cen.map(p=>p[1]); mid=[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2]; }
+  const angs=NP===3?[2*Math.PI/3,4*Math.PI/3]:[Math.PI];
+  for(let i=0;i<N*N;i++){
+    const out=[];
+    for(const a of angs){
+      const dx=cen[i][0]-mid[0], dy=cen[i][1]-mid[1];
+      const x=mid[0]+dx*Math.cos(a)-dy*Math.sin(a), y=mid[1]+dx*Math.sin(a)+dy*Math.cos(a);
+      let best=-1, bd=1e9; for(let j=0;j<N*N;j++){ const d=Math.hypot(cen[j][0]-x,cen[j][1]-y); if(d<bd){bd=d;best=j;} }
+      out.push(bd<HR*.5?best:-1);
+    }
+    P.push(out);
+  }
+  PARTNERS=P;
+  // which home a rotated copy of each home becomes, from the game's own home spots
+  const H=BOARDS[NP].homes.map(([r,c])=>r*N+c);
+  HOME_ROT=angs.map((_,k)=>H.map(h=>H.indexOf(P[h][k])+1));
+}
+let HOME_ROT=[];
+
+// ---------- tools ----------
+const TOOLS=[
+  {id:'grass',label:'Grass',sw:'art/grass_0_soft.png'},
+  {id:'forest',label:'Forest',sw:'art/forest_soft.png'},
+  {id:'mountain',label:'Mountain',sw:'art/mountain_soft.png'},
+  {id:'water',label:'Water',sw:'art/water_soft.png'},
+  {id:'castle',label:'Castle',sw:'art/castle_neutral.png'},
+  {id:'coin',label:'Coin',ic:'art/coin.png'},
+  {id:'mat',label:'Materials',ic:'art/mat.png'},
+  {id:'home1',label:'Home 1',home:1},
+  {id:'home2',label:'Home 2',home:2},
+  {id:'home3',label:'Home 3',home:3},
+  {id:'void',label:'Remove hex',voidt:true},
+];
+let tool='forest';
+function drawTools(){
+  const el=document.getElementById('tools'); el.innerHTML='';
+  for(const t of TOOLS){
+    if(t.home===3&&NP<3) continue;
+    const b=document.createElement('button'); b.className='tool'+(tool===t.id?' on':''); b.dataset.tool=t.id;
+    let sw;
+    if(t.sw) sw=`<span class="sw hex" style="background-image:url(${t.sw})"></span>`;
+    else if(t.ic) sw=`<span class="sw ic" style="background-image:url(${t.ic})"></span>`;
+    else if(t.home) sw=`<span class="sw home-sw" style="background:${PCOL[t.home-1]}">${t.home}</span>`;
+    else sw=`<span class="sw hex" style="background:#333;outline:1px dashed #777"></span>`;
+    b.innerHTML=sw+`<span>${t.label}</span>`;
+    b.onclick=()=>{ tool=t.id; drawTools(); legend(); };
+    el.appendChild(b);
+  }
+}
+function legend(){
+  const t=TOOLS.find(x=>x.id===tool);
+  const msg={grass:'Grass: open land. Also puts a removed hex back.',forest:'Forest: a forest hex (its own battle map).',mountain:'Mountain: blocks the way.',water:'Water: a lake, blocks the way.',castle:'Castle: a neutral castle to capture.',coin:'Coin: bonus gold for the first side to take it.',mat:'Materials: bonus materials for the first side to take it.',home1:'Home 1: where player 1 starts.',home2:'Home 2: where player 2 starts.',home3:'Home 3: where player 3 starts.',void:'Remove hex: takes the hex off the board.'}[tool];
+  document.getElementById('legend').textContent=msg||t.label;
+}
+
+// ---------- painting ----------
+let undo=[];
+function snapshot(){ undo.push(JSON.stringify(M.cells)); if(undo.length>60) undo.shift(); document.getElementById('undoBtn').disabled=false; }
+function applyOne(i,mode,homeFor){
+  const c=M.cells[i]; if(!c) return;
+  if(tool==='coin'||tool==='mat'){
+    if(c.t!=='grass'||c.home) return;
+    if(tool==='coin'){ c.coin=mode; if(mode) c.mat=false; } else { c.mat=mode; if(mode) c.coin=false; }
+    return;
+  }
+  if(tool.startsWith('home')){
+    const h=homeFor;
+    M.cells.forEach(x=>{ if(x.home===h){ x.home=0; x.t='grass'; } });
+    c.t='castle'; c.home=h; c.coin=c.mat=false; return;
+  }
+  if(c.home) return;   // a home only moves with its own Home tool
+  c.t=tool==='void'?'void':tool; if(c.t!=='grass'){ c.coin=c.mat=false; }
+}
+function paint(i,mode){
+  const mirror=document.getElementById('mirror').checked;
+  const h=tool.startsWith('home')?+tool.slice(4):0;
+  applyOne(i,mode,h);
+  if(mirror) PARTNERS[i].forEach((j,k)=>{ if(j<0) return; applyOne(j,mode, h?(HOME_ROT[k][h-1]||((h-1+k+1)%NP)+1):0); });
+}
+const svg=document.getElementById('board');
+function hexAt(ev){
+  const pt=svg.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY;
+  const m=svg.getScreenCTM(); if(!m) return -1; const p=pt.matrixTransform(m.inverse());
+  let best=-1,bd=1e9; for(let i=0;i<N*N;i++){ const [x,y]=hexCenter(i), d=Math.hypot(x-p.x,y-p.y); if(d<bd){bd=d;best=i;} }
+  return bd<=HR?best:-1;
+}
+let dragging=false, dragMode=true, last=-1;
+svg.addEventListener('pointerdown',ev=>{
+  const i=hexAt(ev); if(i<0) return;
+  ev.preventDefault(); svg.setPointerCapture(ev.pointerId);
+  snapshot(); dragging=true; last=i;
+  const c=M.cells[i];
+  dragMode = tool==='coin'?!c.coin : tool==='mat'?!c.mat : true;
+  paint(i,dragMode); render(); dirty=true;
+});
+svg.addEventListener('pointermove',ev=>{
+  const i=hexAt(ev); hover(i);
+  if(!dragging||tool.startsWith('home')) return; if(i<0||i===last) return;
+  last=i; paint(i,dragMode); render();
+});
+const stop=()=>{ if(dragging){ dragging=false; last=-1; } };
+svg.addEventListener('pointerup',stop); svg.addEventListener('pointercancel',stop);
+svg.addEventListener('pointerleave',()=>hover(-1));
+document.getElementById('undoBtn').onclick=()=>{ if(!undo.length) return; M.cells=JSON.parse(undo.pop()); document.getElementById('undoBtn').disabled=!undo.length; render(); };
+
+// ---------- drawing ----------
+function img(href,cx,cy,scale){ const w=GND_R*Math.sqrt(3)*scale, h=2*GND_R*scale; return `<image href="${href}" x="${(cx-w/2).toFixed(2)}" y="${(cy-h/2).toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" preserveAspectRatio="none"/>`; }
+function render(){
+  const showGrid=document.getElementById('grid').checked;
+  let base='', grs='', terr='', top='', grid='', voids='';
+  const cs=M.cells;
+  for(let i=0;i<N*N;i++){
+    const c=cs[i], [cx,cy]=hexCenter(i);
+    if(c.t==='void'){ voids+=`<polygon points="${hexPts(cx,cy,HR-.6)}" fill="none" stroke="#5c6b60" stroke-width=".5" stroke-dasharray="1.6 1.4"/>`; continue; }
+    base+=`<polygon points="${hexPts(cx,cy,HR+.3)}" fill="#2f7d22"/>`;
+    grs+=img(`art/grass_${(Math.imul(i+5,2654435761)>>>7)%3}_soft.png`,cx,cy,SOFT);
+    if(c.t==='mountain'||c.t==='forest'||c.t==='water') terr+=img(`art/${c.t}_soft.png`,cx,cy,SOFT);
+    if(c.t==='castle') top+=img('art/castle_neutral.png',cx,cy,1);
+    if(c.home){ const col=PCOL[c.home-1];
+      top+=`<polygon points="${hexPts(cx,cy,HR-1)}" fill="${col}" fill-opacity=".28" stroke="${col}" stroke-width="2"/>`;
+      top+=`<rect x="${(cx-5).toFixed(2)}" y="${(cy+3).toFixed(2)}" width="10" height="10" rx="1.5" fill="${col}" stroke="#060907" stroke-width=".6"/><text x="${cx.toFixed(2)}" y="${(cy+10.9).toFixed(2)}" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" style="font-family:system-ui">${c.home}</text>`; }
+    if(c.coin) top+=`<image href="art/coin.png" x="${(cx-4).toFixed(2)}" y="${(cy+5.5).toFixed(2)}" width="8" height="8"/>`;
+    if(c.mat) top+=`<image href="art/mat.png" x="${(cx-4).toFixed(2)}" y="${(cy+5.5).toFixed(2)}" width="8" height="8"/>`;
+    if(showGrid) grid+=`<polygon points="${hexPts(cx,cy,HR)}" fill="none" stroke="#060907" stroke-width=".35" opacity=".35"/>`;
+  }
+  svg.setAttribute('viewBox',`-4 -4 ${(GRID_H+8).toFixed(1)} ${(GRID_W+8).toFixed(1)}`);
+  svg.innerHTML=`<g>${voids}</g><g>${base}</g><g>${grs}</g><g>${terr}</g><g>${grid}</g><g>${top}</g><polygon id="hov" points="" fill="none" stroke="#efc15a" stroke-width="1.4" pointer-events="none"/>`;
+  hover(hovI); report();
+}
+let hovI=-1;
+function hover(i){ hovI=i; const h=document.getElementById('hov'); if(!h) return;
+  if(i<0){ h.setAttribute('points',''); return; }
+  const pts=[i,...(document.getElementById('mirror').checked?PARTNERS[i].filter(j=>j>=0):[])].map(j=>{const[x,y]=hexCenter(j);return hexPts(x,y,HR-.8);});
+  h.setAttribute('points',pts[0]);
+  document.querySelectorAll('.hovm').forEach(e=>e.remove());
+  pts.slice(1).forEach(p=>{ const e=document.createElementNS('http://www.w3.org/2000/svg','polygon'); e.setAttribute('class','hovm'); e.setAttribute('points',p); e.setAttribute('fill','none'); e.setAttribute('stroke','#efc15a'); e.setAttribute('stroke-width','1'); e.setAttribute('stroke-dasharray','2 1.5'); e.setAttribute('pointer-events','none'); svg.appendChild(e); });
+}
+
+// ---------- checks and fairness ----------
+function analyse(){
+  const cs=M.cells, idx=[...cs.keys()];
+  const count=f=>idx.filter(i=>f(cs[i])).length;
+  const homes=[]; for(let h=1;h<=NP;h++) homes.push(idx.filter(i=>cs[i].home===h));
+  const out={counts:{land:count(c=>c.t!=='void'),grass:count(c=>c.t==='grass'),forest:count(c=>c.t==='forest'),mountain:count(c=>c.t==='mountain'),water:count(c=>c.t==='water'),castle:count(c=>c.t==='castle'&&!c.home),coin:count(c=>c.coin),mat:count(c=>c.mat)},checks:[],fair:null};
+  const ck=(ok,msg,level='bad')=>out.checks.push({ok,msg,level});
+  const missing=homes.map((h,k)=>h.length?0:k+1).filter(Boolean);
+  ck(!missing.length, missing.length?`Place ${missing.map(k=>'Home '+k).join(' and ')}.`:`All ${NP} home castles placed.`);
+  if(!missing.length){
+    const H=homes.map(h=>h[0]);
+    // every walkable hex reachable from home 1
+    const seen=new Set([H[0]]), q=[H[0]];
+    while(q.length){ const i=q.shift(); for(const j of nbrs(i)) if(!seen.has(j)&&passable(cs[j])){ seen.add(j); q.push(j); } }
+    const cut=idx.filter(i=>passable(cs[i])&&!seen.has(i));
+    const homesOk=H.every(h=>seen.has(h));
+    ck(homesOk, homesOk?'Every home can reach the others.':'A home is walled off: mountains or water cut it off from the others.');
+    ck(!cut.length, cut.length?`${cut.length} hex${cut.length>1?'es are':' is'} cut off by mountains or water (no one can walk there).`:'No cut-off land.', 'warn');
+    const close=[]; for(let a=0;a<H.length;a++) for(let b=a+1;b<H.length;b++) if(dist(H[a],H[b])<4) close.push(`${a+1} and ${b+1}`);
+    ck(!close.length, close.length?`Homes ${close.join(', ')} are very close (under 4 hexes apart).`:'Homes are a fair distance apart.','warn');
+    // fairness: which home each castle / coin / material hex is nearest to, and the total distance
+    const rows=[['castle','Castles'],['coin','Coins'],['mat','Materials']].map(([k,label])=>{
+      const items=idx.filter(i=>k==='castle'?(cs[i].t==='castle'&&!cs[i].home):cs[i][k]);
+      const near=H.map(()=>0), sum=H.map(()=>0), tied=[0];
+      items.forEach(i=>{ const ds=H.map(h=>dist(i,h)), m=Math.min(...ds); ds.forEach((d,k2)=>sum[k2]+=d); if(ds.filter(x=>x===m).length===1) near[ds.indexOf(m)]++; else tied[0]++; });
+      return {label,near,sum,tied:tied[0],total:items.length};
+    });
+    out.fair=rows;
+    const unfair=rows.filter(r=>Math.max(...r.near)!==Math.min(...r.near)||Math.max(...r.sum)-Math.min(...r.sum)>(NP>2?2:1)).map(r=>r.label.toLowerCase());
+    ck(!unfair.length, unfair.length?`Uneven ${unfair.join(', ')}: one side has more close by (see Fairness).`:'Castles, coins and materials are even for every side.','warn');
+  }
+  if(out.counts.coin===0) ck(false,'No coins on the map (the game normally has about a third of the open land as coins).','warn');
+  return out;
+}
+function report(){
+  const a=analyse(), std=BOARDS[NP].std, c=a.counts;
+  const line=(label,k)=>`<span>${label} ${std[k]!=null?`<span class="std">(usual ${std[k]})</span>`:''}</span><span>${c[k]}</span>`;
+  document.getElementById('stats').innerHTML=`<span>Hexes on the board</span><span>${c.land}</span>`+line('Mountains','mountain')+line('Water','water')+line('Forests','forest')+line('Neutral castles','castle')+line('Coins','coin')+line('Materials','mat')+`<span>Open grass</span><span>${c.grass}</span>`;
+  document.getElementById('checks').innerHTML=a.checks.map(x=>`<li class="${x.ok?'':x.level}">${x.msg}</li>`).join('');
+  const f=document.getElementById('fair');
+  if(!a.fair){ f.innerHTML='<p class="hint">Place every home to see how fair the map is.</p>'; return; }
+  const hd=PCOL.slice(0,NP).map((col,k)=>`<th><span class="dot" style="background:${col}"></span>${k+1}</th>`).join('');
+  f.innerHTML=`<table class="fair"><tr><th>Closest to home</th>${hd}</tr>${a.fair.map(r=>`<tr><td>${r.label}${r.tied?` <span class="std">(+${r.tied} tied)</span>`:''}</td>${r.near.map(n=>`<td>${n}</td>`).join('')}</tr>`).join('')}</table><p class="hint">How many of each are closer to that home than to any other. Even numbers mean a fair start.</p>`;
+}
+
+// ---------- map file ----------
+const CODE={void:'x',grass:'g',forest:'f',mountain:'m',water:'w',castle:'c'}, DECODE=Object.fromEntries(Object.entries(CODE).map(([k,v])=>[v,k]));
+function toJSON(){
+  const rows=[]; for(let r=0;r<N;r++){ let s=''; for(let c=0;c<N;c++){ const x=M.cells[r*N+c]; s+=x.home?String(x.home):CODE[x.t]; } rows.push(s); }
+  const list=k=>M.cells.map((x,i)=>x[k]?rc(i):null).filter(Boolean);
+  return {format:'crown-and-coin-map',version:1,name:(M.name||'Untitled map').trim(),players:NP,size:N,
+    key:'x off the board, g grass, f forest, m mountain, w water, c neutral castle, 1-3 home castles; coins and mats are [row, col]',
+    rows,coins:list('coin'),mats:list('mat'),updated:new Date().toISOString()};
+}
+function fromJSON(o){
+  if(!o||o.format!=='crown-and-coin-map'||!Array.isArray(o.rows)) throw new Error('That is not a Crown & Coin map.');
+  const np=o.players===3?3:2; setGeom(np);
+  if(o.rows.length!==N||o.rows.some(r=>r.length!==N)) throw new Error('The map is the wrong size for its board.');
+  const cells=[]; for(let r=0;r<N;r++) for(let c=0;c<N;c++){ const ch=o.rows[r][c];
+    if('123'.includes(ch)) cells.push({t:'castle',home:+ch,coin:false,mat:false});
+    else cells.push({t:DECODE[ch]||'grass',home:0,coin:false,mat:false}); }
+  (o.coins||[]).forEach(([r,c])=>{ const x=cells[r*N+c]; if(x&&x.t==='grass') x.coin=true; });
+  (o.mats||[]).forEach(([r,c])=>{ const x=cells[r*N+c]; if(x&&x.t==='grass'&&!x.coin) x.mat=true; });
+  M={name:o.name||'',players:np,cells};
+}
+const slug=s=>(s||'untitled').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'untitled';
+
+// ---------- saving: the page's own database (Claude can read it), or this browser ----------
+let DB=null, savedMaps=[], dirty=false;
+const LS='cc-map-maker-maps';
+function lsGet(){ try{ return JSON.parse(localStorage.getItem(LS)||'[]'); }catch(e){ return []; } }
+function lsPut(list){ try{ localStorage.setItem(LS,JSON.stringify(list)); }catch(e){} }
+function drawMaps(){
+  const el=document.getElementById('maps');
+  if(!savedMaps.length){ el.innerHTML='<p class="hint">No saved maps yet.</p>'; return; }
+  el.innerHTML='';
+  savedMaps.slice().sort((a,b)=>(b.updated||'').localeCompare(a.updated||'')).forEach(m=>{
+    const d=document.createElement('div'); d.className='mapitem';
+    const when=m.updated?new Date(m.updated).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
+    d.innerHTML=`<div class="t"><b></b><small>${m.players} players · ${when}</small></div><button class="btn">Open</button><button class="btn" title="Delete">✕</button>`;
+    d.querySelector('b').textContent=m.name;
+    const [open,del]=d.querySelectorAll('button');
+    open.onclick=()=>{ try{ fromJSON(m); afterLoad(); toast(`Opened “${m.name}”.`); }catch(e){ toast(e.message); } };
+    del.onclick=()=>confirmBox(`Delete “${m.name}”?`,'Delete',async()=>{
+      if(DB){ try{ await DB.collection('maps').doc(m._id).delete(); }catch(e){ toast('Could not delete it.'); } }
+      else { lsPut(lsGet().filter(x=>x._id!==m._id)); savedMaps=lsGet(); drawMaps(); }
+    });
+    el.appendChild(d);
+  });
+}
+async function save(){
+  if(!M.name.trim()){ document.getElementById('mapName').focus(); toast('Give the map a name first.'); return; }
+  const o=toJSON(), id=slug(o.name)+'-'+NP+'p';
+  if(DB){
+    try{ await DB.collection('maps').doc(id).set(o); dirty=false; toast(`Saved “${o.name}”. Tell Claude its name to add it to the game.`); return; }
+    catch(e){ if(e&&e.code==='quota_exceeded'){ toast('The map store is full: delete some maps first.'); return; } }
+  }
+  const list=lsGet().filter(x=>x._id!==id); list.push({...o,_id:id}); lsPut(list); savedMaps=list; drawMaps(); dirty=false;
+  toast(`Saved “${o.name}” in this browser. Use Copy map code to send it to Claude.`);
+}
+async function connect(){
+  const where=document.getElementById('where');
+  let timer=setTimeout(()=>{ where.textContent='Saving in this browser only (the map store did not answer). Use Copy map code to send maps to Claude.'; },10000);
+  try{
+    if(!window.claude||!window.claude.use) throw 0;
+    const db=await window.claude.use('db');
+    if(!db) throw 0;
+    DB=db;
+    DB.collection('maps').onSnapshot(snap=>{
+      clearTimeout(timer);
+      savedMaps=snap.docs.map(d=>({...d.data(),_id:d.id}));
+      where.textContent='Maps are saved online with this page, so Claude can read them. Just tell Claude the map’s name.';
+      drawMaps();
+    },()=>{ clearTimeout(timer); DB=null; savedMaps=lsGet(); where.textContent='Saving in this browser only. Use Copy map code to send maps to Claude.'; drawMaps(); });
+    const dl=await window.claude.use('downloads'); if(dl){ const b=document.getElementById('dlBtn'); b.hidden=false; b.onclick=async()=>{ try{ await dl.save({filename:slug(M.name)+'.json',data:JSON.stringify(toJSON(),null,1)}); }catch(e){} }; }
+  }catch(e){
+    clearTimeout(timer); savedMaps=lsGet(); where.textContent='Saving in this browser only. Use Copy map code to send maps to Claude.'; drawMaps();
+  }
+}
+
+// ---------- dialogs ----------
+const modal=document.getElementById('modal'), card=document.getElementById('modalCard');
+function closeModal(){ modal.classList.remove('show'); }
+modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+function confirmBox(msg,yes,fn){
+  card.innerHTML=`<h3></h3><div class="row"><button class="btn" id="mNo">Cancel</button><button class="btn gold" id="mYes"></button></div>`;
+  card.querySelector('h3').textContent=msg; card.querySelector('#mYes').textContent=yes;
+  card.querySelector('#mNo').onclick=closeModal; card.querySelector('#mYes').onclick=()=>{ closeModal(); fn(); };
+  modal.classList.add('show');
+}
+let toastT; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),3200); }
+
+document.getElementById('copyBtn').onclick=async()=>{
+  const code=JSON.stringify(toJSON());
+  card.innerHTML=`<h3>Map code</h3><p>Copy this and paste it to Claude.</p><textarea readonly></textarea><div class="row"><button class="btn" id="mClose">Close</button><button class="btn gold" id="mCopy">Copy</button></div>`;
+  const ta=card.querySelector('textarea'); ta.value=code;
+  card.querySelector('#mClose').onclick=closeModal;
+  card.querySelector('#mCopy').onclick=async()=>{ try{ await navigator.clipboard.writeText(code); toast('Copied.'); }catch(e){ ta.focus(); ta.select(); toast('Select all and copy.'); } };
+  modal.classList.add('show'); ta.focus(); ta.select();
+};
+document.getElementById('pasteBtn').onclick=()=>{
+  card.innerHTML=`<h3>Load map code</h3><p>Paste a map code here.</p><textarea placeholder='{"format":"crown-and-coin-map", …}'></textarea><div class="row"><button class="btn" id="mClose">Cancel</button><button class="btn gold" id="mLoad">Load</button></div>`;
+  const ta=card.querySelector('textarea');
+  card.querySelector('#mClose').onclick=closeModal;
+  card.querySelector('#mLoad').onclick=()=>{ try{ fromJSON(JSON.parse(ta.value)); afterLoad(); closeModal(); toast('Map loaded.'); }catch(e){ toast(e.message&&e.message.startsWith('That')?e.message:'That code could not be read.'); } };
+  modal.classList.add('show'); ta.focus();
+};
+document.getElementById('newBtn').onclick=()=>confirmBox('Start a new map? Anything not saved is lost.','New map',()=>{ M=blankMap(NP); afterLoad(); });
+document.getElementById('size').onchange=e=>{
+  const np=+e.target.value;
+  confirmBox(`Switch to the ${np}-player board? This starts a new map.`,'Switch',()=>{ M=blankMap(np); afterLoad(); });
+  e.target.value=String(NP);
+};
+document.getElementById('saveBtn').onclick=save;
+document.getElementById('mapName').oninput=e=>{ M.name=e.target.value; dirty=true; };
+document.getElementById('grid').onchange=render;
+document.getElementById('mirror').onchange=()=>hover(hovI);
+window.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='z'){ e.preventDefault(); document.getElementById('undoBtn').click(); } });
+
+function afterLoad(){
+  setGeom(M.players); buildPartners(); undo=[]; document.getElementById('undoBtn').disabled=true;
+  document.getElementById('size').value=String(NP); document.getElementById('mapName').value=M.name||'';
+  document.getElementById('mirrorHint').textContent=NP===3?'Everything you place is copied to the other two thirds of the board, so each player gets the same map.':'Everything you place is copied to the other side of the board, so each player gets the same map.';
+  if(tool==='home3'&&NP<3) tool='forest';
+  drawTools(); legend(); render();
+}
+M=blankMap(2); afterLoad(); connect();
+</script>
+</body>
+</html>
