@@ -628,11 +628,11 @@ const HR=18, HH=HR*Math.sqrt(3), HM=2;        // hex radius (centre to corner), 
 // same shape around it; the homes are 8 hexes apart. Twice the 2-player board's mountains, water and bonus coins.
 const BOARDS={
   2:{n:8, voids:[[0,0],[0,1],[1,0], [0,7],[0,6],[1,7], [7,0],[7,1],[6,0], [7,7],[7,6],[6,7]], homes:[[6,2],[1,5]],
-     mountains:5, waters:2, castles:3, forests:10, ferns:0, coins:0},     // coins 0: a third of the open hexes
+     mountains:5, waters:2, castles:3, forests:10, ferns:0, coins:0, crates:6},     // coins 0: a third of the open hexes
   3:{n:11, voids:[[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],[1,0],[1,1],[1,2],[1,8],[1,9],[1,10],[2,0],[2,1],[2,9],[2,10],[3,0],[3,10],[4,0],[4,10],[8,0],[8,10],[9,0],[9,1],[9,9],[9,10],[10,0],[10,1],[10,2],[10,3],[10,4],[10,5],[10,6],[10,7],[10,8],[10,9],[10,10]], homes:[[7,1],[1,5],[7,9]],
-     center:[5,5], mountains:10, waters:4, castles:6, forests:15, ferns:0, coins:26},
+     center:[5,5], mountains:10, waters:4, castles:6, forests:15, ferns:0, coins:26, crates:9},
 };
-let N, GRID_W, GRID_H, BOARD_W, BOARD_H, VB_X, VB_Y, VB_W, VB_H, VOID, HOMES, MOUNTAINS, WATERS, NEUTRAL_CASTLES, FORESTS, FERNS, COINS, BOARD_NP=0;
+let N, GRID_W, GRID_H, BOARD_W, BOARD_H, VB_X, VB_Y, VB_W, VB_H, VOID, HOMES, MOUNTAINS, WATERS, NEUTRAL_CASTLES, FORESTS, FERNS, COINS, CRATES, BOARD_NP=0;
 const VB_M=HM-1.4, MAP_SHARE=.66;
 // The board is drawn turned a quarter (flipped across its diagonal), so it is wider than tall and the hexes stand points-up.
 // Your corner stays lower left; on the 2-player board the opponent's is upper right.
@@ -643,7 +643,7 @@ function useBoard(np){
   GRID_W=2*HM+HR*(1.5*(N-1)+2); GRID_H=2*HM+HH*(N+.5);
   BOARD_W=GRID_H; BOARD_H=GRID_W;
   VOID=new Set(b.voids.map(([r,c])=>r*N+c)); HOMES=b.homes.map(([r,c])=>r*N+c);
-  MOUNTAINS=b.mountains; WATERS=b.waters; NEUTRAL_CASTLES=b.castles; FORESTS=b.forests; FERNS=b.ferns; COINS=b.coins;
+  MOUNTAINS=b.mountains; WATERS=b.waters; NEUTRAL_CASTLES=b.castles; FORESTS=b.forests; FERNS=b.ferns; COINS=b.coins; CRATES=b.crates||0;
   // the part of the board that is drawn: the hexes plus a hair of margin for their outlines
   if(np===2){ VB_X=VB_M; VB_Y=VB_M; VB_W=BOARD_W-2*VB_M; VB_H=BOARD_H-2*VB_M; }
   else {   // the 3-player hexagon leaves the grid's corners empty: frame just the hexes
@@ -716,7 +716,7 @@ const SECOND_PLAYER_GOLD=8;      // offsets the first-move advantage (computer v
 // extra gold (or magic) for a seat that moves later: 2 players, the 2nd seat gets it all; 3 players, 3/4 of it per seat behind (6, 12)
 const catchUp=(i,base,np)=>np>2?Math.round(base*.75*i):(i===1?base:0);
 const CASTLE_PLUNDER=5;
-const COIN_SHARE=1/3, COIN_GOLD=8;
+const COIN_SHARE=1/3, COIN_GOLD=8, MAT_BONUS=4;   // MAT_BONUS: materials in a material hex (worth a coin at 2 gold each)
 const HOME_DEFENSE=4;   // a home castle's defense (other castles use castleDefense)
 const HOME_GUARDS=5;    // archers that always defend a home castle; not shown on the map, and back to full for every fight
 // Winning: hold 4 castles. The other side then gets 2 turns to take one back; if they can't, the holder wins.
@@ -1900,6 +1900,7 @@ function genMap3(){
     const d=bfs([HOMES[0]],tiles);
     if(tiles.some(t=>t.terrain==='plain'&&d[t.id]===Infinity)) continue;
     if(!placeCoins(tiles)) continue;
+    if(!placeCrates(tiles)) continue;
     placeForests(tiles); placeFerns(tiles);
     return tiles;
   }
@@ -1929,6 +1930,7 @@ function genMap(){
     place('mountain',MOUNTAINS); place('water',WATERS);
 
     if(!placeCoins(tiles)) continue;
+    if(!placeCrates(tiles)) continue;
     placeForests(tiles); placeFerns(tiles);
     const d=bfs([HOMES[0]],tiles);
     if(tiles.some(t=>t.terrain==='plain'&&d[t.id]===Infinity)) continue;
@@ -1938,12 +1940,21 @@ function genMap(){
 }
 
 function placeForests(tiles){
-  const pool=tiles.filter(t=>t.terrain==='plain'&&!t.castle&&!t.bounty&&!t.market&&!t.fort&&!t.barracks);
+  const pool=tiles.filter(t=>t.terrain==='plain'&&!t.castle&&!t.bounty&&!t.crate&&!t.market&&!t.fort&&!t.barracks);
   shuffle(pool).slice(0,FORESTS).forEach(t=>t.forest=true);
 }
 function placeFerns(tiles){   // fern hexes go on open land that isn't already forest
   const pool=tiles.filter(t=>t.terrain==='plain'&&!t.castle&&!t.bounty&&!t.forest&&!t.market&&!t.fort&&!t.barracks);
   shuffle(pool).slice(0,FERNS).forEach(t=>t.fern=true);
+}
+function placeCrates(tiles){   // material hexes: open land, not a coin; as fair to every home as the coins
+  const pool=tiles.filter(t=>t.terrain==='plain'&&!t.castle&&!t.bounty&&!t.forest&&!t.market&&!t.fort&&!t.barracks);
+  for(let k=0;k<600;k++){
+    const pick=shuffle(pool).slice(0,CRATES), sums=HOMES.map(()=>0), near=HOMES.map(()=>0);
+    pick.forEach(t=>{ const ds=HOMES.map(h=>man(t.id,h)), m=Math.min(...ds); ds.forEach((d,i)=>sums[i]+=d); if(ds.filter(x=>x===m).length===1) near[ds.indexOf(m)]++; });
+    if(Math.max(...sums)-Math.min(...sums)<=(HOMES.length>2?2:1)&&Math.max(...near)===Math.min(...near)){ pick.forEach(t=>t.crate=true); return true; }
+  }
+  return false;
 }
 function placeCoins(tiles){
   const pool=tiles.filter(t=>t.terrain==='plain'&&!t.castle);
@@ -1960,7 +1971,7 @@ function newGame(fid,opts){
   if(!FACTIONS[fid]) fid=DEFAULT_FACTION;
   const np=opts&&opts.np===3?3:2; useBoard(np);
   const facs=np===3?[fid,...threeOpps(fid,opts&&opts.opps)]:[fid,oppFor(fid,opts&&opts.opp)];
-  S={turn:1,current:0,over:null,log:[],homes:HOMES.slice(),play:null,
+  S={turn:1,current:0,over:null,log:[],crates:1,homes:HOMES.slice(),play:null,
     players:facs.map((f,i)=>{const F=FACTIONS[f], deck=shuffle(F.cards.map(c=>c.id));
       return {id:i,name:i===0?'You':F.name,color:F.color,ai:i!==0,faction:f,gold:0,
         hand:deck.slice(0,HAND_SIZE),reserve:deck.slice(HAND_SIZE),last:null,favor:{},up:{}};}),
@@ -2210,7 +2221,7 @@ function spawnCastle(){
   if(!pool.length) pool=S.tiles.filter(t=>t.terrain==='plain'&&!t.castle&&t.troops===0);
   if(!pool.length) return;
   const t=pool[Math.floor(Math.random()*pool.length)];
-  t.castle=true; t.owner=-1; t.bounty=false; t.market=t.fort=t.barracks=t.wh=0; t.braced=-1;
+  t.castle=true; t.owner=-1; t.bounty=false; t.crate=false; t.market=t.fort=t.barracks=t.wh=0; t.braced=-1;
   S.extraCastle=t.id; S.announce={kind:'castle',id:t.id};
   addLog(`Round ${NEW_CASTLE_ROUND} is over: a new neutral castle rises.`);
 }
@@ -2752,6 +2763,7 @@ function executeMove(from,to,n,lvl,ar){
   if(isDino(p.id)&&(B.treb||B.treb2)){ B.treb=0; B.trebDue=0; B.treb2=0; B.trebDue2=0; addLog('The Dinosaurs wreck the trebuchets they captured.',p.id); }
   if(B.treb2===1){ B.treb2=0; B.trebDue2=0; addLog('A trebuchet under construction is wrecked.',p.id); }
   if(!B.treb&&B.treb2){ B.treb=B.treb2; B.trebDue=B.trebDue2; B.treb2=0; B.trebDue2=0; }   // keep the first slot filled   // a finished one changes hands with the hex
+  if(B.crate){ B.crate=false; if(!isMyth(A.owner)){ p.mat=matOf(p.id)+MAT_BONUS; res.crate=MAT_BONUS; addLog(`${p.name} take a materials cache: +${MAT_BONUS} materials.`,p.id); } }   // material hex
   if(B.bounty){ B.bounty=false; if(!isMyth(A.owner)){ const cg=dk(p.id,'cons','move')>=1?12:COIN_GOLD; p.gold+=cg; res.coin=cg; addLog(`${p.name} take a bonus coin: +${cg} gold${cg>COIN_GOLD?' (Scavenger)':''}.`,p.id); } }   // the Mythical only use magic
   if(B.castle){
     if(prev===-1) addLog(`${p.name} claim a neutral castle.`,p.id);
@@ -2800,7 +2812,7 @@ function openMove(from,to){
   if(b.owner===0){title='Move units';text='Send units to this hex of yours.';verb='Move';}
   else if(!fight){
     title=b.owner===-1?(b.castle?'Claim this castle':'Claim this hex'):(b.castle?'Capture this castle':'Capture this hex');
-    text=(b.owner===-1?'Nobody holds it. Walk in and it becomes yours.':'The enemy left it undefended. Walk in and take it.')+(b.bounty?` Its bonus coin pays you ${COIN_GOLD} gold.`:'');
+    text=(b.owner===-1?'Nobody holds it. Walk in and it becomes yours.':'The enemy left it undefended. Walk in and take it.')+(b.bounty?` Its bonus coin pays you ${COIN_GOLD} gold.`:'')+(b.crate&&!isMyth(S.current)?` Its materials cache gives you ${MAT_BONUS} materials.`:'');
     verb=b.owner===-1?'Claim':'Capture';
   } else {
     const parts=[]; if(b.castle) parts.push('a castle'); else if(b.fort) parts.push(b.fort>1?`${b.fort} forts`:'a fort'); if(braced(b)) parts.push('fortified troops');
@@ -3246,7 +3258,7 @@ function aiMoveScore(pid,s,b,n,D,lvl,claim){
     if(b.castle){const near=enemyNear(b.id,pid,2); if(near>=tp(b)) v=Math.max(v,2+2*Math.min(st,near-tp(b)+2));}
     return v;
   }
-  const coinV=b.bounty?COIN_GOLD*0.9:0, W=wallFacing(s.id,b.id,lvl);
+  const coinV=(b.bounty?COIN_GOLD*0.9:0)+(b.crate&&!isMyth(pid)?MAT_BONUS*1.8:0), W=wallFacing(s.id,b.id,lvl);
   if(b.troops===0&&!W&&!homeGuards(b)) return 4+castleV+coinV+(foe?3:0)+adv-(n>1&&prog<=0?2:0);
   const p=winEst(sel,defArmy(b),{wall:W,bonus:defBonus(b),advD:defAdv(b),map:arenaMap(b),...atkOpts(pid,lvl,rawLvl(),b.owner)});
   const need=aiProf(pid).atk;
@@ -3896,6 +3908,7 @@ function renderMap(){
       const tx=x+isz/2-sz/2, ty=y+isz-sz;
       tops+=`<use href="#ic-${tk}" transform="translate(${tx.toFixed(2)} ${ty.toFixed(2)})${sz!==8?` scale(${(sz/8).toFixed(4)})`:''}"${k==='trebwip'?' opacity=".4"':''}${k==='treb'?` data-th="${i}" data-foot="${(tx+sz/2).toFixed(2)},${(ty+sz).toFixed(2)}"${window._trebAnimHex===i?' opacity="0"':''}`:''}/>`; });
     if(t.bounty) tops+=`<use href="#ic-coin" x="${(cx-4).toFixed(2)}" y="${(cy+5.5).toFixed(2)}"/>`;
+    if(t.crate) tops+=`<use href="#ic-mat" x="${(cx-4).toFixed(2)}" y="${(cy+5.5).toFixed(2)}"/>`;   // material hex
     if(t.troops>0){
       const n=String(t.troops), hh=8, w=Math.max(hh,3.6+n.length*4.3);   // same height as the bonus coin (8); one digit makes a square like it
       const bx=village?cx+6.2:cx, by=t.castle?cy+10:swords?cy+11:cy+1;   // on a castle the count sits at the bottom middle; beside buildings, on the right
@@ -3989,6 +4002,7 @@ function tileCard(id){
   if(t.wh) bl.push(`${BUILD_INFO.wh.icon} Watering Hole: ${t.owner>=0&&S.players[t.owner].faction==='mammals'?`Rhinos, Desmodus and Palaeoloxodons recruited here cost ${WH_OFF} gold less`:'only Mammals drink here'}`);
   if(t.castle) {const fm=modsOf(t.owner); bl.unshift(`<span class="px px-c-neutral" aria-hidden="true"></span> Recruits units, +${fm.castleGold} gold, +${castleDef(t)} defense`);}
   if(t.bounty) bl.push(`<span class="px px-coin" aria-hidden="true"></span> Bonus coin: +${COIN_GOLD} gold to whoever takes this hex first`);
+  if(t.crate) bl.push(`${MAT_IC} Materials: +${MAT_BONUS} materials to whoever takes this hex first (not the Mythical)`);
   if(braced(t)&&t.troops>0) bl.push(`<span class="px px-fortify" aria-hidden="true"></span> Fortified, +${bracedBonus(t)} defense${defAdv(t)?' and advantage':''} until ${t.owner===0?'your':'their'} next turn`);
   if(t.terrain==='mountain') bl.push('<span class="px px-t-mountain" aria-hidden="true"></span> Only an upgraded Move action can enter');
   if(t.barracks&&t.bk) bl.push(`<span class="px px-barracks" aria-hidden="true"></span> Barracks${t.barracks>1?` (all ${t.barracks})`:''} level ${t.bk}: ${barracksLv(t.owner).slice(0,t.bk).join('; ')}`);
@@ -4340,7 +4354,7 @@ function showRules(){
     <li><b>Gold.</b> At the start of every turn you collect +${m.castleGold} per castle, +1 per 2 hexes you own, and +${m.marketGold} per <span class="px px-market" aria-hidden="true"></span> Market. Harvest adds more on top. Gold pays for ${isDino(0)?'units, markets, Alamosaurus guards and the volcano':'units and markets'}.</li>
     <li${isMyth(0)?' hidden':''}><b>${MAT_IC} Materials.</b> ${(s=>s.charAt(0).toUpperCase()+s.slice(1))(matUses(S.players[0].faction))} cost materials, not gold. Your markets sell them: each <span class="px px-market" aria-hidden="true"></span> Market sells up to ${MAT_PER_MARKET} a turn and your home castle counts as one, at ${MAT_PRICE} gold each, any time on your turn. Tap ${MAT_IC} at the top of the cards, or <b>Buy materials</b> during Build and Advancements. What you don't use keeps.</li>
     <li><b><span class="px px-fortify" aria-hidden="true"></span> Fortify</b> is a wild card. First you regroup: move your units any distance between your own hexes, as often as you like (no attacks or claiming), and they can still move again later in the turn. Then pick one of Build, Advancements and Recruit (two once Fortify is upgraded twice, all three at three upgrades). Each plays like the basic action.${hasNamed(0)?` Its first upgrade is the ${f.name}' ${namedUp(0).fortify.name}, which happens first.`:''}</li>
-    <li><b>Bonus coins.</b> ${S.players.length>2?'Close to half':'A third'} of the open hexes start with a <span class="px px-coin" aria-hidden="true"></span> coin. The first side to take one of those hexes gets ${COIN_GOLD} gold, once; the coin is then gone, so retaking the hex later pays nothing.</li>
+    <li><b>Bonus coins.</b> ${S.players.length>2?'Close to half':'A third'} of the open hexes start with a <span class="px px-coin" aria-hidden="true"></span> coin. The first side to take one of those hexes gets ${COIN_GOLD} gold, once; the coin is then gone, so retaking the hex later pays nothing. ${S.players.length>2?'Nine':'Six'} other hexes hold ${MAT_IC} materials instead: the first side to take one gets ${MAT_BONUS} materials (the Mythical, who don't use materials, get nothing).</li>
     <li><b>Buildings.</b> ${isRobo(0)?roboSpecialsHtml()+' ':''}<span class="px px-market" aria-hidden="true"></span> Markets for income and materials, ${isDino(0)?'':'<span class="px px-fort" aria-hidden="true"></span> Forts for defense (and to hold a trebuchet), '}<span class="px px-barracks" aria-hidden="true"></span> Barracks to recruit closer to the front. A hex holds up to ${MAX_BUILDINGS} buildings in any mix, and the same kind stacks: 2 markets give +${2*m.marketGold} gold, 2 forts +${2*m.fortDefense} defense, and each barracks adds its own free troops from an upgraded Recruit. The barracks on a hex share one upgrade level. Castles take markets only. Your <b>home castle</b> always recruits your ${unitPl(basicOf(0))}, and learns from your buildings: once you've built a barracks or a fort anywhere, it can train that building's units too (barracks units up to the highest level any of your barracks has reached), and it keeps them even if those buildings are lost.</li>
     <li><b>Claiming land.</b> Walk onto a neutral hex and it turns your color. It stays yours, even with no troops on it, until the enemy walks in.</li>
     <li><b>Moving.</b> Troops move 1 hex into new land, onto a mountain, or into an attack. Through hexes you already hold (not mountains) they can travel up to 2 hexes in one move. A Move upgraded three times stretches that to 3 hexes through your land and 2 hexes anywhere else.</li>
@@ -4439,6 +4453,7 @@ function load(){
         t.army=t.troops>0?{[b]:t.troops*per}:{}; t.ready=t.fresh>0?{[b]:t.fresh*per}:{}; }
       syncT(t); });
     if(!s.tiles.some(t=>t.forest)) placeForests(s.tiles);   // a game saved before forests existed
+    if(!s.crates){ if(!s.tiles.some(t=>t.crate)) placeCrates(s.tiles); s.crates=1; }   // a game saved before material hexes
     s.tiles.forEach(t=>{ delete t.fern; });                 // ferns taken off the map (2026-11-17): old saves too
     if(s.fight){ if(s.fight.att===0&&s.play) s.play.moves=Math.max(0,(s.play.moves||0)-1); delete s.fight; }
     S=s;
