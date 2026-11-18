@@ -3311,13 +3311,18 @@ function aiAdvance(pid,lvl){
 function aiMv(from,to,n,lvl){ if(ARENA_LIVE&&isFight(from,to)&&!(NET?S.players[S.tiles[to].owner].cpu:S.players[S.tiles[to].owner].ai)) return {kind:'fight',from,to,n,lvl,res:null}; return {kind:'move',from,to,res:executeMove(from,to,n,lvl)}; }
 // With only a couple of moves per Move action, the computer scores every possible move and makes the best ones.
 function aiMoveScore(pid,s,b,n,D,lvl,claim){
-  const foe=b.owner>=0&&b.owner!==pid, prog=D(s.id)-D(b.id), sel=pickUnits(s,n,claim&&n===1), st=armyGold(sel)/3, adv=prog>0?prog*0.4*st:0;
+  const foe=b.owner>=0&&b.owner!==pid, prog=D(s.id)-D(b.id), sel=pickUnits(s,n,claim&&n===1), st=armyGold(sel)/3, stA=st-(isMyth(pid)?0.8*(sel.minion|0)*UNIT_STATS.minion.cost/3:0), adv=prog>0?prog*0.4*stA:0;   // Minions can't take land: marching them is worth little
   const theirHome=b.castle&&foe&&S.homes[b.owner]===b.id;
   let castleV=b.castle?(theirHome?(foesOf(pid).length>1?2500:1e4):45):0;            // a rival's home castle: wins the game (2 sides) or knocks them out (3)
   if(castleV<1e4&&b.castle&&foe&&S.siege&&S.siege.pid===b.owner) castleV=3000;          // breaks their hold: must try
   else if(b.castle&&winCastles()&&winCount(pid)+1>=winCastles()) castleV+=150;             // gets us to the winning count
   if(b.owner===pid){
     let v=prog>0?1+adv:-1;
+    if(isMyth(pid)&&Object.keys(sel).some(isMage)){   // only Mages take castles: walk them up to one, and along with the army
+      if(nbrs(b.id).some(j=>{ const c=S.tiles[j]; return c.castle&&c.owner!==pid&&mythNeed(pid,c)==='mage'; })) v=Math.max(v,6+adv);
+      const others=Object.keys(b.army||{}).filter(k=>k!=='minion'&&!isMage(k)).reduce((a,k)=>a+b.army[k],0);
+      if(others>=3&&prog>=0) v=Math.max(v,2.5+adv);
+    }
     if(b.castle){const near=enemyNear(b.id,pid,2); if(near>=tp(b)) v=Math.max(v,2+2*Math.min(st,near-tp(b)+2));}
     return v;
   }
