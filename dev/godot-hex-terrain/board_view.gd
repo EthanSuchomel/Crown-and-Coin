@@ -293,8 +293,8 @@ func _draw() -> void:
 			var tint: Color = col
 			tint.a = 0.2
 			draw_colored_polygon(_hex_points(c, HR * u), tint)
-		# a thin dark seam between hexes
-		draw_polyline(_closed(_hex_points(c, (HR + 0.3) * u)), Color(0, 0, 0, 0.22), maxf(0.6, 0.3 * u))   # thinner (Ethan, 2026-11-17)
+		# no seam between hexes (Ethan, 2026-11-17: "get rid of the hex borders and instead have them show up on the borders
+		# of players' territory"): the only lines are the territory borders below
 
 	for t in live:
 		var owner2: int = int(t.owner)

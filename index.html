@@ -3613,7 +3613,7 @@ function initMap(){
     </pattern>`;
   let grid='';
   for(let i=0;i<N*N;i++){if(VOID.has(i))continue; const[cx,cy]=hexCenter(i); grid+='M'+hexPts(cx,cy,HR).replace(/ /g,'L')+'Z';}
-  d+=`</defs><g id="cells"></g><g id="grs" class="ico"></g><g id="terr" class="ico"></g><g id="own" class="ico"></g><path class="ico" d="${grid}" stroke="#060907" stroke-width=".35" opacity=".14" fill="none"/><g id="forest" class="ico"></g><g id="castles" class="ico"></g><g id="tops" class="ico"></g><g id="marks" class="ico"></g><g id="walls" class="ico"></g><g id="dim" class="ico"></g>`;
+  d+=`</defs><g id="cells"></g><g id="grs" class="ico"></g><g id="terr" class="ico"></g><g id="own" class="ico"></g><path class="ico" d="${grid}" stroke="#060907" stroke-width=".35" opacity="0" fill="none"/><g id="forest" class="ico"></g><g id="castles" class="ico"></g><g id="tops" class="ico"></g><g id="marks" class="ico"></g><g id="walls" class="ico"></g><g id="dim" class="ico"></g>`;
   $('#map').innerHTML=d; _mapReady=true;
 }
 // a wall along side k of a hex: three stone blocks, one per point of strength (a broken block leaves a gap)
