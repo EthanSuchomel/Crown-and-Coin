@@ -4,7 +4,7 @@ import sys, json
 P, MJ = sys.argv[1], sys.argv[2]
 s = open(P).read()
 maps = json.load(open(MJ))
-data = json.dumps([{k: m[k] for k in ('id', 'name', 'players', 'rows', 'coins', 'mats')} for m in maps], separators=(',', ':'))
+data = json.dumps([{k: m[k] for k in ('id', 'name', 'players', 'rows', 'coins', 'mats', 'castles', 'events') if k in m} for m in maps], separators=(',', ':'))
 def rep(a, b, n=1):
     global s
     assert s.count(a) == n, (s.count(a), a[:90]); s = s.replace(a, b)
