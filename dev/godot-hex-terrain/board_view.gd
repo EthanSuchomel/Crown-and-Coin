@@ -124,10 +124,10 @@ func _grid_h() -> float:
 var _frame_n: int = -1
 var _frame: Rect2
 func _frame_rect() -> Rect2:
-	if _frame_n == N:
+	if _frame_n == HexGrid.shape_id:
 		return _frame
-	_frame_n = N
-	if N == 8:
+	_frame_n = HexGrid.shape_id
+	if N == 8 and not HexGrid.custom:
 		_frame = Rect2(0, 0, _grid_h(), _grid_w())
 		return _frame
 	var lo := Vector2(INF, INF)
