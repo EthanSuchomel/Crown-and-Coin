@@ -82,6 +82,8 @@ func _ready() -> void:
 		names["hex_" + k] = "res://art/terrain/hex_%s.png" % k   # whole-hex tiles: neutral castles, forests, ferns (2026-11-16)
 	for k in ["grass_0", "grass_1", "grass_2", "mountain", "forest", "fern", "water"]:
 		names["hex_%s_soft" % k] = "res://art/terrain/hex_%s_soft.png" % k   # soft-edged versions that blend into neighbours (2026-11-17)
+	for k in ["edge_noise", "hex_forest_patch", "hex_water_patch"]:   # edge-aware terrain (2026-11-17)
+		names[k] = "res://art/terrain/%s.png" % k
 	for v in 6:
 		names["forest_%d" % v] = "res://art/vegetation/forest_%d.png" % v
 		names["fern_%d" % v] = "res://art/vegetation/fern_%d.png" % v
@@ -89,6 +91,17 @@ func _ready() -> void:
 		if ResourceLoader.exists(names[key]):
 			_tex[key] = load(names[key])
 	resized.connect(queue_redraw)
+	_baker = load("res://scripts/ui/terrain_bake.gd").new()
+	_baker.board = self
+	add_child(_baker)
+	_baker.baked.connect(func(t, sig):
+		_baking = false
+		if t != null:
+			_bake_tex = t
+			_bake_for = sig
+		else:
+			_bake_failed = sig
+		queue_redraw())
 
 
 func _process(delta: float) -> void:
@@ -234,7 +247,18 @@ func _draw() -> void:
 	# 0. soft ground (Ethan, 2026-11-17: "flow together better"): every hex's grass, then the mountain, forest and fern tiles,
 	# each fading out at its edge and drawn 10% bigger than the hex, so neighbours overlap and blend (like the browser)
 	var soft_ok: bool = tex("hex_grass_0_soft") != null
-	if soft_ok:
+	# edge-aware terrain (Ethan, 2026-11-17): the ground drawn once into a picture (terrain_bake.gd), forests, mountains
+	# and lakes joined where they touch; until it's ready (or if it can't be made) the plain soft tiles below
+	var baked: bool = false
+	if soft_ok and tex("edge_noise") != null:
+		var sig: String = _terrain_sig(live)
+		if sig != _bake_for and sig != _bake_failed and not _baking:
+			_baking = true
+			_baker.bake.call_deferred(game.tiles, sig)
+		if _bake_tex != null and sig == _bake_for:
+			draw_texture_rect(_bake_tex, Rect2(_offset(), Vector2(_grid_h(), _grid_w()) * u), false)
+			baked = true
+	if soft_ok and not baked:
 		var sk: float = (HR + 0.3) * 1.10
 		for t in live:
 			var c0: Vector2 = center(int(t.id))
@@ -613,3 +637,21 @@ func _dashed_line(a: Vector2, b: Vector2, col: Color, width: float) -> void:
 func _draw_rect_tex(t: Texture2D, r: Rect2, modulate_col: Color = Color.WHITE) -> void:
 	if t != null:
 		draw_texture_rect(t, r, false, modulate_col)
+
+
+# ---------------------------------------------------------------------
+# Edge-aware terrain (2026-11-17)
+var _baker = null
+var _bake_tex: Texture2D = null
+var _bake_for: String = ""
+var _bake_failed: String = ""
+var _baking: bool = false
+
+
+## What the baked ground depends on: the board's shape and each hex's terrain.
+func _terrain_sig(live: Array) -> String:
+	var parts := PackedStringArray([str(HexGrid.shape_id), str(N)])
+	for t in live:
+		var k: String = "m" if t.terrain == "mountain" else ("w" if t.terrain == "water" else ("f" if _whole_tile(t) == "hex_forest" else "g"))
+		parts.append(k)
+	return "".join(parts)
