@@ -20,6 +20,9 @@ const HEX_SLOTS := [Vector2(-7.4, 0.0), Vector2(-5.3, -8.5), Vector2(-5.3, 8.5),
 const CASTLE_SLOTS := [Vector2(-10.3, 7.4), Vector2(10.3, 7.4), Vector2(-12.4, 0.6), Vector2(12.4, 0.6)]
 const BLD_SIZE := 9.6
 const BLD_GROW := {"barracks_dinos": 1.5, "market_dinos": 1.18}   # the Dinosaurs' nesting ground is flat, so it's drawn bigger (standing on the same spot)
+const FRINGE_L := 128.0          # hex_grass_fringe.png: edge length, ends and outward reach in its pixels
+const FRINGE_EXT := 18.0
+const FRINGE_OUT := 12.0
 const MW := 26.0                 # mountain picture width
 const HFIT := 16.4
 
@@ -81,6 +84,7 @@ func _ready() -> void:
 		names["hex_" + k] = "res://art/terrain/hex_%s.png" % k   # whole-hex tiles: neutral castles, forests, ferns (2026-11-16)
 	for k in ["grass_0", "grass_1", "grass_2", "mountain", "forest", "fern", "water"]:
 		names["hex_%s_soft" % k] = "res://art/terrain/hex_%s_soft.png" % k   # soft-edged versions that blend into neighbours (2026-11-17)
+	names["hex_grass_fringe"] = "res://art/terrain/hex_grass_fringe.png"   # grass edge over mountains and forests (2026-11-17)
 	for v in 6:
 		names["forest_%d" % v] = "res://art/vegetation/forest_%d.png" % v
 		names["fern_%d" % v] = "res://art/vegetation/fern_%d.png" % v
@@ -251,6 +255,30 @@ func _draw() -> void:
 						w0 = "hex_water"   # the beach lake (2026-11-17)
 					if w0 in ["hex_mountain", "hex_forest", "hex_fern", "hex_water"] and tex(w0 + "_soft") != null:
 						_draw_rect_tex(tex(w0 + "_soft"), rr)
+		# grass creeping over the edges of mountains and forests that face grass (Ethan, 2026-11-17: "a new grass edge
+		# that transitions into the tree and mountain hex"): a ragged strip of the grass tile, tufts reaching in
+		var fr: Texture2D = tex("hex_grass_fringe")
+		if fr != null:
+			var px: float = HR * u / FRINGE_L   # fringe pixels to screen
+			for t in live:
+				var wt: String = _whole_tile(t)
+				if not (wt in ["hex_mountain", "hex_forest"]):
+					continue
+				var i1: int = int(t.id)
+				var c1: Vector2 = center(i1)
+				var nb: Array[int] = HexGrid.neighbor_dirs(i1)
+				for k in 6:
+					var j1: int = nb[k]
+					if j1 < 0 or not _is_grass(game.tiles[j1]):
+						continue
+					var p0: Vector2 = _corner(c1, HR * u, k)
+					var p1: Vector2 = _corner(c1, HR * u, k + 1)
+					var mid: Vector2 = (p0 + p1) / 2.0
+					var xa: Vector2 = (p1 - p0).normalized()
+					var ya: Vector2 = (c1 - mid).normalized()
+					draw_set_transform_matrix(Transform2D(xa, ya, mid))
+					_draw_rect_tex(fr, Rect2(Vector2(-(FRINGE_L / 2.0 + FRINGE_EXT), -FRINGE_OUT) * px, Vector2(fr.get_width(), fr.get_height()) * px))
+				draw_set_transform_matrix(Transform2D.IDENTITY)
 
 	# 1. ground: grass, water, mountains, owner tint and territory edges
 	for t in live:
@@ -610,3 +638,8 @@ func _dashed_line(a: Vector2, b: Vector2, col: Color, width: float) -> void:
 func _draw_rect_tex(t: Texture2D, r: Rect2, modulate_col: Color = Color.WHITE) -> void:
 	if t != null:
 		draw_texture_rect(t, r, false, modulate_col)
+
+
+## A plain grass hex: open land with no whole-hex tile (mountain, forest, castle) and no castle ground.
+func _is_grass(t: Dictionary) -> bool:
+	return t.terrain == "plain" and _whole_tile(t) == "" and _castle_gnd(t) == ""
