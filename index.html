@@ -583,7 +583,7 @@ html,body{height:100%;overflow:hidden}
 <div id="scrFaction" class="screen faction-screen" hidden>
   <div class="fs-grid">
     <div class="fs-choices" id="fsChoices"></div>
-    <section class="fs-info" aria-live="polite"><div class="fs-info-body" id="fsInfo"></div><div class="fs-foot"><div class="fs-picks"><div id="fsPlayers"></div><div id="fsOpp"></div><div id="fsLevel"></div><div id="fsColors"></div></div><button class="primary fs-go" data-scr="go">Start</button></div></section>
+    <section class="fs-info" aria-live="polite"><div class="fs-info-body" id="fsInfo"></div><div class="fs-foot"><div class="fs-picks"><div id="fsPlayers"></div><div id="fsMap"></div><div id="fsOpp"></div><div id="fsLevel"></div><div id="fsColors"></div></div><button class="primary fs-go" data-scr="go">Start</button></div></section>
   </div>
 </div>
 <div id="scrOnline" class="screen online-screen" hidden><div class="ol-panel" id="olBody"></div></div>
@@ -656,6 +656,39 @@ function useBoard(np){
   try{ if(typeof fitStage==='function'&&document.getElementById('stage')) fitStage(); }catch(e){}
 }
 useBoard(2);
+// Hand-made maps (Ethan, 2026-11-17, made in the Map Maker): rows are the tile grid, x off the board, g grass, f forest,
+// m mountain, w water, c neutral castle, 1-3 home castles (1 is you); coins and mats are [row, col]
+/*CUSTOM_MAPS*/const CUSTOM_MAPS=[{"id":"arena-2p","name":"Arena","players":2,"rows":["xggcggx2","xfgggggx","ggffgfgf","ggfmgmfg","gggmcmgg","gfffgffg","xgggggfg","x1gggcgx"],"coins":[[0,4],[0,5],[1,6],[4,2],[4,6],[7,2],[7,3],[7,4]],"mats":[[2,0],[3,4],[5,4],[5,7]]},{"id":"divide-2p","name":"Divide","players":2,"rows":["xxxggggg","xcfgggwc","ggmmgggg","ggfm1ggg","gg2gmfgg","gwggmcgx","cgggfxxx","gggxxxxx"],"coins":[[0,7],[1,4],[3,0],[3,6],[5,3],[6,1]],"mats":[[2,6],[3,7],[4,1],[7,2]]},{"id":"quick-play-2p","name":"Quick play","players":2,"rows":["xxxg1gxx","xxxgggxx","xxxfgfxx","xxxgcgxx","xxxfcfxx","xxxgggxx","xxxgggxx","xxxx2xxx"],"coins":[[0,5],[3,5],[6,5]],"mats":[[0,3],[3,3],[6,3]]},{"id":"race-2p","name":"Race","players":2,"rows":["cggfggg2","gggffmgg","gmgggggg","ggggggff","ffggggfg","fgggggmg","ggmffggg","1gggfggc"],"coins":[[2,3],[2,4],[2,5],[3,2],[3,5],[4,2],[4,5],[5,2],[5,3],[5,4]],"mats":[[3,3],[3,4],[4,3],[4,4]]},{"id":"the-great-divide-2p","name":"The great divide","players":2,"rows":["xxggg2xx","xfgggggx","fwffgggg","ffwwwcgg","ggcwwwff","ggggffwc","x1ggggfx","xxggggxx"],"coins":[[1,2],[2,4],[2,7],[4,1],[7,3],[7,5]],"mats":[[0,3],[3,6],[5,2],[7,4]]},{"id":"aoe-2-3p","name":"AOE 2","players":3,"rows":["ggggggggggg","gggffmffggc","gffggmggffg","gfgcgmg1gfg","gfgggmgggfg","gmmmmmmmmmg","gfgggmgggfg","gfg3gmg2gfg","gfgggmgggfg","cgffgmgffgg","ggggfgfggcg"],"coins":[[0,5],[2,3],[2,7],[3,2],[3,8],[5,0],[5,10],[7,8],[8,2],[8,3],[8,7],[8,8],[10,5]],"mats":[[0,0],[0,10],[4,4],[4,6],[6,4],[6,6],[10,0],[10,8],[10,10]]},{"id":"cornered-3p","name":"Cornered","players":3,"rows":["ggggggcgggg","gggfggggg2g","ggfggggfffg","ggfggfggggg","ggggfgggggg","ffggcgg3fgg","gmffgggffgg","gmfmffggfgg","ggmmffggggg","ggggmffgg1g","cgggmmcgggg"],"coins":[[0,2],[1,1],[1,10],[2,4],[3,6],[3,9],[4,2],[6,4],[7,10],[9,3],[9,8],[10,2]],"mats":[[0,7],[1,5],[2,1],[3,7],[7,7],[8,6],[8,10],[9,2]]},{"id":"divide-3p-3p","name":"Divide 3p","players":3,"rows":["xxxxxxxxxxx","xcffgggggcx","xgggg1gggfx","xgggggfgffx","xggggmfgggx","xffgfmfgggx","xfgggmcggfx","xgggcmgggfx","xg3ggmgg2fx","xggggggfggx","xxxxxxxxxxx"],"coins":[[1,8],[2,3],[2,7],[4,2],[4,7],[4,8],[6,2],[6,4],[6,8],[7,6],[9,4],[9,9]],"mats":[[1,4],[4,1],[4,3],[5,9],[8,7]]},{"id":"the-long-game-3p","name":"The long game","players":3,"rows":["xxxxxxxxxxx","xxxgggggxxx","xmff2gggcgx","xgmfggggggx","gggfmgggggg","gggfmmcgg3g","ggggffggggg","ggcggggmfgg","xggggggmffx","xxgg1gggmxx","xxxxgxgxxxx"],"coins":[[2,6],[3,8],[4,2],[4,6],[6,2],[6,8],[7,4],[7,10],[8,1],[8,2],[8,6]],"mats":[[1,6],[2,9],[3,1],[4,5],[6,1],[9,7]]}];/*END_MAPS*/
+const mapById=id=>CUSTOM_MAPS.find(m=>m.id===id)||null;
+function mapTiles(m){
+  const n=m.rows.length, homes=[];
+  const tiles=Array.from({length:n*n},(_,i)=>({id:i,terrain:'plain',owner:-1,troops:0,fresh:0,army:{},ready:{},castle:false,market:0,fort:0,barracks:0,braced:-1,walls:[0,0,0,0,0,0],treb:0,trebDue:0,bk:0}));
+  m.rows.forEach((row,r)=>[...row].forEach((ch,c)=>{ const t=tiles[r*n+c];
+    if(ch==='x') t.terrain='void'; else if(ch==='m') t.terrain='mountain'; else if(ch==='w') t.terrain='water';
+    else if(ch==='f') t.forest=true; else if(ch==='c') t.castle=true;
+    else if('123'.includes(ch)){ t.castle=true; t.owner=+ch-1; homes[+ch-1]=t.id; } }));
+  (m.coins||[]).forEach(([r,c])=>{ const t=tiles[r*n+c]; if(t&&t.terrain==='plain'&&!t.castle&&!t.forest) t.bounty=true; });
+  (m.mats||[]).forEach(([r,c])=>{ const t=tiles[r*n+c]; if(t&&t.terrain==='plain'&&!t.castle&&!t.forest&&!t.bounty) t.crate=true; });
+  return {tiles,homes};
+}
+// frame just the hexes on the board (the 3-player hexagon, or a hand-made map's own shape)
+function frameHexes(){
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(let i=0;i<N*N;i++){ if(VOID.has(i)) continue; const r=Math.floor(i/N), c=i%N, gx=HM+HR+c*1.5*HR, gy=HM+HH/2+r*HH+(c&1)*HH/2, [x,y]=toBoard([gx,gy]);
+    x0=Math.min(x0,x-HH/2); x1=Math.max(x1,x+HH/2); y0=Math.min(y0,y-HR); y1=Math.max(y1,y+HR); }
+  const m=HM-VB_M; VB_X=x0-m; VB_Y=y0-m; VB_W=x1-x0+2*m; VB_H=y1-y0+2*m;
+}
+// the board's shape follows the game: a hand-made map's own, or the standard board for its player count
+let _shapeKey='';
+function syncShape(force){
+  const key=S&&S.map?'map:'+S.map:'std';
+  if(!force&&key===_shapeKey) return;
+  _shapeKey=key;
+  if(S&&S.map){ VOID=new Set(S.tiles.filter(t=>t.terrain==='void').map(t=>t.id)); HOMES=S.homes.slice(); frameHexes(); }
+  else if(S){ BOARD_NP=0; useBoard(S.players.length); }
+  try{ _mapReady=false; }catch(e){}
+  try{ if(typeof fitStage==='function'&&document.getElementById('stage')) fitStage(); }catch(e){}
+}
 // where buildings stand inside a hex (offsets from its centre): the first in the middle of the left side, then above and below it
 const TREE_SIZE=25; const BLD_SIZE=9.6, HEX_SLOTS=[[-7.4,0],[-5.3,-8.5],[-5.3,8.5],[0,11.6]], CASTLE_SLOTS=[[-10.3,7.4],[10.3,7.4],[-12.4,.6],[12.4,.6]];
 // Forest hexes: the four trees from Megaraptor Arena (conifer, broadleaf, tree fern, gnarled), shrunk for the map. ar = height/width.
@@ -1969,13 +2002,17 @@ function placeCoins(tiles){
 }
 function newGame(fid,opts){
   if(!FACTIONS[fid]) fid=DEFAULT_FACTION;
-  const np=opts&&opts.np===3?3:2; useBoard(np);
+  const np=opts&&opts.np===3?3:2; BOARD_NP=0; useBoard(np); _shapeKey='';
+  const cmap=opts&&opts.map?mapById(opts.map):null, built=cmap&&cmap.players===np?mapTiles(cmap):null;
+  if(built) HOMES=built.homes.slice();
   const facs=np===3?[fid,...threeOpps(fid,opts&&opts.opps)]:[fid,oppFor(fid,opts&&opts.opp)];
   S={turn:1,current:0,over:null,log:[],crates:1,homes:HOMES.slice(),play:null,
     players:facs.map((f,i)=>{const F=FACTIONS[f], deck=shuffle(F.cards.map(c=>c.id));
       return {id:i,name:i===0?'You':F.name,color:F.color,ai:i!==0,faction:f,gold:0,
         hand:deck.slice(0,HAND_SIZE),reserve:deck.slice(HAND_SIZE),last:null,favor:{},up:{}};}),
-    tiles:genMap()};
+    tiles:built?built.tiles:genMap()};
+  if(built){ S.map=cmap.id; S.mapName=cmap.name; }
+  syncShape(true);
   { const mine=myColorFor(facs[0]), taken=[mine]; applyColor(S.players[0],mine);
     for(let i=1;i<np;i++){ const c=otherColor(taken,facs[i]); applyColor(S.players[i],c); taken.push(c); } }
   S.players.forEach((p,i)=>{
@@ -3824,6 +3861,7 @@ function placeBubbles(show){
   requestAnimationFrame(()=>{ void ov.offsetWidth; ov.classList.add('show'); });
 }
 function renderMap(){
+  syncShape();
   if(!_mapReady) initMap();
   const hl=new Set();
   if(isHumanTurn()&&curAction()==='move'&&movesLeft()>0&&ui.sel!=null){
@@ -4378,13 +4416,19 @@ function openFactionPicker(onPick,onCancel){
   if(onCancel) $('#fcancel').onclick=()=>{closeModal();onCancel();};
 }
 // Screens before the game: the title (Start Game), then choose a faction with its details beside it (Start).
-let fsPick=DEFAULT_FACTION, fsOpp=null, fsOpps=[], fsNP=2;
+let fsPick=DEFAULT_FACTION, fsOpp=null, fsOpps=[], fsNP=2, fsMap='';
+try{ fsMap=localStorage.getItem('cc-map')||''; }catch(e){}
 try{ if(localStorage.getItem('cc-np')==='3') fsNP=3; }catch(e){}
 // 3 players: the two opponents' factions (the ones picked, filled up from the faction list)
 function threeOpps(fid,want){ const o=(want||[]).filter((f,i,a)=>FACTIONS[f]&&f!==fid&&a.indexOf(f)===i).slice(0,2);
   for(const f of FACTION_ORDER){ if(o.length>=2) break; if(f!==fid&&!o.includes(f)) o.push(f); } return o; }
 function playersPicker(np){
   return `<div class="opick" role="group" aria-label="Players"><span class="cp-l">Players</span>${[2,3].map(n=>`<button class="op-b" data-np="${n}" aria-pressed="${n===np}" style="--pc:var(--bone)">${n}</button>`).join('')}</div>`;
+}
+function mapPicker(np){   // Random, or one of the hand-made maps for this many players
+  const list=CUSTOM_MAPS.filter(m=>m.players===np); if(!list.length) return '';
+  const sel=list.some(m=>m.id===fsMap)?fsMap:'';
+  return `<div class="opick" role="group" aria-label="Map"><span class="cp-l">Map</span><button class="op-b" data-map="" aria-pressed="${!sel}" style="--pc:var(--bone)">Random</button>${list.map(m=>`<button class="op-b" data-map="${m.id}" aria-pressed="${m.id===sel}" style="--pc:var(--bone)">${escH(m.name)}</button>`).join('')}</div>`;
 }
 function oppPicker3(fid,want){
   const o=threeOpps(fid,want);
@@ -4427,6 +4471,7 @@ function renderFactionScreen(){
     return `<button class="fs-opt" data-fs="${fid}" aria-pressed="${fid===fsPick}" style="--pc:${f.ink}"><span class="fs-castle px-c-${fid}" aria-hidden="true"></span><span><b>${f.name}</b><small>${f.tagline}</small></span></button>`;}).join('');
   $('#fsInfo').innerHTML=factionInfo(fsPick);
   $('#fsPlayers').innerHTML=playersPicker(fsNP);
+  $('#fsMap').innerHTML=mapPicker(fsNP);
   $('#fsOpp').innerHTML=fsNP===3?oppPicker3(fsPick,fsOpps):oppPicker(fsPick,fsOpp);
   $('#fsColors').innerHTML=colorPicker(myColorFor(fsPick));
   $('#fsLevel').innerHTML=levelPicker(prefLevel);
@@ -4456,7 +4501,7 @@ function load(){
     if(!s.crates){ if(!s.tiles.some(t=>t.crate)) placeCrates(s.tiles); s.crates=1; }   // a game saved before material hexes
     s.tiles.forEach(t=>{ delete t.fern; });                 // ferns taken off the map (2026-11-17): old saves too
     if(s.fight){ if(s.fight.att===0&&s.play) s.play.moves=Math.max(0,(s.play.moves||0)-1); delete s.fight; }
-    S=s;
+    S=s; _shapeKey=''; syncShape(true);
     if(S.play&&cardAction()==='fortify'&&!S.play.fx) S.play.fx={ph:'regroup',n:1,done:[],cur:null};   // saved before Fortify became a wild card
     return true;
   }catch(e){return false;}
@@ -4863,6 +4908,7 @@ $('#hexinfo').addEventListener('click',e=>{ if(e.target.closest('[data-hex="clos
 $('#stage').addEventListener('click',e=>{
   const fsb=e.target.closest('button[data-fs]'); if(fsb){ fsPick=fsb.dataset.fs; renderFactionScreen(); return; }
   const fob=e.target.closest('button[data-opp]'); if(fob){ fsOpp=fob.dataset.opp; renderFactionScreen(); return; }
+  const fmp=e.target.closest('button[data-map]'); if(fmp){ fsMap=fmp.dataset.map; try{ localStorage.setItem('cc-map',fsMap); }catch(_){} renderFactionScreen(); return; }
   const fnp=e.target.closest('button[data-np]'); if(fnp){ fsNP=+fnp.dataset.np===3?3:2; try{ localStorage.setItem('cc-np',String(fsNP)); }catch(_){} renderFactionScreen(); return; }
   const fo3=e.target.closest('button[data-opp3]'); if(fo3){ const f=fo3.dataset.opp3, cur3=threeOpps(fsPick,fsOpps);   // pick 2: tapping a third swaps out the one picked longest ago
     fsOpps=cur3.includes(f)?cur3:[cur3[1],f]; renderFactionScreen(); return; }
@@ -4874,7 +4920,7 @@ $('#stage').addEventListener('click',e=>{
   if(k==='start') startNewGame();
   else if(k==='online') openOnline();
   else if(k==='continue'){ showScreen(null); render(); if(cur().ai&&!S.over) runAI(); }
-  else if(k==='go'){ showScreen(null); newGame(fsPick,{np:fsNP,opp:fsOpp,opps:fsOpps}); }
+  else if(k==='go'){ showScreen(null); newGame(fsPick,{np:fsNP,opp:fsOpp,opps:fsOpps,map:(mapById(fsMap)||{}).players===fsNP?fsMap:''}); }
 });
 $('#stats').addEventListener('click',e=>{ if(e.target.closest('button[data-head="trade"]')) openTrade(); });
 $('#sidehead').addEventListener('click',e=>{
