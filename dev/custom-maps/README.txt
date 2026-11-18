@@ -15,3 +15,8 @@ AOE 2 (3 players): 3, and the castle win now works with 3 players (each rival ge
 the other 3-player maps keep the usual rules. The 4-player maps are stored with their rules (AOE 2: knock everyone out;
 Control: 3 castles, a castle on the centre hex [7,7] in round 20) for when a 4-player mode exists.
 Browser: patch_wins.py (winCastles(), mapEvents()). Godot: port_godot_wins.py (GameState.win_castles(), _map_events()).
+
+Captured castles only (Ethan, 2026-11-17: "it needs to be x amount of captured castles to win not x = captured plus home
+castles"): on a map with its own "castles", the side's own home castle no longer counts toward it (browser homeCounts()/winCount(),
+patch_captured.py; Godot home_counts()/win_count(), port_godot_captured.py). Random maps and maps without their own number
+keep the usual 4 castles, home included. Texts say "captured castles" on those maps.

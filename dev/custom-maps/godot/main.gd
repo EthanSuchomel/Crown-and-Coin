@@ -474,13 +474,14 @@ func show_factions() -> void:
 		body.add_child(_label("Each turn you hold 3 of these and play one, carrying out its actions in order. Channeling has no other actions: +%d magic for every Mage and +%d for every castle. Mythical cards don't upgrade yet." % [int(M.ch_mage), int(M.ch_castle)], 14, LICHEN))
 		body.add_child(_rich("[b]Magic, not gold[/b]", 16))
 		for line in ["The Mythical earn and spend only [b]magic[/b] [img=18x18]res://art/ui/magic.png[/img]. Captured markets, forts and barracks do nothing for them, and they don't take bonus coins or plunder.",
-				"[b]Floating Castle[/b] (home): %d magic and %d Minions every turn. Three upgrades (%s magic) raise that to %s magic and +2 Minions each. Only flyers can attack it." % [int(M.castle_magic[0]), int(M.minions[0]), ", ".join(PackedStringArray(M.castle_up.map(func(v): return str(int(v))))), ", ".join(PackedStringArray(M.castle_magic.slice(1).map(func(v): return str(int(v)))))],
+				"[b]Floating Castle[/b] (home): %d magic and %d Minions every turn. Three upgrades (%s magic) raise that to %s magic and %s Minions. Only flyers can attack it." % [int(M.castle_magic[0]), int(M.minions[0]), ", ".join(PackedStringArray(M.castle_up.map(func(v): return str(int(v))))), ", ".join(PackedStringArray(M.castle_magic.slice(1).map(func(v): return str(int(v))))), ", ".join(PackedStringArray(M.minions.slice(1).map(func(v): return str(int(v)))))],
 				"[b]Life Trees[/b]: %d magic a turn, or %d with %d+ Minions on the hex." % [int(M.tree_magic), int(M.tree_rich), int(M.tree_minions)],
 				"[b]Mages[/b] are made at your castles: %d magic, +1 for each Mage past your 5th and +1 for each Mage level. At most 2 on a hex (3 at level 3)." % int(M.mage_base),
 				"Where a Mage stands it turns Minions into Minotaurs (%d magic + 1 Minion), Griffins (%d + 2, level 1) and Dragons (%d + %d, level %d)." % [int(M.conv.minotaur.m), int(M.conv.griffin.m), int(M.conv.dragon.m), int(M.conv.dragon.min), int(M.conv.dragon.lv)],
 				"Levels (%s magic, at the castle): 1 Griffins, 3 Dragons, every unit 1 magic cheaper and 3 Mages a hex. Each level also lengthens the Mage's lightning and adds 1 damage; a Mage keeps the level it was made at. Each level also needs Life Trees and captured castles when you raise it (level 1: 1 tree; level 2: 3 trees and 1 captured castle; level 3: 5 trees and 2 captured castles); losing a castle later keeps the level." % ", ".join(PackedStringArray(M.mage_up.map(func(v): return str(int(v))))),
 				"Mages plant Life Trees (the Mage stays %d turns) and raise magic domes (%d magic, %d a turn): a dome guards every side like a full wall." % [int(M.tree_turns), int(M.dome_cost), int(M.dome_upkeep)],
-				"Mages and Minions move 2 hexes anywhere, and a Move action has 3 moves."]:
+				"A Move action has 3 moves. Mages move 1 hex; Minions move 2 but only onto your own land.",
+				"Only Mages capture castles. Minions can't take land on their own; every other unit can."]:
 			body.add_child(_rich("  •  " + line, 14))
 	else:
 		body.add_child(_label("Each turn you hold 3 of these and play one, carrying out its actions in order. Every 2nd time you play a card, you upgrade one of its actions.", 14, LICHEN))
@@ -518,7 +519,7 @@ func show_factions() -> void:
 			price = ("%d for 1" % int(GameData.rules.mythical.minion_pack)) if k == "minion" else (("%d+" % int(GameData.rules.mythical.mage_base)) if k.begins_with("mage") else ("%d + %d Minion%s" % [int(MC[k].m), int(MC[k].min), "s" if int(MC[k].min) > 1 else ""] if MC.has(k) else price))
 		grid.add_child(_label(price, 14, LICHEN))
 		grid.add_child(_label(str(int(U.hp)), 14, LICHEN))
-		grid.add_child(_label(str(int(U.dmg)) if not U.has("beam") else "beam %d" % int(U.dmg), 14, LICHEN))
+		grid.add_child(_label(_num(U.dmg) if not U.has("beam") else "beam %s" % _num(U.dmg), 14, LICHEN))
 		grid.add_child(_label("%ss" % str(U.rate) if float(U.rate) > 0 else "-", 14, LICHEN))
 		var note := _label(String(U.note), 13, LICHEN)
 		note.custom_minimum_size.x = 220
@@ -804,7 +805,7 @@ func _stats() -> void:
 		stats_row.add_child(mb)
 	var parts: PackedStringArray = []
 	for q in g.players:
-		parts.append(("[s][color=%s]%d[/color][/s]" if g.is_out(int(q.id)) else "[color=%s]%d[/color]") % [_ink(int(q.id)), g.castle_count(int(q.id))])
+		parts.append(("[s][color=%s]%d[/color][/s]" if g.is_out(int(q.id)) else "[color=%s]%d[/color]") % [_ink(int(q.id)), g.win_count(int(q.id)) if (g.win_castles() > 0 and not g.home_counts()) else g.castle_count(int(q.id))])
 	var of: String = "" if g.win_castles() <= 0 else " [color=#a5b49e][font_size=11]of %d[/font_size][/color]" % g.win_castles()
 	_stat_line("[img=20x15]res://art/terrain/castle_neutral.png[/img] [b]%s[/b]%s" % [" – ".join(parts), of], 14)
 
@@ -842,7 +843,7 @@ func _side_head() -> void:
 		top.add_child(b)
 	if not g.siege.is_empty():
 		var mine: bool = int(g.siege.pid) == 0
-		var txt: String = ("You hold %d castles! Keep them for %d more enemy turns to win." if mine else ("The %s hold %%d castles! Take one back within %%d turns." % String(g.players[int(g.siege.pid)].name))) % [to_win, int(g.siege.left)]
+		var txt: String = ("You hold %d " + ("" if g.home_counts() else "captured ") + "castles! Keep them for %d more enemy turns to win." if mine else ("The %s hold %%d " % String(g.players[int(g.siege.pid)].name)) + ("" if g.home_counts() else "captured ") + "castles! Take one back within %d turns.") % [to_win, int(g.siege.left)]
 		var sb := _box(NIGHT, GOLD if mine else Color("e0574c"), 2, 6)
 		var sp := PanelContainer.new()
 		sp.add_theme_stylebox_override("panel", sb)
@@ -1225,7 +1226,7 @@ func _myth_action_desc(a: String, pid: int) -> String:
 		"build":
 			return "Plant Life Trees: a Mage (even one that just moved) stays on its hex for %d turns; the tree makes %d magic a turn (%d with %d+ Minions there)" % [int(M.tree_turns), int(M.tree_magic), int(M.tree_rich), int(M.tree_minions)]
 		"move":
-			return "Make up to %d moves. Mages and Minions go up to 2 hexes anywhere; other units 1 hex into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle" % g.moves_limit(pid)
+			return "Make up to %d moves. Mages go 1 hex. Minions go up to 2 hexes but only onto your own land: they can't take land, so new land needs another unit with them, and only Mages take castles. Other units go 1 hex into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle" % g.moves_limit(pid)
 		"advance":
 			return "Upgrade your Mages (%s magic for levels 1 to 3; %s) or the Floating Castle (%s magic), or raise a magic dome where a Mage stands (%d magic, then %d a turn)" % [joined.call(M.mage_up), g.mage_req_all(), joined.call(M.castle_up), int(M.dome_cost), int(M.dome_upkeep)]
 		"channel":
@@ -1526,7 +1527,7 @@ func _recruit_controls(box: VBoxContainer) -> void:
 			var U: Dictionary = GameData.units[k]
 			var c2: int = g.unit_cost_at(sel, 0, k)
 			var ok: bool = g.train_ok(t, menu, k)
-			var sub: String = "%d gold · %d health · %s" % [c2, int(U.hp), ("%d damage" % int(U.dmg)) if not U.has("beam") else "beam"]
+			var sub: String = "%d gold · %d health · %s" % [c2, int(U.hp), ("%s damage" % _num(U.dmg)) if not U.has("beam") else "beam"]
 			if not ok:
 				sub = "Needs barracks level %d" % g.barracks_needed(k)
 			box.add_child(_build_button("res://art/units/%s.png" % k, String(U.name), sub, func(): _do(func(): g.train(sel, unit_k, menu_k, 1)), ok and gold >= c2))
@@ -1682,7 +1683,7 @@ func _move_controls(box: VBoxContainer) -> void:
 			parts.append("[img height=22]res://art/units/%s.png[/img] %d" % [k, int(g.tiles[sel].ready[k])])
 		box.add_child(_rich("Here: " + ("  ".join(parts) if not parts.is_empty() else "[color=#a5b49e]nobody ready to move[/color]"), 14))
 	if g.is_myth(0):
-		_hint(box, "Tap a highlighted hex to move, claim, or attack. Mages and Minions go up to 2 hexes anywhere; other units 1 into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle. Each send uses one move.")
+		_hint(box, "Tap a highlighted hex to move, claim, or attack. Mages go 1 hex; Minions up to 2 but only onto your own land (they can't take land), and only Mages take castles. Other units go 1 into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle. Each send uses one move.")
 	else:
 		_hint(box, "Tap a highlighted hex to move, claim, or attack. Through your own land troops go up to 2 hexes; into new land or an attack, 1. Each send uses one move.")
 
@@ -2332,13 +2333,13 @@ func _info_card(body: VBoxContainer) -> void:
 	var here: int = int(t.army.get(k, 0))
 	hv.add_child(_label(kind + ((" · %d on this hex" % here) if here > 0 else ""), 14, LICHEN))
 	# the four numbers
-	var atk: String = str(int(U.dmg))
+	var atk: String = _num(U.dmg)
 	if U.has("beam"):
-		atk = "%d ×%d" % [int(U.dmg), int(U.beam.n)]
+		atk = "%s ×%d" % [_num(U.dmg), int(U.beam.n)]
 	elif int(U.get("shots", 1)) > 1:
-		atk = "%d ×%d" % [int(U.dmg), int(U.shots)]
+		atk = "%s ×%d" % [_num(U.dmg), int(U.shots)]
 	elif U.has("airDmg"):
-		atk = "%d / %d air" % [int(U.dmg), int(U.airDmg)]
+		atk = "%s / %d air" % [_num(U.dmg), int(U.airDmg)]
 	var spd: String = ("%d a battle" % int(U.beam.max)) if U.has("beam") else "%ss" % str(U.rate)
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -2797,6 +2798,9 @@ func _open_move(from: int, to: int) -> void:
 	var mf: Callable = g.move_filter(from, to, lvl)
 	if mf.is_valid():
 		text += "\n" + g.move_filter_note(from, to)
+	var mneed: String = g.myth_need(int(g.tiles[from].owner), b)
+	if mneed != "":
+		text += "\n[b]Only Mages can take a castle:[/b] if you don't pick a Mage, one goes with them." if mneed == "mage" else "\n[b]Minions can't take land:[/b] if you only pick Minions, one other unit goes with them."
 	var box := _open_overlay(title, 600.0)
 	box.add_child(_rich(text, 15))
 	var join := {"on": false}   # Two Herds (Stampede): the ready units next door join the attack
@@ -2826,7 +2830,7 @@ func _open_move(from: int, to: int) -> void:
 		var nb := VBoxContainer.new()
 		nb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		nb.add_child(_label(String(U.name), 15, BONE, true))
-		nb.add_child(_label("%d health · %s" % [int(U.hp), ("%d damage" % int(U.dmg)) if not U.has("beam") else "beam %d" % int(U.dmg)], 12, LICHEN))
+		nb.add_child(_label("%d health · %s" % [int(U.hp), ("%s damage" % _num(U.dmg)) if not U.has("beam") else "beam %d" % int(U.dmg)], 12, LICHEN))
 		row.add_child(nb)
 		var have: int = int(a.ready[k])
 		var spin := HSlider.new()
@@ -2950,9 +2954,9 @@ func _open_help() -> void:
 	if g != null and g.players.size() > 2:
 		txt += "[b]Three players: the last side standing wins[/b]\n 1. Take a rival's home castle and they're out. Their units, walls and trebuchets are gone and all their land turns neutral, buildings and all, for anyone to walk into.\n 2. A side with no hexes left is out too.\n 3. When only one side remains, it wins. There's no castle count to win by with 3 players.\nThe 3-player map has 79 hexes: 6 neutral castles, 10 mountains, 4 lakes and 26 bonus coins. The 2nd and 3rd sides start with 6 and 12 extra gold.\n\n"
 		if to_win > 0:
-			txt += "[b]On this map you can also win by holding %d castles:[/b] each rival then gets %d turns to take one back.\n\n" % [to_win, int(GameData.rules.castles.hold_turns)]
+			txt += "[b]On this map you can also win by holding %d captured castles[/b] (your home doesn't count): each rival then gets %d turns to take one back.\n\n" % [to_win, int(GameData.rules.castles.hold_turns)]
 	else:
-		txt += "[b]Ways to win[/b]\n 1. Take the enemy's home castle.\n 2. Hold %d castles for %d enemy turns.\n 3. Wipe the enemy off the map.\n\n" % [to_win, int(GameData.rules.castles.hold_turns)]
+		txt += ("[b]Ways to win[/b]\n 1. Take the enemy's home castle.\n 2. Hold %d " + ("castles" if g == null or g.home_counts() else "captured castles (not counting your home)") + " for %d enemy turns.\n 3. Wipe the enemy off the map.\n\n") % [to_win, int(GameData.rules.castles.hold_turns)]
 	txt += "%s Bonus coins pay %d gold to whoever takes the hex first. Every 2nd time you play a card, you upgrade one of its actions." % [_img("coin", 20), int(GameData.rules.coin.gold)]
 	if g != null and g.is_dinos(0):
 		txt += "\n\n" + _dino_specials() + "\n\n" + _dino_card_list()
@@ -3223,3 +3227,9 @@ func _ignore_mouse(n: Node) -> void:
 		n.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for c in n.get_children():
 		_ignore_mouse(c)
+
+
+## A unit number for display: whole numbers without a decimal point, others as they are (a Minion does 0.5 damage).
+func _num(v) -> String:
+	var f: float = float(v)
+	return str(int(f)) if f == floor(f) else str(f)

@@ -1974,6 +1974,21 @@ func win_castles() -> int:
 	return 0 if players.size() > 2 else int(GameData.rules.castles.to_win)
 
 
+## Does the home castle count toward the castle win? Not on a hand-made map with its own number (Ethan, 2026-11-17:
+## "it needs to be x amount of captured castles to win"); random maps keep the usual count, home included.
+func home_counts() -> bool:
+	var m: Dictionary = GameData.map_by_id(map_id) if map_id != "" else {}
+	return m.is_empty() or not m.has("castles")
+
+
+## Castles toward the win: every castle the side holds, less its own home castle where that doesn't count.
+func win_count(pid: int) -> int:
+	var n: int = castle_count(pid)
+	if not home_counts() and pid < homes.size() and int(tiles[homes[pid]].owner) == pid:
+		n -= 1
+	return n
+
+
 ## A hand-made map's events at the start of a round (e.g. Control: a castle on the centre hex in round 20).
 func _map_events() -> void:
 	var m: Dictionary = GameData.map_by_id(map_id) if map_id != "" else {}
@@ -2026,7 +2041,7 @@ func check_castles() -> void:
 				return
 	var holder: int = -1
 	for q2 in players:
-		if not bool(q2.get("out", false)) and castle_count(int(q2.id)) >= to_win:
+		if not bool(q2.get("out", false)) and win_count(int(q2.id)) >= to_win:
 			holder = int(q2.id)
 			break
 	if not siege.is_empty() and holder != int(siege.pid):
@@ -2035,7 +2050,7 @@ func check_castles() -> void:
 	if holder >= 0 and siege.is_empty():
 		var rivals: int = players.filter(func(q3): return int(q3.id) != holder and not bool(q3.get("out", false))).size()
 		siege = {"pid": holder, "left": int(GameData.rules.castles.hold_turns) * rivals}   # every rival gets its turns to take one back
-		add_log("%s hold %d castles! %s %d turns%s to take one back." % [players[holder].name, to_win, ("%s have" % players[1 - holder].name) if players.size() == 2 else "Their rivals have", int(GameData.rules.castles.hold_turns), "" if rivals < 2 else " each"])
+		add_log("%s hold %d %scastles! %s %d turns%s to take one back." % [players[holder].name, to_win, "" if home_counts() else "captured ", ("%s have" % players[1 - holder].name) if players.size() == 2 else "Their rivals have", int(GameData.rules.castles.hold_turns), "" if rivals < 2 else " each"])
 
 
 ## After round 18, a new neutral castle appears about as far from one home as the other.
@@ -2514,6 +2529,9 @@ func move_targets(from: int, lvl: int) -> Array[int]:
 	var out: Array[int] = []
 	var co: bool = charge_only(pid)
 	var cand: Array[int] = _move_targets_core(from, lvl, far)
+	var near: Array[int] = []
+	if far:
+		near = _move_targets_core(from, lvl, false)
 	if pid >= 0 and is_robots(pid):   # the Robots' card moves: flyers, Brawlers and new units
 		for x in robo_move_extra(from, lvl):
 			for i in x["hexes"]:
@@ -2522,14 +2540,15 @@ func move_targets(from: int, lvl: int) -> Array[int]:
 	for i in cand:
 		if co and not (int(tiles[i].owner) >= 0 and int(tiles[i].owner) != pid):
 			continue   # Charge: the extra move is an attack
+		if far and not near.has(i) and int(tiles[i].owner) != pid:
+			continue   # Minions' long moves: only onto your own land
 		var f: Callable = move_filter(from, i, lvl)
-		if not f.is_valid():
-			out.append(i)
-			continue
+		var can: Dictionary = {}
 		for k in t.ready:
-			if int(t.ready[k]) > 0 and f.call(k):
-				out.append(i)
-				break
+			if int(t.ready[k]) > 0 and (not f.is_valid() or f.call(k)):
+				can[k] = int(t.ready[k])
+		if not can.is_empty() and myth_has(myth_need(pid, tiles[i]), can):   # Mythical: a castle needs a Mage, new land a non-Minion
+			out.append(i)
 	return out
 
 
@@ -2858,7 +2877,7 @@ func execute_move(from: int, to: int, sel: Dictionary, lvl: int, ar: Dictionary 
 	var pid: int = int(A.owner)
 	var p: Dictionary = players[pid]
 	sel = _move_sel(from, to, sel, lvl)
-	if CombatRules.count(sel) == 0:
+	if CombatRules.count(sel) == 0 or not myth_has(myth_need(pid, B), sel):
 		return {"from": from, "to": to, "n": 0, "sent": {}, "kind": "none", "att": pid}
 	var src: int = approach_of(from, to, lvl)
 	var W: int = 0
@@ -3565,9 +3584,28 @@ func tree_magic(t: Dictionary) -> int:
 	return int(myth().tree_rich) if int(t.army.get("minion", 0)) >= int(myth().tree_minions) else int(myth().tree_magic)
 
 
-## Mages and Minions move 2 hexes anywhere.
+## Minions move 2 hexes (onto your own land only); Mages 1 (Ethan, 2026-11-17).
 func fast_unit(k: String) -> bool:
-	return k == "minion" or is_mage(k)
+	return k == "minion"
+
+
+## What a Mythical move into hex b needs (Ethan, 2026-11-17): "mage" for a castle (not an enemy Floating Castle, which only
+## flyers can attack), "land" (any unit but a Minion) for other land, "" on your own land or for the other factions.
+func myth_need(pid: int, b: Dictionary) -> String:
+	if not is_myth(pid) or int(b.owner) == pid:
+		return ""
+	if b.castle:
+		return "" if (int(b.owner) >= 0 and is_floating(b)) else "mage"
+	return "land"
+
+
+func myth_has(need: String, army: Dictionary) -> bool:
+	if need == "":
+		return true
+	for k in army:
+		if int(army[k]) > 0 and (is_mage(k) if need == "mage" else k != "minion"):
+			return true
+	return false
 
 
 func myth_income(pid: int) -> Dictionary:
@@ -3788,10 +3826,15 @@ func move_filter(from: int, to: int, lvl: int) -> Callable:
 	var far: bool = is_myth(pid) and not _move_targets_core(from, lvl, false).has(to)
 	if air and far:
 		return func(_k): return false
+	var no_mage: bool = is_myth(pid) and HexGrid.distance(from, to) > 1   # Mages go 1 hex a move
 	if air:
+		if no_mage:
+			return func(k): return bool(GameData.units[k].get("air", false)) and not is_mage(k)
 		return func(k): return bool(GameData.units[k].get("air", false))
 	if far:
 		return func(k): return fast_unit(k)
+	if no_mage:
+		return func(k): return not is_mage(k)
 	return Callable()
 
 
@@ -3803,7 +3846,9 @@ func move_filter_note(from: int, to: int) -> String:
 				return String(x["why"])
 	if int(B.owner) >= 0 and int(B.owner) != int(tiles[from].owner) and is_floating(B):
 		return "The Floating Castle can only be attacked by flyers."
-	return "Only Mages and Minions can go this far in one move."
+	if is_myth(int(tiles[from].owner)) and not _move_targets_core(from, cur_lvl(), false).has(to):
+		return "Only Minions can go this far in one move, and only onto your own land."
+	return "Mages move 1 hex at a time, so they stay behind."
 
 
 ## The units that can actually make a move: the filter above, and at most 2 Mages on a hex (3 at level 3).
@@ -3816,6 +3861,12 @@ func _move_sel(from: int, to: int, sel: Dictionary, lvl: int) -> Dictionary:
 				out.erase(k)
 	var A: Dictionary = tiles[from]
 	var B: Dictionary = tiles[to]
+	var need: String = myth_need(int(A.owner), B)
+	if need != "" and not myth_has(need, out):   # a Mythical group that lacks what it needs takes one along
+		for k in _by_strength(A.ready):
+			if int(A.ready[k]) > int(out.get(k, 0)) and (not f.is_valid() or f.call(k)) and (is_mage(k) if need == "mage" else k != "minion"):
+				out[k] = int(out.get(k, 0)) + 1
+				break
 	if is_myth(int(A.owner)):
 		var room: int = mage_cap(int(A.owner)) - (mages_on(B) if int(B.owner) == int(A.owner) else 0)
 		var n: int = 0

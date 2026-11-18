@@ -945,7 +945,7 @@ static func move_score(g, pid: int, s: Dictionary, b: Dictionary, n: int, D: Arr
 	var to_win: int = g.win_castles()
 	if castle_v < 10000.0 and b.castle and foe and not g.siege.is_empty() and int(g.siege.pid) == int(b.owner):
 		castle_v = 3000.0   # breaks their hold: must try
-	elif b.castle and to_win > 0 and g.castle_count(pid) + 1 >= to_win:
+	elif b.castle and to_win > 0 and g.win_count(pid) + 1 >= to_win:
 		castle_v += 150.0   # gets us to the winning count
 	if int(b.owner) == pid:
 		var v: float = 1.0 + adv if prog > 0 else -1.0
@@ -1214,7 +1214,7 @@ static func eval_for(g, pid: int) -> float:
 	for i in [pid] + foes:
 		var sgn: float = 1.0 if i == pid else -fw
 		var mv: float = float(GameData.rules.mythical.magic_val) if g.is_myth(i) else 1.0   # 1 magic is worth about 3 gold
-		V += sgn * (float(W.get("tr", 3.0)) * tr[i] + 1.5 * tl[i] + float(W.get("ca", 40.0)) * ca[i] + (250.0 if to_win > 0 and ca[i] >= to_win else 0.0) + float(W.get("inc", 4.0)) * int(g.income_of(i).total) * mv + xv[i])
+		V += sgn * (float(W.get("tr", 3.0)) * tr[i] + 1.5 * tl[i] + float(W.get("ca", 40.0)) * ca[i] + (250.0 if to_win > 0 and ca[i] - (0 if g.home_counts() or int(g.tiles[g.homes[i]].owner) != i else 1) >= to_win else 0.0) + float(W.get("inc", 4.0)) * int(g.income_of(i).total) * mv + xv[i])
 	var gold: float = float(g.players[pid].gold) * (float(GameData.rules.mythical.magic_val) if g.is_myth(pid) else 1.0)
 	V += (0.9 * minf(gold, 40.0) + 0.4 * maxf(0.0, gold - 40.0)) if smart(g, pid) else 0.9 * gold
 	V += 1.6 * g.mat_of(pid)
