@@ -937,7 +937,10 @@ static func move_score(g, pid: int, s: Dictionary, b: Dictionary, n: int, D: Arr
 	var prog: float = float(D[int(s.id)]) - float(D[int(b.id)])
 	var sel: Dictionary = g.pick_units(int(s.id), n, claim and n == 1)
 	var st: float = g._army_gold(sel) / 3.0
-	var adv: float = prog * 0.4 * st if prog > 0 else 0.0
+	var st_adv: float = st
+	if g.is_myth(pid) and sel.has("minion"):   # Minions can't take land (2026-11-17): marching them forward is worth little
+		st_adv -= 0.8 * int(sel.minion) * float(GameData.units.minion.cost) / 3.0
+	var adv: float = prog * 0.4 * st_adv if prog > 0 else 0.0
 	var castle_v: float = 0.0
 	if b.castle:
 		var their_home: bool = foe and g.homes[int(b.owner)] == int(b.id)
@@ -949,6 +952,18 @@ static func move_score(g, pid: int, s: Dictionary, b: Dictionary, n: int, D: Arr
 		castle_v += 150.0   # gets us to the winning count
 	if int(b.owner) == pid:
 		var v: float = 1.0 + adv if prog > 0 else -1.0
+		if g.is_myth(pid) and sel.keys().any(func(k): return g.is_mage(k)):
+			# only Mages take castles (2026-11-17): walk them up to a castle that can be taken, and along with the army
+			for j in HexGrid.neighbors(int(b.id)):
+				var cj: Dictionary = g.tiles[j]
+				if cj.castle and int(cj.owner) != pid and g.myth_need(pid, cj) == "mage":
+					v = maxf(v, 6.0 + adv)
+			var others: int = 0
+			for k2 in b.army:
+				if k2 != "minion" and not g.is_mage(k2):
+					others += int(b.army[k2])
+			if others >= 3 and prog >= 0:
+				v = maxf(v, 2.5 + adv)
 		if b.castle:
 			var near: float = enemy_near(g, int(b.id), pid, 2)
 			if near >= tp(g, b):

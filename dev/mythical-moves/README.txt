@@ -10,3 +10,9 @@ Browser: patch_moves.py (fastUnit, mythNeed, mythHas, moveFilter, moveTargets, e
 Godot: port_godot.py -> godot/ (game_state.gd: fast_unit, myth_need, myth_has, move_filter, move_targets, _move_sel,
 execute_move; main.gd texts and the Move sheet note).
 Tested: rule checks in both, computer games with the Mythical in both.
+
+Computer fix (Ethan, 2026-11-17: Expert Mythical "didnt capture a castle and it didnt try and fight me"): it spent its moves
+marching big Minion stacks around its own land (a march was scored by the stack's size) and attacked with 1 Minotaur + 1 Minion.
+Now Minions count 20% when scoring a march, and Mages are walked up to castles they can take and along with the army.
+Browser patch_ai.py; Godot ai_player.gd move_score. Tests (20-40 rounds, Expert Mythical vs Hard): Godot 6 games, castles 1-3,
+2 wins by taking the home castle, 1 loss; browser 6 games, 1-13 hexes taken from the other side, up to 4 castles held.
