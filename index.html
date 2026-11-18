@@ -757,6 +757,9 @@ const CASTLES_TO_WIN=4, HOLD_TURNS=2;
 // castles to hold to win: the map's own number, or 4 with 2 players and none with 3 (0 = no castle win)
 function winCastlesFor(np,mapId){ const m=mapId?mapById(mapId):null; return m&&m.players===np&&m.castles!=null?m.castles:(np>2?0:CASTLES_TO_WIN); }
 const winCastles=()=>S?winCastlesFor(S.players.length,S.map):CASTLES_TO_WIN;
+// does the home castle count toward the win? Not on a hand-made map with its own number (only captured castles count there)
+const homeCounts=()=>{ const m=S&&S.map?mapById(S.map):null; return !(m&&m.players===S.players.length&&m.castles!=null); };
+const winCount=pid=>castleCount(pid)-(!homeCounts()&&S.tiles[S.homes[pid]]&&S.tiles[S.homes[pid]].owner===pid?1:0);   // castles toward the win
 const rivalsName=pid=>{ const r=S.players.filter(q=>q.id!==pid&&!q.out); return r.length===1?`The ${r[0].name}`:'Their rivals'; };
 const NEW_CASTLE_ROUND=18;              // after this many rounds a new neutral castle appears   // a third of the open hexes hold a one-time 10 gold for whoever takes them first
 const HAND_SIZE=3;               // cards in hand; the rest of the faction's 5 wait in reserve
@@ -2253,12 +2256,12 @@ function checkCastles(){
     S.players.forEach(q=>{ if(!q.out&&!S.over&&!S.tiles.some(t=>t.owner===q.id)) knockOut(q.id,null,'wipe'); });
     if(S.over||!need) return;
   } else for(const pid of [0,1]) if(!S.tiles.some(t=>t.owner===pid)){ addLog(`${S.players[pid].name} have no land left.`,1-pid); endGame(1-pid,'wipe'); return; }
-  const holder=S.players.map(q=>q.id).find(pid=>!S.players[pid].out&&castleCount(pid)>=need);
+  const holder=S.players.map(q=>q.id).find(pid=>!S.players[pid].out&&winCount(pid)>=need);
   if(S.siege&&holder!==S.siege.pid){ addLog(`${S.players[S.siege.pid].name} no longer hold ${need} castles.`,S.siege.pid); S.siege=null; }
   if(holder!==undefined&&!S.siege){
     const rivals=S.players.filter(q=>q.id!==holder&&!q.out).length;
     S.siege={pid:holder,left:HOLD_TURNS*rivals};   // every rival gets HOLD_TURNS turns to take one back
-    addLog(`${S.players[holder].name} hold ${need} castles! ${rivalsName(holder)} have ${HOLD_TURNS} turns${rivals>1?' each':''} to take one back.`,holder);
+    addLog(`${S.players[holder].name} hold ${need} ${homeCounts()?'':'captured '}castles! ${rivalsName(holder)} have ${HOLD_TURNS} turns${rivals>1?' each':''} to take one back.`,holder);
   }
 }
 // a new neutral castle on a random open hex, picked among those about as far from one home castle as the other
@@ -3312,7 +3315,7 @@ function aiMoveScore(pid,s,b,n,D,lvl,claim){
   const theirHome=b.castle&&foe&&S.homes[b.owner]===b.id;
   let castleV=b.castle?(theirHome?(foesOf(pid).length>1?2500:1e4):45):0;            // a rival's home castle: wins the game (2 sides) or knocks them out (3)
   if(castleV<1e4&&b.castle&&foe&&S.siege&&S.siege.pid===b.owner) castleV=3000;          // breaks their hold: must try
-  else if(b.castle&&winCastles()&&castleCount(pid)+1>=winCastles()) castleV+=150;             // gets us to the winning count
+  else if(b.castle&&winCastles()&&winCount(pid)+1>=winCastles()) castleV+=150;             // gets us to the winning count
   if(b.owner===pid){
     let v=prog>0?1+adv:-1;
     if(b.castle){const near=enemyNear(b.id,pid,2); if(near>=tp(b)) v=Math.max(v,2+2*Math.min(st,near-tp(b)+2));}
@@ -3522,7 +3525,7 @@ function evalFor(pid){
   S.tiles.forEach(t=>{if(t.owner>=0){tr[t.owner]+=tp(t);tl[t.owner]++;if(t.castle)ca[t.owner]++;
     xv[t.owner]+=(t.treb===2?10+4*Math.min(2,trebSpot(t.id,t.owner)):t.treb===1?12:0)+(t.walls?t.walls.reduce((a,b)=>a+b,0):0)+2*(t.bk||0);}});
   let V=0;
-  const W=aiProf(pid).ev||{}; for(const i of [pid,...foes]){const s=i===pid?1:-fw; V+=s*((W.tr||3)*tr[i]+1.5*tl[i]+(W.ca||40)*ca[i]+(winCastles()&&ca[i]>=winCastles()?250:0)+(W.inc||4)*incomeOf(i).total*(isMyth(i)?MAGIC_VAL:1)+xv[i]);}
+  const W=aiProf(pid).ev||{}; for(const i of [pid,...foes]){const s=i===pid?1:-fw; V+=s*((W.tr||3)*tr[i]+1.5*tl[i]+(W.ca||40)*ca[i]+(winCastles()&&ca[i]-(homeCounts()?0:(S.tiles[S.homes[i]]&&S.tiles[S.homes[i]].owner===i?1:0))>=winCastles()?250:0)+(W.inc||4)*incomeOf(i).total*(isMyth(i)?MAGIC_VAL:1)+xv[i]);}
   const g=S.players[pid].gold*(isMyth(pid)?MAGIC_VAL:1); V+=aiSmart(pid)?0.9*Math.min(g,40)+0.4*Math.max(0,g-40):0.9*g;
   V+=1.6*matOf(pid);   // materials in store: a little under the 2 gold they cost
   V-=(W.ex||1)*exposure(pid); for(const e of foes) V+=(W.ex2||0.3)*exposure(e)/foes.length;
@@ -4026,8 +4029,8 @@ function renderHead(){
   if(S.siege&&!S.over){
     const L=S.siege.left, tw=L===1?'turn':'turns';
     siege=S.siege.pid===0
-      ?`<div class="siege mine"><span class="px px-crown" aria-hidden="true"></span> You hold ${winCastles()} castles. Keep them through ${L===1?'the':'the next '+L} ${S.players.length>2?'rival':S.players[1].name} ${tw} to win.</div>`
-      :`<div class="siege theirs">⚠ The ${S.players[S.siege.pid].name} hold ${winCastles()} castles. Take one back within ${S.players.length>2?L+' rival':L} ${tw}${S.players.length>2?'':' of yours'} or they win.</div>`;
+      ?`<div class="siege mine"><span class="px px-crown" aria-hidden="true"></span> You hold ${winCastles()} ${homeCounts()?'':'captured '}castles. Keep them through ${L===1?'the':'the next '+L} ${S.players.length>2?'rival':S.players[1].name} ${tw} to win.</div>`
+      :`<div class="siege theirs">⚠ The ${S.players[S.siege.pid].name} hold ${winCastles()} ${homeCounts()?'':'captured '}castles. Take one back within ${S.players.length>2?L+' rival':L} ${tw}${S.players.length>2?'':' of yours'} or they win.</div>`;
   }
   $('#sidehead').innerHTML=`<span class="sh-turn">${turn}</span>
     <span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶ Full</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
@@ -4036,13 +4039,13 @@ function renderHead(){
 function renderStats(){
   const me=S.players[0], myth=isMyth(0), cur1=myth?'magic':'coin';
   const units=S.tiles.filter(t=>t.owner===0).reduce((n,t)=>n+t.troops,0);
-  const cas=S.players.map(p=>`<b style="color:${inkOf(p)}${p.out?';opacity:.4;text-decoration:line-through':''}">${castleCount(p.id)}</b>`).join(' – ');
+  const cas=S.players.map(p=>`<b style="color:${inkOf(p)}${p.out?';opacity:.4;text-decoration:line-through':''}">${winCastles()&&!homeCounts()?winCount(p.id):castleCount(p.id)}</b>`).join(' – ');
   $('#stats').innerHTML=`
     <span class="st inc" title="${myth?'Magic':'Coins'} you collect each turn"><b>+${incomeOf(0).total}</b> ${myth?'magic':'coins'} / turn</span>
     <span class="st" title="Your units on the board"><b>${units}</b> unit${units===1?'':'s'}</span>
     <span class="st have" title="${myth?'Magic':'Gold'} you have"><span class="px px-${cur1}" aria-hidden="true"></span><b>${me.gold}</b> ${myth?'magic':'coins'}</span>
     ${usesMat(0)?`<button class="st" data-head="trade" title="Materials: tap to buy more at your markets" aria-label="Materials: ${matOf(0)}. Buy more at your markets">${MAT_IC}<b>${matOf(0)}</b> material${matOf(0)===1?'':'s'}</button>`:''}
-    <span class="st cas" title="${!winCastles()?'Castles held':`Castles held: hold ${winCastles()} to win`}"><span class="px px-c-neutral" aria-hidden="true"></span>${cas}${!winCastles()?'':` <small>of ${winCastles()}</small>`}</span>`;
+    <span class="st cas" title="${!winCastles()?'Castles held':homeCounts()?`Castles held: hold ${winCastles()} to win`:`Captured castles: hold ${winCastles()} to win`}"><span class="px px-c-neutral" aria-hidden="true"></span>${cas}${!winCastles()?'':` <small>of ${winCastles()}</small>`}</span>`;
 }
 // details of the tapped hex, floating in the board's corner
 function renderHexInfo(){
@@ -4398,9 +4401,9 @@ const WINS3_HTML=`<p>You start at the bottom-left castle; two rivals hold the ot
   <li><b>Be the last one left.</b> When only one side remains, it wins. There's no castle count to win by with 3 players.</li></ol>`;
 function showRules(){
   const m=modsOf(0), f=facOf(0);
-  openInfo('How to play',`${S.players.length>2?WINS3_HTML+(winCastles()?`<p><b>On this map you can also win by holding ${winCastles()} castles:</b> each rival then gets ${HOLD_TURNS} turns to take one back, or you win.</p>`:''):''}<p${S.players.length>2?' hidden':''}>You start at the bottom-left castle. <b>There are three ways to win:</b></p>
+  openInfo('How to play',`${S.players.length>2?WINS3_HTML+(winCastles()?`<p><b>On this map you can also win by holding ${winCastles()} captured castles</b> (your home doesn't count): each rival then gets ${HOLD_TURNS} turns to take one back, or you win.</p>`:''):''}<p${S.players.length>2?' hidden':''}>You start at the bottom-left castle. <b>There are three ways to win:</b></p>
   <ol class="wins"${S.players.length>2?' hidden':''}><li><b>Take their home castle.</b> Capture the enemy's home castle and you win on the spot.</li>
-  <li><b>Hold ${winCastles()} castles.</b> When a side holds ${winCastles()} castles, the other side gets ${HOLD_TURNS} turns to take one of them back. If they can't, the side with ${winCastles()} castles wins. After round ${NEW_CASTLE_ROUND} a new neutral castle appears.</li>
+  <li><b>Hold ${winCastles()} ${homeCounts()?'':'captured '}castles${homeCounts()?'':' (not counting your home)'}.</b> When a side holds ${winCastles()} ${homeCounts()?'':'captured '}castles, the other side gets ${HOLD_TURNS} turns to take one of them back. If they can't, the side with ${winCastles()} castles wins. After round ${NEW_CASTLE_ROUND} a new neutral castle appears.</li>
   <li><b>Wipe them out.</b> If the enemy has no hexes left, you win.</li></ol>
   <p>You lead the <b>${f.emblem} ${f.name}</b>. ${f.tagline}.</p>
   <ul>
@@ -4459,8 +4462,8 @@ function oppPicker3(fid,want){
 }
 // what the faction page says about who you face and how to win
 const faceLine=(fid)=>fsNP===3?(()=>{ const o=threeOpps(fid,fsOpps); return `You'll face the ${FACTIONS[o[0]].name} and the ${FACTIONS[o[1]].name}.`; })():`You'll face the ${FACTIONS[oppFor(fid,fsOpp)].name}.`;
-const winListHtml=()=>{ const need=winCastlesFor(fsNP,fsMap); return fsNP===3?`<ul><li><b>Take a rival's home castle</b> and they're out; their land turns neutral.</li><li><b>Wipe a rival off the map</b> and they're out too.</li>${need?`<li><b>Hold ${need} castles</b> while each rival gets ${HOLD_TURNS} turns to take one back.</li>`:''}<li><b>Be the last side standing.</b></li></ul>`
-  :`<ul><li><b>Take their home castle</b> and win on the spot.</li><li><b>Hold ${need} castles</b> for ${HOLD_TURNS} of their turns.</li><li><b>Wipe them off the map.</b></li></ul>`; };
+const winListHtml=()=>{ const need=winCastlesFor(fsNP,fsMap); return fsNP===3?`<ul><li><b>Take a rival's home castle</b> and they're out; their land turns neutral.</li><li><b>Wipe a rival off the map</b> and they're out too.</li>${need?`<li><b>Hold ${need} captured castles</b> (not counting your home) while each rival gets ${HOLD_TURNS} turns to take one back.</li>`:''}<li><b>Be the last side standing.</b></li></ul>`
+  :`<ul><li><b>Take their home castle</b> and win on the spot.</li><li><b>Hold ${need} ${fsMap&&(mapById(fsMap)||{}).castles!=null&&(mapById(fsMap)||{}).players===fsNP?'captured castles</b> (not counting your home)':'castles</b>'} for ${HOLD_TURNS} of their turns.</li><li><b>Wipe them off the map.</b></li></ul>`; };
 // the opponent's faction: the one picked, if it's a different one, or else the first other faction
 const oppFor=(fid,want)=>(want&&want!==fid&&FACTIONS[want])?want:(FACTION_ORDER.find(f=>f!==fid)||fid);
 function oppPicker(fid,want,attr){
