@@ -1116,7 +1116,11 @@ const convPrice=(t,k)=>MYTH_CONV[k].m-(mageLvAt(t)>=3?1:0);
 const mythHome=pid=>{ const h=S.tiles[S.homes[pid]]; return h&&h.owner===pid?h:null; };
 const isFloating=t=>!!t.castle&&t.owner>=0&&S.homes[t.owner]===t.id&&isMyth(t.owner);
 const treeMagic=t=>((t.army&&t.army.minion)||0)>=MYTH.treeMinions?MYTH.treeRich:MYTH.treeMagic;
-const fastUnit=k=>k==='minion'||isMage(k);         // Mages and Minions move 2 hexes anywhere
+const fastUnit=k=>k==='minion';                     // Minions move 2 hexes (onto your own land); Mages 1 (Ethan, 2026-11-17)
+// what a Mythical move into hex b needs: a Mage for a castle, any unit but a Minion for other land; nothing on your own land
+// (an enemy Floating Castle only takes flyers, so no Mage is asked for there)
+const mythNeed=(pid,b)=>!isMyth(pid)||b.owner===pid?null:b.castle?(b.owner>=0&&isFloating(b)?null:'mage'):'land';
+const mythHas=(need,army)=>!need||Object.keys(army||{}).some(k=>(army[k]|0)>0&&(need==='mage'?isMage(k):k!=='minion'));
 function mythIncome(pid){
   let tiles=0,castles=0,trees=0,treeM=0;
   S.tiles.forEach(t=>{ if(t.owner!==pid) return; tiles++; if(t.castle) castles++; if(t.tree){ trees++; treeM+=treeMagic(t); } });
@@ -1190,15 +1194,17 @@ function roboMoveFilter(from,to,lvl){
 function moveFilter(from,to,lvl){
   const A=S.tiles[from], B=S.tiles[to], pid=A.owner;
   if(pid>=0&&isRobo(pid)){ const rf=roboMoveFilter(from,to,lvl); if(rf) return rf; }
-  const air=B.owner>=0&&B.owner!==pid&&isFloating(B), far=isMyth(pid)&&!moveTargetsCore(from,lvl||0,false).includes(to);
+  const air=B.owner>=0&&B.owner!==pid&&isFloating(B), far=isMyth(pid)&&!regrouping()&&!moveTargetsCore(from,lvl||0,false).includes(to);
   if(air&&far) return ()=>false;
-  if(air) return k=>!!UNIT_STATS[k].air;
+  const noMage=isMyth(pid)&&man(from,to)>1;   // Mages go 1 hex a move
+  if(air) return noMage?(k=>!!UNIT_STATS[k].air&&!isMage(k)):(k=>!!UNIT_STATS[k].air);
   if(far) return fastUnit;
+  if(noMage) return k=>!isMage(k);
   return null;
 }
 function moveFilterNote(from,to){ const B=S.tiles[to];
   if(isRobo(S.tiles[from].owner)&&!moveTargetsCore(from,curLvl(),false).includes(to)){ const x=roboMoveExtra(from,curLvl()).find(x=>x.set.has(to)); if(x) return '<br>'+x.why; }
-  return B.owner>=0&&B.owner!==S.tiles[from].owner&&isFloating(B)?'<br>The Floating Castle can only be attacked by flyers.':'<br>Only Mages and Minions can go this far in one move.'; }
+  return B.owner>=0&&B.owner!==S.tiles[from].owner&&isFloating(B)?'<br>The Floating Castle can only be attacked by flyers.':(isMyth(S.tiles[from].owner)&&!moveTargetsCore(from,curLvl(),false).includes(to)?'<br>Only Minions can go this far in one move, and only onto your own land.':'<br>Mages move 1 hex at a time, so they stay behind.'); }
 // a hex holds at most 2 Mages (3 once Mages reach level 3): the extra ones stay behind
 function mageTrim(A,B,sel){
   if(!isMyth(A.owner)) return; const room=mageCap(A.owner)-(B.owner===A.owner?magesOn(B):0);
@@ -1209,7 +1215,7 @@ function mythActionDesc(a,pid){
   if(a==='harvest') return `+${modsOf(pid).harvestBase} magic, plus 1 for every 2 hexes you own (on top of your Life Trees and castle)`;
   if(a==='recruit') return `At your castles: Minions (${MYTH.minionPack} for 1 magic) and Mages (${magePrice(pid)} magic, at most ${mageCap(pid)} on a hex). Where a Mage stands: turn Minions into Minotaurs, Griffins and Dragons`;
   if(a==='build') return `Plant Life Trees: a Mage (even one that moved this turn) stays on its hex for ${MYTH.treeTurns} turns; the tree makes ${MYTH.treeMagic} magic a turn (${MYTH.treeRich} with ${MYTH.treeMinions}+ Minions there)`;
-  if(a==='move') return `Make up to ${movesLimit(pid)} moves. Mages and Minions go up to 2 hexes anywhere; other units 1 hex into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle`;
+  if(a==='move') return `Make up to ${movesLimit(pid)} moves. Mages go 1 hex. Minions go up to 2 hexes but only onto your own land: they can't take land, so new land needs another unit with them, and only Mages take castles. Other units go 1 hex into new land or an attack, or 2 through your own land. Only flyers can attack a Floating Castle`;
   if(a==='advance') return `Upgrade your Mages (${MYTH.mageUp.join(', ')} magic for levels 1 to 3; ${mageReqAll()}) or the Floating Castle (${MYTH.castleUp.join(', ')} magic), or raise a magic dome where a Mage stands (${MYTH.domeCost} magic, then ${MYTH.domeUpkeep} a turn)`;
   if(a==='channel') return `No other actions this turn: +${MYTH.chMage} magic for every Mage you have and +${MYTH.chCastle} for every castle you hold`;
   return actionDescBase(a,pid,0);
@@ -1319,7 +1325,7 @@ function mythFactionInfo(fid){
       <li>Levels (${MYTH.mageUp.join(', ')} magic, at the castle): 1 Griffins, 3 Dragons, every unit 1 magic cheaper and 3 Mages a hex. Each level also lengthens the Mage's lightning; a Mage keeps the level it was made at.</li>
       <li>Each level also needs Life Trees and captured castles when you raise it (${mageReqAll()}). Losing a castle later doesn't take the level away.</li>
       <li>Mages plant Life Trees (the Mage stays ${MYTH.treeTurns} turns) and raise magic domes (${MYTH.domeCost} magic, ${MYTH.domeUpkeep} a turn): a dome guards every side like a full wall.</li>
-      <li>Mages and Minions move 2 hexes anywhere, and a Move action has 3 moves.</li></ul>
+      <li>A Move action has 3 moves. Mages move 1 hex; Minions move 2 but only onto your own land.</li><li>Only Mages capture castles. Minions can't take land on their own; every other unit can.</li></ul>
     <h3>Your cards</h3>
     <ul>${f.cards.map(c=>`<li><b>${c.name}</b>: ${c.actions.map(a=>ACTIONS[a].icon+' '+actName(a,fid)).join(' → ')}</li>`).join('')}</ul>
     <p>The Mythical lean on <b>Advancements</b> and <b>Fortify</b>. Fortify is a wild card: regroup your army inside your land, then Build, Advancements or Recruit.</p>
@@ -1466,7 +1472,8 @@ const chargeOnly=pid=>(dk(pid,'stamp','move')>=1||dk(pid,'tusks','move')>=1)&&S.
 function moveTargets(from,lvl){
   lvl=lvl||0; const t=S.tiles[from], pid=t.owner, far=isMyth(pid)&&Object.keys(t.ready||{}).some(k=>t.ready[k]>0&&fastUnit(k)), co=chargeOnly(pid);
   const ext=isRobo(pid)?[...new Set(roboMoveExtra(from,lvl).flatMap(x=>[...x.set]))]:[];
-  return [...new Set(moveTargetsCore(from,lvl,far).concat(ext))].filter(i=>!co||(S.tiles[i].owner>=0&&S.tiles[i].owner!==pid)).filter(i=>{ const f=moveFilter(from,i,lvl); return !f||Object.keys(t.ready||{}).some(k=>t.ready[k]>0&&f(k)); });
+  const near=far?new Set(moveTargetsCore(from,lvl,false)):null;
+  return [...new Set(moveTargetsCore(from,lvl,far).concat(ext))].filter(i=>!co||(S.tiles[i].owner>=0&&S.tiles[i].owner!==pid)).filter(i=>!near||near.has(i)||S.tiles[i].owner===pid).filter(i=>{ const f=moveFilter(from,i,lvl), r={}; for(const k in (t.ready||{})) if(t.ready[k]>0&&(!f||f(k))) r[k]=t.ready[k]; return cnt(r)>0&&mythHas(mythNeed(pid,S.tiles[i]),r); });
 }
 // a Fortify's regroup: any of your own hexes reached through your own open land (not mountains), any distance
 function regroupTargets(from,maxD){ const pid=S.tiles[from].owner, seen=new Set([from]); let fr=[from], d=0; maxD=maxD||REGROUP_REACH;
@@ -1609,7 +1616,7 @@ const UNIT_NOTE={
   eleph:"Tusk sweep hits up to 5 ground units and shoves them back. War Trumpet at 2s: your Mammals do +2 damage and attack 0.2s faster for the rest of the battle, and every enemy's next attack misses",
 };
 Object.assign(UNIT_NOTE,{
-  minion:'Cheap and many. The only Mythical unit that captures castles. Mages turn Minions into bigger units',
+  minion:'Cheap and many. Moves 2 hexes but only onto your own land: it can\'t take land or castles on its own. Mages turn Minions into bigger units',
   mage0:'Chain lightning: 5 damage to up to 20 enemies, ground or air, jumping from one to the next; reaches a quarter of the field. Every 2s, 20% chance to turn a Minion into a Minotaur',
   mage1:'Level 1: lightning reaches half the field and does 6',
   mage2:'Level 2: lightning reaches three quarters of the field and does 7',
@@ -2748,8 +2755,11 @@ function executeMove(from,to,n,lvl,ar){
   if(typeof n==='number') sel=pickUnits(A,n);
   else for(const k in n){ const m=Math.min(n[k]|0,(A.ready&&A.ready[k])||0); if(m>0) sel[k]=m; }
   { const fl=moveFilter(from,to,lvl||0); if(fl) for(const k in sel) if(!fl(k)) delete sel[k]; }   // flyers only at a Floating Castle; Mages and Minions only on a long move
+  { const need=mythNeed(A.owner,B);   // Mythical: a castle needs a Mage, new land a unit that isn't a Minion
+    if(need&&!mythHas(need,sel)){ const fl=moveFilter(from,to,lvl||0), k=byStrength(A.ready||{}).find(x=>(A.ready[x]|0)>(sel[x]|0)&&(!fl||fl(x))&&(need==='mage'?isMage(x):x!=='minion'));
+      if(k) sel[k]=(sel[k]|0)+1; else return {from,to,n:0,sent:{},kind:'none',att:A.owner}; } }
   mageTrim(A,B,sel);
-  if(!cnt(sel)) return {from,to,n:0,sent:{},kind:'none',att:A.owner};
+  if(!cnt(sel)||!mythHas(mythNeed(A.owner,B),sel)) return {from,to,n:0,sent:{},kind:'none',att:A.owner};
   const src=approachOf(from,to,lvl||0), W=(B.owner>=0&&B.owner!==A.owner&&!openCastle(B))?wallOn(to,src):0;   // an enemy wall on the side the units come across (none at an empty castle)
   takeUnits(A,sel);
   const res={from,to,n:cnt(sel),sent:sel,kind:'move',att:A.owner};
@@ -2884,7 +2894,9 @@ function openMove(from,to){
     if(!fight){ $('#mvodds').innerHTML=''; return; }
     const o={wall:W,bonus:defBonus(b),advD,map:arenaMap(b),...ao}, n=cnt(pick);
     $('#mvodds').innerHTML=`Chance to win: ${n?`with the ${n} picked <b>${Math.round(winOdds(pick,defArmy(b),o)*100)}%</b> · `:''}with all ${cnt(all)} <b>${Math.round(winOdds(all,defArmy(b),o)*100)}%</b>`; };
-  const upd=()=>{ const n=cnt(pick); $('#mvsel').disabled=!n; $('#mvsel').textContent=`${verb} ${n||''} picked`.replace('  ',' '); };
+  const mneed=mythNeed(s.owner,b);
+  if(mneed) $('.mvsheet p').insertAdjacentHTML('beforeend',mneed==='mage'?'<br><b>Only Mages can take a castle:</b> send at least one Mage.':'<br><b>Minions can\'t take land:</b> send at least one unit that isn\'t a Minion.');
+  const upd=()=>{ const n=cnt(pick), ok=mythHas(mneed,pick); $('#mvsel').disabled=!n||!ok; $('#mvsel').textContent=`${verb} ${n||''} picked`.replace('  ',' '); };
   let tm=0;
   const setK=(k,v)=>{ v=Math.max(0,Math.min(s.ready[k],v)); pick[k]=v;
     m.querySelector(`input[data-k="${k}"]`).value=v; m.querySelector(`output[data-o="${k}"]`).textContent=`${v} / ${s.ready[k]}`;
