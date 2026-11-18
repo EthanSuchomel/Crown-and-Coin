@@ -184,5 +184,5 @@ for name, src in list(extra.items()):
         t = overhang(src)
         if t is not None:
             t.save(os.path.join(out, name + '_top.png'), optimize=True); print('treetops kept above the hex:', name)
-        elif os.path.exists(os.path.join(out, name + '_top.png')):
-            os.remove(os.path.join(out, name + '_top.png'))
+        else:   # nothing above the hex: an empty picture, so the board still finds one
+            Image.new('RGBA', (W, round(H * (1 + TOP_PAD))), (0, 0, 0, 0)).save(os.path.join(out, name + '_top.png'))
