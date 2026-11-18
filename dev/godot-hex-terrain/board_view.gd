@@ -62,6 +62,7 @@ func _ready() -> void:
 		"wh": "res://art/buildings/wh.png",
 		"castle_neutral": "res://art/terrain/castle_neutral.png",
 		"coin": "res://art/ui/coin.png",
+		"mat": "res://art/ui/mat.png",
 		"crown": "res://art/ui/crown.png",
 		"fortify": "res://art/ui/fortify.png",
 		"treb": "res://art/buildings/treb.png",
@@ -505,6 +506,8 @@ func _draw_hex_things(font: Font, t: Dictionary, u: float) -> void:
 		_draw_rect_tex(tex("tree"), Rect2(c - Vector2(z, z) * u / 2.0, Vector2(z, z) * u))
 	if t.bounty:
 		_draw_rect_tex(tex("coin"), Rect2(c + Vector2(-4.0, 5.5) * u, Vector2(8.0, 8.0) * u))
+	if t.get("crate", false):   # a material hex
+		_draw_rect_tex(tex("mat"), Rect2(c + Vector2(-4.0, 5.5) * u, Vector2(8.0, 8.0) * u))
 	if int(t.troops) > 0 and owner >= 0:
 		var label: String = str(int(t.troops))
 		var hh: float = 8.0
