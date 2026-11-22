@@ -4175,7 +4175,7 @@ function renderMap(){
     const gnd=castleGnd(t);   // a castle's hex is drawn with that castle's ground (the Mythical's: a black drop into nothing)
     const ctile=castleTile(t), whole=t.terrain==='mountain'?'mountain':t.forest?'forest':t.fern?'fern':'';
     // every hex sits on its own grass (one of three, by hex number, so neighbours don't match); it shows round the edges of the rest
-    grs+=`<use href="#sgr-${(Math.imul(i+5,2654435761)>>>7)%HEX_TERRAIN.grass.length}" x="${sx}" y="${sy}"/>`;
+    if(!gnd) grs+=`<use href="#sgr-${(Math.imul(i+5,2654435761)>>>7)%HEX_TERRAIN.grass.length}" x="${sx}" y="${sy}"/>`;   // not under a castle's own ground: it would show as a green fringe
     if(gnd) terr+=`<use href="#gd-${gnd}" x="${gx}" y="${gy}"/>`;
     if(t.terrain==='water') terr+=`<use href="#s-water" x="${sx}" y="${sy}"/>`;   // the beach lake
     if(whole) terr+=`<use href="#s-${whole}" x="${sx}" y="${sy}"/>`;
