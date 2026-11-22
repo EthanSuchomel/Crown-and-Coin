@@ -204,6 +204,15 @@ html,body{height:100%;overflow:hidden}
 .stats .st.cas small{font-family:var(--font-body);font-weight:500}
 #stage.short #app{padding-top:max(.25em,var(--sa-t,0px));padding-bottom:max(.25em,var(--sa-b,0px))}
 #stage.short .board .mapwrap{border-width:2px}
+/* not your turn: one column, the buttons float top-right (Ethan, 2026-11-22) */
+#stage.solo #app,#stage.solo.tall #app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) var(--maph,70vh) minmax(0,1fr);grid-template-areas:"." "board" "."}
+#stage.solo.headroom #app{padding-top:calc(max(.6em,var(--sa-t,0px)) + 2.4em)}   /* only when the buttons would sit on the board */
+#stage.solo .side{position:absolute;top:max(.6em,var(--sa-t,0px));right:max(.8em,var(--sa-r,0px));z-index:5}
+#stage.solo .side-body{display:none}
+#stage.solo .side-head{padding:.3em}
+#stage.solo .sh-btns{flex-direction:column;align-items:stretch;gap:.3em}   /* a narrow column, so it fits beside the board */
+#map{touch-action:none}   /* pinch and drag zoom the map (Ethan, 2026-11-22) */
+.sh-btns .sh-z{min-width:2em;font-weight:800}
 /* the box's close button, and the small round button that brings it back */
 .stats .st-x{position:absolute;top:.1em;right:.15em;pointer-events:auto;width:1.35em;height:1.35em;padding:0;display:flex;align-items:center;justify-content:center;
   font-size:1em;line-height:1;border-radius:50%;background:transparent;border:0;box-shadow:none;color:var(--lichen)}
@@ -231,7 +240,7 @@ html,body{height:100%;overflow:hidden}
 .sh-turn{font-size:.9em;color:var(--lichen);flex:1;min-width:8em;padding:.25em 0}
 .sh-turn b{font-family:var(--font-display)}
 .sh-gold{font-family:var(--font-num);font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
-.sh-btns{display:flex;gap:.35em}
+.sh-btns{display:flex;gap:.35em;margin-left:auto}
 .sh-castles{font-family:var(--font-num);font-weight:800;white-space:nowrap}
 .sh-mat{font-family:var(--font-num);font-weight:800;padding:.1em .5em!important;font-size:.95em!important;color:var(--bone);white-space:nowrap}
 .matrow{flex-wrap:wrap;gap:.35em;font-weight:500}
@@ -898,8 +907,7 @@ function useBoard(np){
   VOID=new Set(b.voids.map(([r,c])=>r*N+c)); HOMES=b.homes.map(([r,c])=>r*N+c);
   MOUNTAINS=b.mountains; WATERS=b.waters; NEUTRAL_CASTLES=b.castles; FORESTS=b.forests; FERNS=b.ferns; COINS=b.coins; CRATES=b.crates||0;
   // the part of the board that is drawn: the hexes plus a hair of margin for their outlines
-  if(np===2){ VB_X=VB_M; VB_Y=VB_M; VB_W=BOARD_W-2*VB_M; VB_H=BOARD_H-2*VB_M; }
-  else {   // the 3-player hexagon leaves the grid's corners empty: frame just the hexes
+  {   // frame just the hexes (the 3-player hexagon and the 2-player board both leave grid corners empty)
     let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
     for(let i=0;i<N*N;i++){ if(VOID.has(i)) continue; const r=Math.floor(i/N), c=i%N, gx=HM+HR+c*1.5*HR, gy=HM+HH/2+r*HH+(c&1)*HH/2, [x,y]=toBoard([gx,gy]);
       x0=Math.min(x0,x-HH/2); x1=Math.max(x1,x+HH/2); y0=Math.min(y0,y-HR); y1=Math.max(y1,y+HR); }
@@ -939,6 +947,7 @@ function syncShape(force){
   const key=S&&S.map?'map:'+S.map:'std';
   if(!force&&key===_shapeKey) return;
   _shapeKey=key;
+  try{ UZ.k=1; }catch(e){}   // a new board starts zoomed out
   if(S&&S.map){ VOID=new Set(S.tiles.filter(t=>t.terrain==='void').map(t=>t.id)); HOMES=S.homes.slice(); frameHexes(); }
   else if(S){ BOARD_NP=0; useBoard(S.players.length); }
   try{ _mapReady=false; }catch(e){}
@@ -3980,8 +3989,15 @@ const buildHex=()=>{ if(!S||!isHumanTurn()||ui.sel==null||ui.roboUp) return null
 // a barracks hex you're recruiting at shows two crossed swords until you leave it
 const swordHex=()=>{ const id=buildHex(); return (id!=null&&curAction()==='recruit'&&!S.tiles[id].castle)?id:null; };
 // the zoomed view: centred on the hex but kept on the board, with room left for the buttons above and beside it
+// your own zoom (pinch, wheel, the + and - buttons): k is how far in, cx/cy the middle of the view in board units
+const UZ={k:1,cx:0,cy:0}, UZ_MAX=4;
+function vbUser(){
+  if(UZ.k<=1.001){ UZ.k=1; return [VB_X,VB_Y,VB_W,VB_H]; }
+  const w=VB_W/UZ.k, h=VB_H/UZ.k, x=Math.max(VB_X,Math.min(VB_X+VB_W-w,UZ.cx-w/2)), y=Math.max(VB_Y,Math.min(VB_Y+VB_H-h,UZ.cy-h/2));
+  UZ.cx=x+w/2; UZ.cy=y+h/2; return [x,y,w,h];
+}
 function vbFor(id){
-  if(id==null) return [VB_X,VB_Y,VB_W,VB_H];
+  if(id==null) return vbUser();
   const [cx,cy]=hexCenter(id), w=VB_W/ZOOM, h=VB_H/ZOOM;
   const wrap=$('.mapwrap'), W=wrap.clientWidth||400, H=wrap.clientHeight||300, k=Math.min(W/w,H/h);
   const fs=parseFloat(getComputedStyle($('#stage')).fontSize)||14, reach=(.8*fs+4.6*fs+6)/k;     // a post plus a button, in board units
@@ -4271,9 +4287,10 @@ function placeStats(){
   try{
     const ap=getComputedStyle(app), px=v=>parseFloat(v)||0, tall=$('#stage').classList.contains('tall'), M=6;
     const area=()=>{ const L=px(ap.paddingLeft), T=px(ap.paddingTop), R=app.clientWidth-px(ap.paddingRight), B=app.clientHeight-px(ap.paddingBottom);
+      if($('#stage').classList.contains('solo')) return {l:L,t:T,r:R,b:B};
       return tall?{l:L,t:T,r:R,b:side.offsetTop-px(ap.rowGap)}:{l:L,t:T,r:side.offsetLeft-(px(ap.columnGap)||12),b:B}; };
     const measure=()=>{
-      const A=area(), bw=box.offsetWidth, bh=box.offsetHeight, vb=vbFor(null), mw=wrap.clientWidth, mh=wrap.clientHeight, k=Math.min(mw/vb[2],mh/vb[3]);
+      const A=area(), bw=box.offsetWidth, bh=box.offsetHeight, vb=[VB_X,VB_Y,VB_W,VB_H], mw=wrap.clientWidth, mh=wrap.clientHeight, k=Math.min(mw/vb[2],mh/vb[3]);
       const x0=wrap.offsetLeft+wrap.clientLeft+(mw-vb[2]*k)/2, y0=wrap.offsetTop+wrap.clientTop+(mh-vb[3]*k)/2;
       const hexes=[]; S.tiles.forEach((t,i)=>{ if(t.terrain==='void') return; const [cx,cy]=hexCenter(i), x=x0+(cx-vb[0])*k, y=y0+(cy-vb[1])*k;
         hexes.push([x-HH/2*k,y-HR*k,x+HH/2*k,y+HR*k]); });
@@ -4282,8 +4299,8 @@ function placeStats(){
       let best=spots[0], bv=Infinity; for(const sp of spots){ const v=cover(sp[0],sp[1]); if(v<bv-bw*bh*.02){ bv=v; best=sp; } }
       return {x:best[0],y:best[1],frac:bv/(bw*bh),bw,bh,k}; };
     const put=m=>{ box.style.left=Math.round(m.x)+'px'; box.style.top=Math.round(m.y)+'px'; };
-    const pad=(r,b)=>{ VB_W+=r-STATS_PAD.r; VB_H+=b-STATS_PAD.b; STATS_PAD.r=r; STATS_PAD.b=b; setVB(vbFor(null)); fitStage(); };
-    const key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+statsHidden;
+    const pad=(r,b)=>{ VB_W+=r-STATS_PAD.r; VB_H+=b-STATS_PAD.b; STATS_PAD.r=r; STATS_PAD.b=b; if(_zoomHex==null) setVB(vbFor(null)); fitStage(); };
+    const solo=$('#stage').classList.contains('solo'), key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+statsHidden+'|'+solo;
     if(key===STATS_PAD.key){ put(measure()); return; }
     if(STATS_PAD.r||STATS_PAD.b) pad(0,0);
     let m=measure();
@@ -4293,7 +4310,7 @@ function placeStats(){
       if(a1.frac<a2.frac-.01||(Math.abs(a1.frac-a2.frac)<=.01&&a1.k>a2.k)) pad(pr,0);
       m=measure();
     }
-    put(m); STATS_PAD.key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+statsHidden;
+    put(m); STATS_PAD.key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+statsHidden+'|'+solo;
   } finally { _placing=false; }
 }
 try{ new ResizeObserver(()=>requestAnimationFrame(placeStats)).observe(document.getElementById('map')); }catch(e){}
@@ -4320,6 +4337,12 @@ function fullHelp(){
 ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{ fitStage(); if(S&&$('#scrTitle').hidden&&$('#scrFaction').hidden&&$('#scrOnline').hidden) renderHead(); renderFullBtns(); }));
 // the title screen's full screen button shows whether full screen is on
 function renderFullBtns(){ document.querySelectorAll('[data-full]').forEach(b=>{ b.setAttribute('aria-pressed',isFull()); b.querySelector('.fl').textContent=isFull()?'Exit full screen':'Full screen'; }); }
+// not your turn: the cards column goes away and the map fills the screen (Ethan, 2026-11-22)
+function setSolo(){
+  const st=$('#stage'), on=!!(S&&!S.over&&S.current!==0&&!ui.info);
+  if(st.classList.contains('solo')===on) return;
+  st.classList.toggle('solo',on); fitStage(); requestAnimationFrame(placeStats);
+}
 function renderHead(){
   const c=cur();
   const turn=S.over?'Game over':`Turn ${S.turn} · <b style="color:${inkOf(c)}">${S.players[0].out&&!S.over?'You are out, watching · ':''}${c.ai?(NET?(c.cpu?c.name+' (computer) are playing':netNameOf(c.id)?escH(netNameOf(c.id))+"'s move":'Their move'):c.name+' are playing'+(c.diff&&AI_LEVEL_NAME[c.diff]?` <small>(${AI_LEVEL_NAME[c.diff]})</small>`:'')):'your move'}</b>`;
@@ -4331,8 +4354,10 @@ function renderHead(){
       ?`<div class="siege mine"><span class="px px-crown" aria-hidden="true"></span> You hold ${winCastles()} ${homeCounts()?'':'captured '}castles. Keep them through ${L===1?'the':'the next '+L} ${S.players.length>2?'rival':S.players[1].name} ${tw} to win.</div>`
       :`<div class="siege theirs">⚠ The ${S.players[S.siege.pid].name} hold ${winCastles()} ${homeCounts()?'':'captured '}castles. Take one back within ${S.players.length>2?L+' rival':L} ${tw}${S.players.length>2?'':' of yours'} or they win.</div>`;
   }
-  $('#sidehead').innerHTML=`<span class="sh-turn">${turn}</span>
-    <span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶ Full</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
+  // just the buttons (Ethan, 2026-11-22); whose turn it is stays in the page title for screen readers
+  document.title=(S.current===0&&!S.over?'Your turn · ':'')+'Crown & Coin';
+  setSolo();
+  $('#sidehead').innerHTML=`<span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶ Full</button><button class="ghost sh-z" data-head="zin" aria-label="Zoom in" title="Zoom in">＋</button><button class="ghost sh-z" data-head="zout" aria-label="Zoom out" title="Zoom out"${UZ.k>1?'':' disabled'}>−</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
 }
 // in the board's bottom-right corner (Ethan, 2026-11-12): +coins a turn, units, coins, materials, and every side's castles
 let statsHidden=false; try{ statsHidden=localStorage.getItem('cc-stats-hidden')==='1'; }catch(e){}
@@ -5252,6 +5277,32 @@ function netTellGuest(f,kind){ netPresence({ok:null,end:{id:f.id,kind}}); if(NF.
 function afterYourFightNet(r,f){ ui.battle=r&&r.kind==='battle'?r:null; ui.undo=[]; ui.undoLocked=true; ui.sel=null; render(); }
 
 // ---------- Wiring ----------
+// zooming: in or out by f around a point on screen (the middle of the view if none)
+function zoomBy(f,sx,sy){
+  if(_zoomHex!=null||!S) return;   // the build/recruit view is zoomed already
+  const svg=$('#map'), v=vbUser(); let px=v[0]+v[2]/2, py=v[1]+v[3]/2, fx=.5, fy=.5;
+  if(sx!=null){ const p=svgPt(sx,sy); px=p.x; py=p.y; fx=(px-v[0])/v[2]; fy=(py-v[1])/v[3]; }
+  const k=Math.max(1,Math.min(UZ_MAX,UZ.k*f)), w=VB_W/k, h=VB_H/k;
+  UZ.k=k; UZ.cx=px-fx*w+w/2; UZ.cy=py-fy*h+h/2;
+  cancelAnimationFrame(_vbAnim); setVB(vbUser());
+  const zo=$('[data-head="zout"]'); if(zo) zo.disabled=UZ.k<=1;
+}
+function svgPt(x,y){ const svg=$('#map'), p=svg.createSVGPoint(); p.x=x; p.y=y; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+{ const svg=$('#map'), pts=new Map(); let drag=null, pinch=null, moved=false;
+  svg.addEventListener('pointerdown',e=>{ pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); moved=false;
+    if(pts.size===1){ drag={x:e.clientX,y:e.clientY,m:svg.getScreenCTM().inverse(),cx:UZ.cx,cy:UZ.cy}; }
+    if(pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y)}; drag=null; } });
+  svg.addEventListener('pointermove',e=>{ if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(_zoomHex!=null) return;
+    if(pinch&&pts.size===2){ const [a,b]=[...pts.values()], d=Math.hypot(a.x-b.x,a.y-b.y); if(pinch.d>0&&Math.abs(d-pinch.d)>2){ zoomBy(d/pinch.d,(a.x+b.x)/2,(a.y+b.y)/2); pinch.d=d; moved=true; } return; }
+    if(drag&&UZ.k>1){ const P=(x,y)=>{ const p=svg.createSVGPoint(); p.x=x; p.y=y; return p.matrixTransform(drag.m); }, a=P(drag.x,drag.y), b=P(e.clientX,e.clientY);
+      if(!moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<7) return;
+      moved=true; UZ.cx=drag.cx-(b.x-a.x); UZ.cy=drag.cy-(b.y-a.y); setVB(vbUser()); } });
+  const up=e=>{ pts.delete(e.pointerId); if(pts.size<2) pinch=null; if(!pts.size) drag=null; };
+  svg.addEventListener('pointerup',up); svg.addEventListener('pointercancel',up);
+  svg.addEventListener('click',e=>{ if(moved){ e.stopPropagation(); e.preventDefault(); moved=false; } },true);   // a drag or pinch isn't a tap on a hex
+  svg.addEventListener('wheel',e=>{ if(_zoomHex!=null) return; e.preventDefault(); zoomBy(Math.exp(-e.deltaY*.0018),e.clientX,e.clientY); },{passive:false});
+}
 $('#map').addEventListener('click',e=>{
   const g=e.target.closest('.cell'); if(g) onCell(+g.dataset.id);
 });
@@ -5325,6 +5376,7 @@ $('#stats').addEventListener('click',e=>{ if(e.target.closest('button[data-head=
 $('#sidehead').addEventListener('click',e=>{
   const b=e.target.closest('button[data-head]'); if(!b) return;
   const k=b.dataset.head;
+  if(k==='zin'||k==='zout'){ zoomBy(k==='zin'?1.5:1/1.5); return; }
   if(k==='full') toggleFull();
   else if(k==='help') showRules();
   else if(k==='trade') openTrade();
@@ -5394,13 +5446,17 @@ function fitStage(){
   if(tall){
     // upright: the board spans the width, but leaves at least about 40% of the height, and room for a full card, below it
     mw=sw-padL-padR; mh=mw*R;
-    const maxH=Math.max(sh*.3,Math.min(sh*.58, sh-padT-padB-statsH-.6*fs-20*fs)); if(mh>maxH){ mh=maxH; mw=mh/R; }
+    const maxH=st.classList.contains('solo')?sh-padT-padB:Math.max(sh*.3,Math.min(sh*.58, sh-padT-padB-statsH-.6*fs-20*fs)); if(mh>maxH){ mh=maxH; mw=mh/R; }
   } else {
     // the map column is 66% of the width; the board is as large as fits in it, and no taller than the screen allows
-    const colW=(sw-padL-padR-gap)*MAP_SHARE;
+    const colW=st.classList.contains('solo')?sw-padL-padR:(sw-padL-padR-gap)*MAP_SHARE;   // not your turn: the whole width
     mh=Math.min(sh-padT-padB-statsH, colW*R); mw=Math.min(colW, mh/R);
   }
   st.style.setProperty('--mapw',Math.floor(mw)+'px'); st.style.setProperty('--maph',Math.floor(mh)+'px');
+  // not your turn: the buttons float top-right; keep room above the board only if the board would reach under them
+  if(st.classList.contains('solo')){ const hd=$('#sidehead'), need=hd&&(sw-mw)/2<hd.offsetWidth+padR+.4*fs&&(sh-mh)/2<hd.offsetHeight+padT+.4*fs;
+    if(!!need!==st.classList.contains('headroom')){ st.classList.toggle('headroom',!!need); return fitStage(); } }
+  else st.classList.remove('headroom');
   if(_zoomHex!=null) placeBubbles(true);
 }
 window.addEventListener('resize',fitStage);
