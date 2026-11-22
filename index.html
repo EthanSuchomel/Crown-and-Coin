@@ -205,9 +205,10 @@ html,body{height:100%;overflow:hidden}
 #stage.short #app{padding-top:max(.25em,var(--sa-t,0px));padding-bottom:max(.25em,var(--sa-b,0px))}
 #stage.short .board .mapwrap{border-width:2px}
 /* not your turn: one column, the buttons float top-right (Ethan, 2026-11-22) */
-#stage.solo #app,#stage.solo.tall #app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) var(--maph,70vh) minmax(0,1fr);grid-template-areas:"." "board" "."}
 #stage.solo.headroom #app{padding-top:calc(max(.6em,var(--sa-t,0px)) + 2.4em)}   /* only when the buttons would sit on the board */
-#stage.solo .side{position:absolute;top:max(.6em,var(--sa-t,0px));right:max(.8em,var(--sa-r,0px));z-index:5}
+#stage.solo .side{position:absolute;top:max(.6em,var(--sa-t,0px));right:max(.8em,var(--sa-r,0px));z-index:5;animation:soloIn .3s ease-out}
+@keyframes soloIn{from{opacity:0;transform:translateY(-.3em)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){#stage.solo .side{animation:none}}
 #stage.solo .side-body{display:none}
 #stage.solo .side-head{padding:.3em}
 #stage.solo .sh-btns{flex-direction:column;align-items:stretch;gap:.3em}   /* a narrow column, so it fits beside the board */
@@ -895,7 +896,8 @@ const BOARDS={
      center:[5,5], mountains:10, waters:4, castles:6, forests:15, ferns:0, coins:26, crates:9},
 };
 let N, GRID_W, GRID_H, BOARD_W, BOARD_H, VB_X, VB_Y, VB_W, VB_H, VOID, HOMES, MOUNTAINS, WATERS, NEUTRAL_CASTLES, FORESTS, FERNS, COINS, CRATES, BOARD_NP=0;
-const VB_M=HM-1.4, MAP_SHARE=.66;
+const VB_M=HM-1.4, MAP_SHARE=.66, SOLO_GROW=1.2;
+let SOLO_T=0, _soloAnim=0;   // 0 your turn (cards shown) .. 1 their turn (cards away)
 // The board is drawn turned a quarter (flipped across its diagonal), so it is wider than tall and the hexes stand points-up.
 // Your corner stays lower left; on the 2-player board the opponent's is upper right.
 const toBoard=([x,y])=>[GRID_H-y, GRID_W-x];
@@ -4339,9 +4341,19 @@ function fullHelp(){
 function renderFullBtns(){ document.querySelectorAll('[data-full]').forEach(b=>{ b.setAttribute('aria-pressed',isFull()); b.querySelector('.fl').textContent=isFull()?'Exit full screen':'Full screen'; }); }
 // not your turn: the cards column goes away and the map fills the screen (Ethan, 2026-11-22)
 function setSolo(){
-  const st=$('#stage'), on=!!(S&&!S.over&&S.current!==0&&!ui.info);
-  if(st.classList.contains('solo')===on) return;
-  st.classList.toggle('solo',on); fitStage(); requestAnimationFrame(placeStats);
+  const st=$('#stage'), on=!!(S&&!S.over&&S.current!==0&&!ui.info), goal=on?1:0;
+  if(st.dataset.soloGoal===String(goal)) return;
+  st.dataset.soloGoal=String(goal);
+  cancelAnimationFrame(_soloAnim);
+  if(!on) st.classList.remove('solo','headroom');   // the buttons go back above the cards straight away, and fade in with them
+  const t0=SOLO_T, D=520, start=performance.now();
+  const quick=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const step=now=>{ const k=quick?1:Math.min(1,(now-start)/D), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    SOLO_T=t0+(goal-t0)*e;
+    if(k>=1){ SOLO_T=goal; if(on) st.classList.add('solo'); }
+    fitStage(); placeStats();   // the numbers box glides along with the board
+    if(k<1) _soloAnim=requestAnimationFrame(step); else requestAnimationFrame(placeStats); };
+  _soloAnim=requestAnimationFrame(step);
 }
 function renderHead(){
   const c=cur();
@@ -5443,15 +5455,23 @@ function fitStage(){
   const gap=px(ap.columnGap)||.8*fs, statsH=0;   // your numbers sit inside the board's corner now
   const R=VB_H/VB_W;       // the board's height for each unit of width
   let mw, mh;
+  const t=SOLO_T, fit=(W,H)=>{ let w=W, h=w*R; if(h>H){ h=H; w=h/R; } return [w,h]; };
   if(tall){
     // upright: the board spans the width, but leaves at least about 40% of the height, and room for a full card, below it
-    mw=sw-padL-padR; mh=mw*R;
-    const maxH=st.classList.contains('solo')?sh-padT-padB:Math.max(sh*.3,Math.min(sh*.58, sh-padT-padB-statsH-.6*fs-20*fs)); if(mh>maxH){ mh=maxH; mw=mh/R; }
+    const [w0,h0]=fit(sw-padL-padR, Math.max(sh*.3,Math.min(sh*.58, sh-padT-padB-statsH-.6*fs-20*fs)));
+    const [w1,h1]=fit(Math.min(sw-padL-padR,w0*SOLO_GROW), Math.min(sh-padT-padB,h0*SOLO_GROW));   // not your turn: a little bigger
+    mw=w0+(w1-w0)*t; mh=h0+(h1-h0)*t;
+    $('#app').style.rowGap=t?(.6*fs*(1-t))+'px':'';
   } else {
     // the map column is 66% of the width; the board is as large as fits in it, and no taller than the screen allows
-    const colW=st.classList.contains('solo')?sw-padL-padR:(sw-padL-padR-gap)*MAP_SHARE;   // not your turn: the whole width
-    mh=Math.min(sh-padT-padB-statsH, colW*R); mw=Math.min(colW, mh/R);
+    const full=sw-padL-padR, sideW=(full-gap)*(1-MAP_SHARE);
+    const [w0,h0]=fit((full-gap)*MAP_SHARE, sh-padT-padB-statsH);
+    const [w1,h1]=fit(Math.min(full,w0*SOLO_GROW), Math.min(sh-padT-padB,h0*SOLO_GROW));   // not your turn: a little bigger
+    mw=w0+(w1-w0)*t; mh=h0+(h1-h0)*t;
+    const ap2=$('#app').style;   // the cards column narrows away as t goes to 1
+    if(t){ ap2.gridTemplateColumns=`minmax(0,1fr) ${(sideW*(1-t)).toFixed(1)}px`; ap2.columnGap=(gap*(1-t)).toFixed(1)+'px'; } else { ap2.gridTemplateColumns=''; ap2.columnGap=''; }
   }
+  { const sd=$('#app .side'); if(sd){ sd.style.opacity=t>0&&t<1?Math.max(0,1-2*t).toFixed(3):''; sd.style.pointerEvents=t>0&&t<1?'none':''; } }
   st.style.setProperty('--mapw',Math.floor(mw)+'px'); st.style.setProperty('--maph',Math.floor(mh)+'px');
   // not your turn: the buttons float top-right; keep room above the board only if the board would reach under them
   if(st.classList.contains('solo')){ const hd=$('#sidehead'), need=hd&&(sw-mw)/2<hd.offsetWidth+padR+.4*fs&&(sh-mh)/2<hd.offsetHeight+padT+.4*fs;
