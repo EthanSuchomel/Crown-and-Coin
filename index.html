@@ -594,7 +594,9 @@ body,#stage{background:#000}   /* plain black behind the board (Ethan) */
 .side-head,.bigcard,.handlist .gcard,.hexinfo,.stats,.sheet,.uinfo{background:linear-gradient(180deg,rgba(38,30,21,.94),rgba(22,17,12,.95))}
 .side-head,.bigcard,.handlist .gcard,.hexinfo,.sheet{border-color:var(--edge)!important}
 .stats{border-color:var(--edge)}
-.board .mapwrap{border-color:#120c06;box-shadow:0 0 0 2px var(--edge),0 0 0 4px #120c06,0 .6em 1.4em rgba(0,0,0,.6)}
+.board .mapwrap,#stage.short .board .mapwrap{border:0;box-shadow:none;background:transparent;border-radius:0}   /* no frame round the map (Ethan) */
+#stats{right:auto;bottom:auto;left:0;top:0;border:2px solid var(--edge)!important;border-radius:4px!important;box-shadow:0 0 0 2px var(--outline),0 .3em .8em rgba(0,0,0,.5)!important;z-index:4}
+#stats.mini{margin:0;border-radius:50%!important}
 .handlist .gcard:hover:not(:disabled){background:linear-gradient(180deg,rgba(50,40,28,.96),rgba(28,22,15,.96))}
 .fav{background:rgba(12,9,6,.75);border-right-color:var(--edge)}
 /* headings in the carved serif */
@@ -815,12 +817,13 @@ details.log{background:rgba(22,17,12,.92)}
 <div id="stage">
 <div id="app">
   <section class="board" aria-label="Game board">
-    <div class="mapwrap"><svg id="map" viewBox="0 0 269 229" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Game board"></svg><div id="hexinfo" class="hexinfo" hidden></div><div id="bldov" class="bldov" hidden></div><section class="stats" id="stats" aria-label="Your empire"></section></div>
+    <div class="mapwrap"><svg id="map" viewBox="0 0 269 229" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Game board"></svg><div id="hexinfo" class="hexinfo" hidden></div><div id="bldov" class="bldov" hidden></div></div>
   </section>
   <aside class="side">
     <div class="side-head" id="sidehead"></div>
     <div class="side-body" id="panel"></div>
   </aside>
+  <section class="stats" id="stats" aria-label="Your empire"></section>
 </div>
 <div id="scrTitle" class="screen title-screen" hidden>
   <div class="ts-inner">
@@ -4261,30 +4264,36 @@ function legendHtml(){
 const STATS_PAD={r:0,b:0,key:''};
 let _placing=false;
 function placeStats(){
-  const box=$('#stats'), wrap=box&&box.parentElement, svg=$('#map'); if(!box||!wrap||!svg||!box.offsetWidth||_placing||!S) return;
+  const box=$('#stats'), app=$('#app'), wrap=$('.board .mapwrap'), side=$('#app .side');
+  if(!box||!app||!wrap||!side||!S||_placing||!box.offsetWidth) return;
+  if(_zoomHex!=null) return;   // zoomed in on a hex: leave the box where it is
   _placing=true;
   try{
-    const measure=()=>{ const W=wrap.getBoundingClientRect(), sc=W.width/(wrap.offsetWidth||1)||1, bw=box.offsetWidth*sc, bh=box.offsetHeight*sc;
-      const hexes=[...svg.querySelectorAll('g.cell > polygon')].map(p=>p.getBoundingClientRect());
-      const cover=(x,y)=>hexes.reduce((n,r)=>{ const ix=Math.min(x+bw,r.right)-Math.max(x,r.left)-1, iy=Math.min(y+bh,r.bottom)-Math.max(y,r.top)-1; return n+(ix>0&&iy>0?ix*iy:0); },0);
-      const spots=[['c-br',W.right-bw,W.bottom-bh],['c-bl',W.left,W.bottom-bh],['c-tr',W.right-bw,W.top],['c-tl',W.left,W.top]];
-      let best=spots[0], bv=Infinity; for(const sp of spots){ const v=cover(sp[1],sp[2]); if(v<bv-bw*bh*.02){ bv=v; best=sp; } }
-      return {best:best[0],frac:bv/(bw*bh),bw,bh,W}; };
-    const setCorner=c=>['c-br','c-bl','c-tr','c-tl'].forEach(k=>box.classList.toggle(k,k===c&&k!=='c-br'));
+    const ap=getComputedStyle(app), px=v=>parseFloat(v)||0, tall=$('#stage').classList.contains('tall'), M=6;
+    const area=()=>{ const L=px(ap.paddingLeft), T=px(ap.paddingTop), R=app.clientWidth-px(ap.paddingRight), B=app.clientHeight-px(ap.paddingBottom);
+      return tall?{l:L,t:T,r:R,b:side.offsetTop-px(ap.rowGap)}:{l:L,t:T,r:side.offsetLeft-(px(ap.columnGap)||12),b:B}; };
+    const measure=()=>{
+      const A=area(), bw=box.offsetWidth, bh=box.offsetHeight, vb=vbFor(null), mw=wrap.clientWidth, mh=wrap.clientHeight, k=Math.min(mw/vb[2],mh/vb[3]);
+      const x0=wrap.offsetLeft+wrap.clientLeft+(mw-vb[2]*k)/2, y0=wrap.offsetTop+wrap.clientTop+(mh-vb[3]*k)/2;
+      const hexes=[]; S.tiles.forEach((t,i)=>{ if(t.terrain==='void') return; const [cx,cy]=hexCenter(i), x=x0+(cx-vb[0])*k, y=y0+(cy-vb[1])*k;
+        hexes.push([x-HH/2*k,y-HR*k,x+HH/2*k,y+HR*k]); });
+      const cover=(x,y)=>hexes.reduce((n,h)=>{ const ix=Math.min(x+bw,h[2])-Math.max(x,h[0]), iy=Math.min(y+bh,h[3])-Math.max(y,h[1]); return n+(ix>0&&iy>0?ix*iy:0); },0);
+      const spots=[[A.r-bw-M,A.b-bh-M],[A.l+M,A.b-bh-M],[A.r-bw-M,A.t+M],[A.l+M,A.t+M]];
+      let best=spots[0], bv=Infinity; for(const sp of spots){ const v=cover(sp[0],sp[1]); if(v<bv-bw*bh*.02){ bv=v; best=sp; } }
+      return {x:best[0],y:best[1],frac:bv/(bw*bh),bw,bh,k}; };
+    const put=m=>{ box.style.left=Math.round(m.x)+'px'; box.style.top=Math.round(m.y)+'px'; };
     const pad=(r,b)=>{ VB_W+=r-STATS_PAD.r; VB_H+=b-STATS_PAD.b; STATS_PAD.r=r; STATS_PAD.b=b; setVB(vbFor(null)); fitStage(); };
-    const key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+(_zoomHex!=null)+'|'+statsHidden;
-    if(_zoomHex!=null){ setCorner(measure().best); return; }   // zoomed in on a hex: just pick a corner
-    if(key===STATS_PAD.key){ setCorner(STATS_PAD.r||STATS_PAD.b?'c-br':measure().best); return; }
+    const key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+statsHidden;
+    if(key===STATS_PAD.key){ put(measure()); return; }
     if(STATS_PAD.r||STATS_PAD.b) pad(0,0);
-    const m=measure();
-    if(m.frac<=.04||statsHidden){ setCorner(m.best); STATS_PAD.key=key; return; }   // hidden: the small button never takes room from the board
-    // no clear corner: keep a strip for the box, to the right or below, whichever leaves the board bigger
-    const ppu=()=>{ const r=svg.getBoundingClientRect(); return Math.min(r.width/VB_W,r.height/VB_H); };
-    const u=ppu(), pr=(m.bw+6)/u, pb=(m.bh+6)/u;
-    pad(pr,0); const sR=ppu(); pad(0,pb); const sB=ppu();
-    if(sR>sB) pad(pr,0);
-    setCorner('c-br');
-    STATS_PAD.key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|false|'+statsHidden;
+    let m=measure();
+    if(m.frac>.005&&!statsHidden){   // every corner would hide hexes: make room beside the board, right or below
+      const pr=(m.bw+2*M)/m.k, pb=(m.bh+2*M)/m.k;
+      pad(pr,0); const a1=measure(); pad(0,pb); const a2=measure();
+      if(a1.frac<a2.frac-.01||(Math.abs(a1.frac-a2.frac)<=.01&&a1.k>a2.k)) pad(pr,0);
+      m=measure();
+    }
+    put(m); STATS_PAD.key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+statsHidden;
   } finally { _placing=false; }
 }
 try{ new ResizeObserver(()=>requestAnimationFrame(placeStats)).observe(document.getElementById('map')); }catch(e){}
