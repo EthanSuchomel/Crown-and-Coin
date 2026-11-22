@@ -204,6 +204,18 @@ html,body{height:100%;overflow:hidden}
 .stats .st.cas small{font-family:var(--font-body);font-weight:500}
 #stage.short #app{padding-top:max(.25em,var(--sa-t,0px));padding-bottom:max(.25em,var(--sa-b,0px))}
 #stage.short .board .mapwrap{border-width:2px}
+/* the box's close button, and the small round button that brings it back */
+.stats .st-x{position:absolute;top:.1em;right:.15em;pointer-events:auto;width:1.35em;height:1.35em;padding:0;display:flex;align-items:center;justify-content:center;
+  font-size:1em;line-height:1;border-radius:50%;background:transparent;border:0;box-shadow:none;color:var(--lichen)}
+.stats .st-x:hover{color:var(--bone);background:rgba(255,255,255,.08)}
+.stats:not(.mini){padding-right:1.7em}
+.stats.mini{padding:.25em;border-radius:50%!important;border:2px solid var(--edge)!important;box-shadow:0 0 0 2px var(--outline)!important;margin:.35em;background:linear-gradient(180deg,#3a3125,#211a12)}
+.stats .st-open{pointer-events:auto;width:2em;height:2em;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:transparent;border:0;box-shadow:none}
+.stats .st-open .px{width:1.3em;height:1.3em}
+/* the box moves to the corner that covers the least of the map (placeStats) */
+.stats.c-bl{right:auto;left:0;border-right:2px solid var(--edge);border-left:0;box-shadow:2px -2px 0 0 var(--outline);border-radius:0 3px 0 0}
+.stats.c-tr{bottom:auto;top:0;border-bottom:2px solid var(--edge);border-top:0;box-shadow:-2px 2px 0 0 var(--outline);border-radius:0 0 0 3px}
+.stats.c-tl{right:auto;left:0;bottom:auto;top:0;border-right:2px solid var(--edge);border-bottom:2px solid var(--edge);border-left:0;border-top:0;box-shadow:2px 2px 0 0 var(--outline);border-radius:0 0 3px 0}
 #stage.short .stats{font-size:.74em;padding:.2em .35em .25em .45em}
 #stage.short .hexinfo{font-size:.7em;max-width:66%}
 #stage.short .side{gap:.45em}
@@ -890,6 +902,7 @@ function useBoard(np){
       x0=Math.min(x0,x-HH/2); x1=Math.max(x1,x+HH/2); y0=Math.min(y0,y-HR); y1=Math.max(y1,y+HR); }
     const m=HM-VB_M; VB_X=x0-m; VB_Y=y0-m; VB_W=x1-x0+2*m; VB_H=y1-y0+2*m;
   }
+  try{ STATS_PAD.r=0; STATS_PAD.b=0; STATS_PAD.key=''; }catch(e){}   // a fresh frame: no room kept for the numbers box yet
   try{ _mapReady=false; }catch(e){}   // the board's outline is drawn again for the new size
   try{ if(typeof fitStage==='function'&&document.getElementById('stage')) fitStage(); }catch(e){}
 }
@@ -915,6 +928,7 @@ function frameHexes(){
   for(let i=0;i<N*N;i++){ if(VOID.has(i)) continue; const r=Math.floor(i/N), c=i%N, gx=HM+HR+c*1.5*HR, gy=HM+HH/2+r*HH+(c&1)*HH/2, [x,y]=toBoard([gx,gy]);
     x0=Math.min(x0,x-HH/2); x1=Math.max(x1,x+HH/2); y0=Math.min(y0,y-HR); y1=Math.max(y1,y+HR); }
   const m=HM-VB_M; VB_X=x0-m; VB_Y=y0-m; VB_W=x1-x0+2*m; VB_H=y1-y0+2*m;
+  try{ STATS_PAD.r=0; STATS_PAD.b=0; STATS_PAD.key=''; }catch(e){}   // a fresh frame: no room kept for the numbers box yet
 }
 // the board's shape follows the game: a hand-made map's own, or the standard board for its player count
 let _shapeKey='';
@@ -4241,7 +4255,40 @@ function legendHtml(){
   const m=modsOf(0);
   return `<ul class="keylist"><li><span class="px px-c-neutral" aria-hidden="true"></span> Castle: recruit here, +${m.castleGold} gold, +${m.castleDefense} defense</li><li><span class="px px-c-neutral" aria-hidden="true"></span> Home castle (your faction's own castle): +${HOME_DEFENSE} defense and ${HOME_GUARDS} guard archers that always defend it (not shown on the map). It always recruits your basic unit; once you've built a barracks or fort anywhere, it can train those units too, for good</li><li><span class="px px-coin" aria-hidden="true"></span> Bonus coin: +${COIN_GOLD} gold to the first side that takes the hex</li><li><span class="px px-t-mountain" aria-hidden="true"></span> Mountain: only a Move action upgraded at least once can enter</li><li><span class="px px-treb" aria-hidden="true"></span> Trebuchet: hits an enemy hex next to it at the start of its owner's turn (faded while being built)</li><li><span class="px px-wall" aria-hidden="true"></span> Wall: the stone line along a hex side; each missing block is lost strength</li><li><span class="px px-barracks" aria-hidden="true"></span> Gold squares above a barracks: its level</li><li><span class="px px-t-water" aria-hidden="true"></span> Water: blocked</li><li>Faded number: already moved this turn</li></ul>`;
 }
-function render(){renderHead();renderStats();renderMap();renderHexInfo();renderPanel();save();netPush();}
+// The numbers box (Ethan, 2026-11-22: it hid hexes on some maps). It sits in the corner that covers the least of the map
+// (bottom-right, bottom-left, top-right, top-left). If every corner would hide hexes, the board's frame is widened by the
+// box's size, to the right or below, whichever keeps the board bigger, and the box sits in that empty strip.
+const STATS_PAD={r:0,b:0,key:''};
+let _placing=false;
+function placeStats(){
+  const box=$('#stats'), wrap=box&&box.parentElement, svg=$('#map'); if(!box||!wrap||!svg||!box.offsetWidth||_placing||!S) return;
+  _placing=true;
+  try{
+    const measure=()=>{ const W=wrap.getBoundingClientRect(), sc=W.width/(wrap.offsetWidth||1)||1, bw=box.offsetWidth*sc, bh=box.offsetHeight*sc;
+      const hexes=[...svg.querySelectorAll('g.cell > polygon')].map(p=>p.getBoundingClientRect());
+      const cover=(x,y)=>hexes.reduce((n,r)=>{ const ix=Math.min(x+bw,r.right)-Math.max(x,r.left)-1, iy=Math.min(y+bh,r.bottom)-Math.max(y,r.top)-1; return n+(ix>0&&iy>0?ix*iy:0); },0);
+      const spots=[['c-br',W.right-bw,W.bottom-bh],['c-bl',W.left,W.bottom-bh],['c-tr',W.right-bw,W.top],['c-tl',W.left,W.top]];
+      let best=spots[0], bv=Infinity; for(const sp of spots){ const v=cover(sp[1],sp[2]); if(v<bv-bw*bh*.02){ bv=v; best=sp; } }
+      return {best:best[0],frac:bv/(bw*bh),bw,bh,W}; };
+    const setCorner=c=>['c-br','c-bl','c-tr','c-tl'].forEach(k=>box.classList.toggle(k,k===c&&k!=='c-br'));
+    const pad=(r,b)=>{ VB_W+=r-STATS_PAD.r; VB_H+=b-STATS_PAD.b; STATS_PAD.r=r; STATS_PAD.b=b; setVB(vbFor(null)); fitStage(); };
+    const key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+(_zoomHex!=null)+'|'+statsHidden;
+    if(_zoomHex!=null){ setCorner(measure().best); return; }   // zoomed in on a hex: just pick a corner
+    if(key===STATS_PAD.key){ setCorner(STATS_PAD.r||STATS_PAD.b?'c-br':measure().best); return; }
+    if(STATS_PAD.r||STATS_PAD.b) pad(0,0);
+    const m=measure();
+    if(m.frac<=.04||statsHidden){ setCorner(m.best); STATS_PAD.key=key; return; }   // hidden: the small button never takes room from the board
+    // no clear corner: keep a strip for the box, to the right or below, whichever leaves the board bigger
+    const ppu=()=>{ const r=svg.getBoundingClientRect(); return Math.min(r.width/VB_W,r.height/VB_H); };
+    const u=ppu(), pr=(m.bw+6)/u, pb=(m.bh+6)/u;
+    pad(pr,0); const sR=ppu(); pad(0,pb); const sB=ppu();
+    if(sR>sB) pad(pr,0);
+    setCorner('c-br');
+    STATS_PAD.key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|false|'+statsHidden;
+  } finally { _placing=false; }
+}
+try{ new ResizeObserver(()=>requestAnimationFrame(placeStats)).observe(document.getElementById('map')); }catch(e){}
+function render(){renderHead();renderStats();renderMap();requestAnimationFrame(placeStats);renderHexInfo();renderPanel();save();netPush();}
 // the "Cards" header: whose turn it is, plus help, log and new game
 // Full screen: always offered. Where the browser or app window doesn't allow it, a short note says so instead of nothing happening.
 const isFull=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
@@ -4279,11 +4326,14 @@ function renderHead(){
     <span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶ Full</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
 }
 // in the board's bottom-right corner (Ethan, 2026-11-12): +coins a turn, units, coins, materials, and every side's castles
+let statsHidden=false; try{ statsHidden=localStorage.getItem('cc-stats-hidden')==='1'; }catch(e){}
 function renderStats(){
+  const box=$('#stats'); box.classList.toggle('mini',statsHidden);
+  if(statsHidden){ box.innerHTML=`<button class="st-open" data-stats="open" title="Show your numbers" aria-label="Show your numbers (coins, units, materials, castles)"><span class="px px-coin" aria-hidden="true"></span></button>`; return; }
   const me=S.players[0], myth=isMyth(0), cur1=myth?'magic':'coin';
   const units=S.tiles.filter(t=>t.owner===0).reduce((n,t)=>n+t.troops,0);
   const cas=S.players.map(p=>`<b style="color:${inkOf(p)}${p.out?';opacity:.4;text-decoration:line-through':''}">${winCastles()&&!homeCounts()?winCount(p.id):castleCount(p.id)}</b>`).join(' – ');
-  $('#stats').innerHTML=`
+  $('#stats').innerHTML=`<button class="st-x" data-stats="close" title="Hide" aria-label="Hide your numbers">×</button>
     <span class="st inc" title="${myth?'Magic':'Coins'} you collect each turn"><b>+${incomeOf(0).total}</b> ${myth?'magic':'coins'} / turn</span>
     <span class="st" title="Your units on the board"><b>${units}</b> unit${units===1?'':'s'}</span>
     <span class="st have" title="${myth?'Magic':'Gold'} you have"><span class="px px-${cur1}" aria-hidden="true"></span><b>${me.gold}</b> ${myth?'magic':'coins'}</span>
@@ -5261,7 +5311,8 @@ $('#stage').addEventListener('click',e=>{
   else if(k==='continue'){ showScreen(null); render(); if(cur().ai&&!S.over) runAI(); }
   else if(k==='go'){ closeModal(); showScreen(null); newGame(fsPick,{np:fsNP,opp:fsOpp,opps:fsOpps,cols:fsSides().cols,map:(mapById(fsMap)||{}).players===fsNP?fsMap:''}); }
 });
-$('#stats').addEventListener('click',e=>{ if(e.target.closest('button[data-head="trade"]')) openTrade(); });
+$('#stats').addEventListener('click',e=>{ if(e.target.closest('button[data-head="trade"]')) openTrade();
+  const sb=e.target.closest('button[data-stats]'); if(sb){ statsHidden=sb.dataset.stats==='close'; try{ localStorage.setItem('cc-stats-hidden',statsHidden?'1':'0'); }catch(_){} renderStats(); requestAnimationFrame(placeStats); } });
 $('#sidehead').addEventListener('click',e=>{
   const b=e.target.closest('button[data-head]'); if(!b) return;
   const k=b.dataset.head;
