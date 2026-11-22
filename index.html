@@ -5453,6 +5453,7 @@ function fitStage(){
   // When the game is turned sideways on an upright phone, the phone's top (notch) is on the game's left and its bottom (home bar)
   // on the game's right, so the safe margins move with it. Without this the notch margin landed on the game's top edge.
   const ins=safeInsets(), m=rot?{t:ins.r,r:ins.b,b:ins.l,l:ins.t}:ins;
+  { const lr=Math.max(m.l,m.r); m.l=lr; m.r=lr; }   // the same margin left and right, so the board is centred on the screen itself (Ethan)
   for(const k of ['t','r','b','l']) st.style.setProperty('--sa-'+k,m[k]+'px');
   st.classList.toggle('short',sh<520);
   // a small window (like a game window inside an app) leaves the cards column narrow: tighten it
@@ -5483,7 +5484,7 @@ function fitStage(){
   st.style.setProperty('--mapw',Math.floor(mw)+'px'); st.style.setProperty('--maph',Math.floor(mh)+'px');
   // not your turn: the buttons float top-right; keep room above the board only if the board would reach under them
   if(st.classList.contains('solo')){ const hd=$('#sidehead'), need=hd&&(sw-mw)/2<hd.offsetWidth+padR+.4*fs&&(sh-mh)/2<hd.offsetHeight+padT+.4*fs;
-    if(!!need!==st.classList.contains('headroom')){ st.classList.toggle('headroom',!!need); return fitStage(); } }
+    if(need&&!st.classList.contains('headroom')){ st.classList.add('headroom'); return fitStage(); } }   // once on, it stays on until your turn
   else st.classList.remove('headroom');
   if(_zoomHex!=null) placeBubbles(true);
 }
