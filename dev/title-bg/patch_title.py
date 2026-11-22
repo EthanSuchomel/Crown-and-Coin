@@ -1,6 +1,8 @@
 """Ethan, 2026-11-22: the home screen shows a four-faction battle (OpenArt, GPT Image 2.6 Sunburst; Personal Project,
 folder 'Art work for game'). title_battle.jpg is it at 1920x1080. A soft dark glow sits behind the title and buttons;
-the three small castles over the title are hidden (the painting has all four). Usage: python3 patch_title.py index.html title_battle.jpg"""
+the three small castles over the title are hidden (the painting has all four). Usage: python3 patch_title.py index.html title_battle.jpg
+Afterwards the data URI was swapped for url(title_battle.jpg) (the picture sits next to index.html, in sw.js FILES,
+and is published with the claude.ai link), because the link page has a 16 MB limit."""
 import sys, base64
 P, J = sys.argv[1], sys.argv[2]; s = open(P).read()
 uri = 'data:image/jpeg;base64,' + base64.b64encode(open(J, 'rb').read()).decode()
