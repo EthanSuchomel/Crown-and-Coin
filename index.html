@@ -897,7 +897,7 @@ const BOARDS={
 };
 let N, GRID_W, GRID_H, BOARD_W, BOARD_H, VB_X, VB_Y, VB_W, VB_H, VOID, HOMES, MOUNTAINS, WATERS, NEUTRAL_CASTLES, FORESTS, FERNS, COINS, CRATES, BOARD_NP=0;
 const VB_M=HM-1.4, MAP_SHARE=.66, SOLO_GROW=1.2;
-let SOLO_T=0, _soloAnim=0;   // 0 your turn (cards shown) .. 1 their turn (cards away)
+let SOLO_T=0, _soloAnim=0, _soloRun=false, _soloSim=false;   // 0 your turn (cards shown) .. 1 their turn (cards away)
 // The board is drawn turned a quarter (flipped across its diagonal), so it is wider than tall and the hexes stand points-up.
 // Your corner stays lower left; on the 2-player board the opponent's is upper right.
 const toBoard=([x,y])=>[GRID_H-y, GRID_W-x];
@@ -4281,6 +4281,7 @@ function legendHtml(){
 // box's size, to the right or below, whichever keeps the board bigger, and the box sits in that empty strip.
 const STATS_PAD={r:0,b:0,key:''};
 let _placing=false;
+function padTo(r,b){ VB_W+=r-STATS_PAD.r; VB_H+=b-STATS_PAD.b; STATS_PAD.r=r; STATS_PAD.b=b; if(_zoomHex==null&&_mapReady) setVB(vbFor(null)); }
 function placeStats(){
   const box=$('#stats'), app=$('#app'), wrap=$('.board .mapwrap'), side=$('#app .side');
   if(!box||!app||!wrap||!side||!S||_placing||!box.offsetWidth) return;
@@ -4303,7 +4304,7 @@ function placeStats(){
     const put=m=>{ box.style.left=Math.round(m.x)+'px'; box.style.top=Math.round(m.y)+'px'; };
     const pad=(r,b)=>{ VB_W+=r-STATS_PAD.r; VB_H+=b-STATS_PAD.b; STATS_PAD.r=r; STATS_PAD.b=b; if(_zoomHex==null) setVB(vbFor(null)); fitStage(); };
     const solo=$('#stage').classList.contains('solo'), key=_shapeKey+'|'+innerWidth+'x'+innerHeight+'|'+box.offsetWidth+'x'+box.offsetHeight+'|'+statsHidden+'|'+solo;
-    if(key===STATS_PAD.key){ put(measure()); return; }
+    if(key===STATS_PAD.key||_soloRun){ put(measure()); return; }
     if(STATS_PAD.r||STATS_PAD.b) pad(0,0);
     let m=measure();
     if(m.frac>.005&&!statsHidden){   // every corner would hide hexes: make room beside the board, right or below
@@ -4347,10 +4348,17 @@ function setSolo(){
   cancelAnimationFrame(_soloAnim);
   if(!on) st.classList.remove('solo','headroom');   // the buttons go back above the cards straight away, and fade in with them
   const t0=SOLO_T, D=520, start=performance.now();
+  // work out the end layout's room for the numbers box now (nothing is drawn in between), then ease towards it
+  const p0={r:STATS_PAD.r,b:STATS_PAD.b}; let p1=p0, key1='';
+  try{ SOLO_T=goal; if(on) st.classList.add('solo'); fitStage(); STATS_PAD.key=''; _soloSim=true; placeStats(); _soloSim=false;
+    p1={r:STATS_PAD.r,b:STATS_PAD.b}; key1=STATS_PAD.key; }
+  finally{ _soloSim=false; if(on) st.classList.remove('solo','headroom'); SOLO_T=t0; padTo(p0.r,p0.b); fitStage(); }
+  _soloRun=true;
   const quick=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   const step=now=>{ const k=quick?1:Math.min(1,(now-start)/D), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
     SOLO_T=t0+(goal-t0)*e;
-    if(k>=1){ SOLO_T=goal; if(on) st.classList.add('solo'); }
+    padTo(p0.r+(p1.r-p0.r)*e, p0.b+(p1.b-p0.b)*e);
+    if(k>=1){ SOLO_T=goal; padTo(p1.r,p1.b); if(on) st.classList.add('solo'); _soloRun=false; STATS_PAD.key=key1; }
     fitStage(); placeStats();   // the numbers box glides along with the board
     if(k<1) _soloAnim=requestAnimationFrame(step); else requestAnimationFrame(placeStats); };
   _soloAnim=requestAnimationFrame(step);
