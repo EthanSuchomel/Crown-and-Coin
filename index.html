@@ -212,6 +212,11 @@ html,body{height:100%;overflow:hidden}
 #stage.solo .side-body{display:none}
 #stage.solo .side-head{padding:.3em}
 #stage.solo .sh-btns{flex-direction:column;align-items:stretch;gap:.3em}   /* a narrow column, so it fits beside the board */
+/* the map is the background (Ethan, 2026-11-22): its layer covers the whole screen; the board's area just says where it sits */
+.board{height:var(--maph)}
+.board .mapwrap,#stage.short .board .mapwrap{position:absolute;inset:0;width:auto;height:auto;max-width:none;z-index:0}
+#app .side{position:relative;z-index:3}
+#app .side-head,#app .bigcard,#app .handlist .gcard{background:linear-gradient(180deg,#261e15,#16110c)}
 #map{touch-action:none}   /* pinch and drag zoom the map (Ethan, 2026-11-22) */
 .sh-btns .sh-z{min-width:2em;font-weight:800}
 /* the box's close button, and the small round button that brings it back */
@@ -3998,10 +4003,17 @@ function vbUser(){
   const w=VB_W/UZ.k, h=VB_H/UZ.k, x=Math.max(VB_X,Math.min(VB_X+VB_W-w,UZ.cx-w/2)), y=Math.max(VB_Y,Math.min(VB_Y+VB_H-h,UZ.cy-h/2));
   UZ.cx=x+w/2; UZ.cy=y+h/2; return [x,y,w,h];
 }
-function vbFor(id){
+// a view meant for the board's own area, widened to the whole screen (the map layer covers it all)
+function toFull(v){
+  const bd=$('.board'), app=$('#app'); if(!bd||!app||!bd.offsetWidth) return v;
+  const bw=bd.offsetWidth, bh=bd.offsetHeight, s=Math.min(bw/v[2],bh/v[3]);
+  return [v[0]-(bd.offsetLeft+(bw-v[2]*s)/2)/s, v[1]-(bd.offsetTop+(bh-v[3]*s)/2)/s, app.clientWidth/s, app.clientHeight/s];
+}
+function vbFor(id){ return toFull(vbArea(id)); }
+function vbArea(id){
   if(id==null) return vbUser();
   const [cx,cy]=hexCenter(id), w=VB_W/ZOOM, h=VB_H/ZOOM;
-  const wrap=$('.mapwrap'), W=wrap.clientWidth||400, H=wrap.clientHeight||300, k=Math.min(W/w,H/h);
+  const bd=$('.board'), W=bd.offsetWidth||400, H=bd.offsetHeight||300, k=Math.min(W/w,H/h);   // the board's own area
   const fs=parseFloat(getComputedStyle($('#stage')).fontSize)||14, reach=(.8*fs+4.6*fs+6)/k;     // a post plus a button, in board units
   let x0=Math.min(Math.max(cx-w/2,VB_X),VB_X+VB_W-w), y0=Math.min(Math.max(cy-h*.56,VB_Y),VB_Y+VB_H-h);
   x0=Math.min(x0,cx-HR*.87-reach*.87); x0=Math.max(x0,cx+HR*.87+reach*.87-w);
@@ -4293,8 +4305,8 @@ function placeStats(){
       if($('#stage').classList.contains('solo')) return {l:L,t:T,r:R,b:B};
       return tall?{l:L,t:T,r:R,b:side.offsetTop-px(ap.rowGap)}:{l:L,t:T,r:side.offsetLeft-(px(ap.columnGap)||12),b:B}; };
     const measure=()=>{
-      const A=area(), bw=box.offsetWidth, bh=box.offsetHeight, vb=[VB_X,VB_Y,VB_W,VB_H], mw=wrap.clientWidth, mh=wrap.clientHeight, k=Math.min(mw/vb[2],mh/vb[3]);
-      const x0=wrap.offsetLeft+wrap.clientLeft+(mw-vb[2]*k)/2, y0=wrap.offsetTop+wrap.clientTop+(mh-vb[3]*k)/2;
+      const A=area(), bw=box.offsetWidth, bh=box.offsetHeight, vb=[VB_X,VB_Y,VB_W,VB_H], bd=$('.board'), mw=bd.offsetWidth, mh=bd.offsetHeight, k=Math.min(mw/vb[2],mh/vb[3]);
+      const x0=bd.offsetLeft+(mw-vb[2]*k)/2, y0=bd.offsetTop+(mh-vb[3]*k)/2;
       const hexes=[]; S.tiles.forEach((t,i)=>{ if(t.terrain==='void') return; const [cx,cy]=hexCenter(i), x=x0+(cx-vb[0])*k, y=y0+(cy-vb[1])*k;
         hexes.push([x-HH/2*k,y-HR*k,x+HH/2*k,y+HR*k]); });
       const cover=(x,y)=>hexes.reduce((n,h)=>{ const ix=Math.min(x+bw,h[2])-Math.max(x,h[0]), iy=Math.min(y+bh,h[3])-Math.max(y,h[1]); return n+(ix>0&&iy>0?ix*iy:0); },0);
@@ -4377,7 +4389,7 @@ function renderHead(){
   // just the buttons (Ethan, 2026-11-22); whose turn it is stays in the page title for screen readers
   document.title=(S.current===0&&!S.over?'Your turn · ':'')+'Crown & Coin';
   setSolo();
-  $('#sidehead').innerHTML=`<span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶ Full</button><button class="ghost sh-z" data-head="zin" aria-label="Zoom in" title="Zoom in">＋</button><button class="ghost sh-z" data-head="zout" aria-label="Zoom out" title="Zoom out"${UZ.k>1?'':' disabled'}>−</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
+  $('#sidehead').innerHTML=`<span class="sh-btns"><button class="ghost" data-head="full" aria-label="${isFull()?'Exit full screen':'Full screen'}" aria-pressed="${isFull()}">⛶ Full</button><button class="ghost" data-head="help" aria-label="How to play">?</button><button class="ghost" data-head="log">Log</button><button class="ghost" data-head="new">${NET?'Leave':'New'}</button></span>${siege}${online}`;
 }
 // in the board's bottom-right corner (Ethan, 2026-11-12): +coins a turn, units, coins, materials, and every side's castles
 let statsHidden=false; try{ statsHidden=localStorage.getItem('cc-stats-hidden')==='1'; }catch(e){}
@@ -5301,10 +5313,10 @@ function afterYourFightNet(r,f){ ui.battle=r&&r.kind==='battle'?r:null; ui.undo=
 function zoomBy(f,sx,sy){
   if(_zoomHex!=null||!S) return;   // the build/recruit view is zoomed already
   const svg=$('#map'), v=vbUser(); let px=v[0]+v[2]/2, py=v[1]+v[3]/2, fx=.5, fy=.5;
-  if(sx!=null){ const p=svgPt(sx,sy); px=p.x; py=p.y; fx=(px-v[0])/v[2]; fy=(py-v[1])/v[3]; }
+  if(sx!=null){ const p=svgPt(sx,sy); px=p.x; py=p.y; fx=(px-v[0])/v[2]; fy=(py-v[1])/v[3]; }   // fx/fy can be outside 0..1: the map now runs under the cards
   const k=Math.max(1,Math.min(UZ_MAX,UZ.k*f)), w=VB_W/k, h=VB_H/k;
   UZ.k=k; UZ.cx=px-fx*w+w/2; UZ.cy=py-fy*h+h/2;
-  cancelAnimationFrame(_vbAnim); setVB(vbUser());
+  cancelAnimationFrame(_vbAnim); setVB(vbFor(null));
   const zo=$('[data-head="zout"]'); if(zo) zo.disabled=UZ.k<=1;
 }
 function svgPt(x,y){ const svg=$('#map'), p=svg.createSVGPoint(); p.x=x; p.y=y; return p.matrixTransform(svg.getScreenCTM().inverse()); }
@@ -5317,7 +5329,7 @@ function svgPt(x,y){ const svg=$('#map'), p=svg.createSVGPoint(); p.x=x; p.y=y; 
     if(pinch&&pts.size===2){ const [a,b]=[...pts.values()], d=Math.hypot(a.x-b.x,a.y-b.y); if(pinch.d>0&&Math.abs(d-pinch.d)>2){ zoomBy(d/pinch.d,(a.x+b.x)/2,(a.y+b.y)/2); pinch.d=d; moved=true; } return; }
     if(drag&&UZ.k>1){ const P=(x,y)=>{ const p=svg.createSVGPoint(); p.x=x; p.y=y; return p.matrixTransform(drag.m); }, a=P(drag.x,drag.y), b=P(e.clientX,e.clientY);
       if(!moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<7) return;
-      moved=true; UZ.cx=drag.cx-(b.x-a.x); UZ.cy=drag.cy-(b.y-a.y); setVB(vbUser()); } });
+      moved=true; UZ.cx=drag.cx-(b.x-a.x); UZ.cy=drag.cy-(b.y-a.y); setVB(vbFor(null)); } });
   const up=e=>{ pts.delete(e.pointerId); if(pts.size<2) pinch=null; if(!pts.size) drag=null; };
   svg.addEventListener('pointerup',up); svg.addEventListener('pointercancel',up);
   svg.addEventListener('click',e=>{ if(moved){ e.stopPropagation(); e.preventDefault(); moved=false; } },true);   // a drag or pinch isn't a tap on a hex
@@ -5486,6 +5498,7 @@ function fitStage(){
   if(st.classList.contains('solo')){ const hd=$('#sidehead'), need=hd&&(sw-mw)/2<hd.offsetWidth+padR+.4*fs&&(sh-mh)/2<hd.offsetHeight+padT+.4*fs;
     if(need&&!st.classList.contains('headroom')){ st.classList.add('headroom'); return fitStage(); } }   // once on, it stays on until your turn
   else st.classList.remove('headroom');
+  try{ if(_mapReady) setVB(_zoomHex!=null?vbFor(_zoomHex):vbFor(null)); }catch(e){}   // the map layer is the whole screen: keep the board in its place
   if(_zoomHex!=null) placeBubbles(true);
 }
 window.addEventListener('resize',fitStage);
