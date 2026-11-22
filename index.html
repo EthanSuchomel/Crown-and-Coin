@@ -529,6 +529,26 @@ html,body{height:100%;overflow:hidden}
   background:linear-gradient(180deg,#fff0bd 0%,#f4cf6b 22%,#dca43a 55%,#a9721f 100%);border:2px solid #5a3a0e;border-radius:4px;
   box-shadow:0 0 0 2px #120c06,inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(90,55,10,.55),0 0 1.1em rgba(255,180,60,.35),0 .35em .8em rgba(0,0,0,.6)}
 #scrFaction .fsx-foot button.primary:hover{background:linear-gradient(180deg,#fff6d2 0%,#f8da80 22%,#e6b14a 55%,#b67d26 100%)}
+/* less gold (Ethan, 2026-11-22): bronze trims and parchment text; gold only on Start and on what's picked */
+#scrFaction{--brz:#6e5226;--parch:#e4d6b4}
+#scrFaction .fsx-tab{color:var(--parch);border-color:var(--brz)}
+#scrFaction .fsx-tab .n{border-color:#9c8156;color:#cdbb92}
+#scrFaction .fsx-tab[aria-selected="true"]{color:#f6e7bf;text-shadow:0 1px 0 #000;background:linear-gradient(180deg,#5a4a33,#2c2318);border-color:#b8913f;
+  box-shadow:0 0 0 2px #120c06,inset 0 1px 0 rgba(255,236,190,.22),inset 0 -3px 0 rgba(233,185,73,.55),0 .3em .7em rgba(0,0,0,.5)}
+#scrFaction .fsx-tab[aria-selected="true"] .n{border-color:#e9c66a;color:#e9c66a}
+#scrFaction .fsx-body{border-color:var(--brz);box-shadow:0 0 0 2px #120c06,inset 0 0 2.5em rgba(0,0,0,.45),0 .6em 1.6em rgba(0,0,0,.6)}
+#scrFaction .fsx-l{color:var(--parch)}
+#scrFaction .fsx-fac,#scrFaction .fsx-map{border-color:#4f3b1c}
+#scrFaction .fsx-fac[aria-pressed="true"],#scrFaction .fsx-map[aria-pressed="true"]{border-color:#d9b25a;background:linear-gradient(180deg,rgba(64,50,30,.95),rgba(30,23,14,.95));
+  box-shadow:0 0 0 2px #120c06,0 0 0 3px rgba(233,185,73,.75),0 0 .8em rgba(255,190,70,.2)}
+#scrFaction .fsx-map b{color:var(--parch)}
+#scrFaction .cp-sw[aria-pressed="true"]{box-shadow:0 0 0 2px #120c06,0 0 0 4px #e4d6b4}
+#scrFaction .op-b,#scrFaction .fsx-more,#scrFaction .fsx-foot button:not(.primary){color:var(--parch);border-color:var(--brz)}
+#scrFaction .op-b[aria-pressed="true"]{color:#f6e7bf;text-shadow:0 1px 0 #000;background:linear-gradient(180deg,#5a4a33,#2c2318);border-color:#d9b25a}
+#scrFaction .fsx-more .ic{background:#cdbb92}
+/* the home screen's other buttons: bronze edges and parchment letters; the title and Start stay gold */
+#scrTitle .ts-btns button:not(.primary){color:var(--parch,#e4d6b4);border-color:#6e5226}
+#scrTitle .ts-btns button:not(.primary)::before,#scrTitle .ts-btns button:not(.primary)::after{background:#a88a55}
 #scrTitle .ts-ver{color:var(--bone);opacity:.85;text-shadow:0 1px 2px #000}
 #scrTitle .ts-btns button:not(.primary){box-shadow:0 0 0 2px var(--outline),0 .25em .6em rgba(0,0,0,.5)}
 .ts-art{display:flex;gap:2.4em;align-items:flex-end}
