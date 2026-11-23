@@ -3829,33 +3829,35 @@ function aiChooseCard(pid){
   } finally { S=saved; ui.aiShots=shots; }
   return best;
 }
-const AI_PACE={lead:1800, act:5200, move:2600, battle:3400};   // ms: before each action, then after a recruit/build/harvest etc., or after each move (up to 2 per action)
+const AI_PACE={lead:1800, act:5200, move:2600, battle:3400};
+const AI_SPEED={easy:1, medium:.55, hard:.3, expert:.085};   // how much of the Easy pace each level takes (Ethan, 2026-11-22)   // ms: before each action, then after a recruit/build/harvest etc., or after each move (up to 2 per action)
 async function runAI(){
   if(NET&&!(cur().cpu&&S.runner===0)) return;
   if(NET) NET.cpuRunning=true;
   ui.busy=true; const pid=S.current, p=cur();
+  const pace=AI_SPEED[aiLv(pid)]??1, wait=ms=>sleep(ms*pace);
   const shots=ui.aiShots||[]; ui.aiShots=null;
-  if(shots.length){ ui.shotsShown=shots; ui.flash=shots.map(x=>x.to); render(); await sleep(1400); ui.flash=[]; }
-  render(); await sleep(450);
+  if(shots.length){ ui.shotsShown=shots; ui.flash=shots.map(x=>x.to); render(); await wait(1400); ui.flash=[]; }
+  render(); await wait(450);
   const cid=aiChooseCard(pid), card=cardOf(pid,cid);
   ui.shotsShown=null;
   S.play={card:cid,step:0};
   addLog(`${p.name} play ${card.name}: ${cardLine(card,pid)}.`,pid);
-  render(); await sleep(800);
-  // pacing: each of the computer's actions takes about 6 to 8 seconds, so you can follow what it does
+  render(); await wait(800);
+  // pacing: on Easy each action takes about 6 to 8 seconds, so you can follow what it does; harder levels go faster
   ARENA_LIVE=true;
   for(const ev of aiCardGen(pid,cid)){
-    if(ev.kind==='step'){ ui.flash=[]; render(); await sleep(AI_PACE.lead); continue; }
+    if(ev.kind==='step'){ ui.flash=[]; render(); await wait(AI_PACE.lead); continue; }
     if(ev.kind==='fight'){   // an attack on you: you see it coming, click OK, and fight it out in the arena
-      ui.flash=[ev.from,ev.to]; render(); await sleep(700);
+      ui.flash=[ev.from,ev.to]; render(); await wait(700);
       const f=beginFight(ev.from,ev.to,ev.n,ev.lvl); render();
       ev.res=(NET&&f.def!==0)?await netAiFight(f):await fightLocal(f); ev.kind='move';
       ui.battle=ev.res&&ev.res.kind==='battle'?ev.res:null;
-      ui.flash=[ev.from,ev.to]; render(); await sleep(AI_PACE.move);
+      ui.flash=[ev.from,ev.to]; render(); await wait(AI_PACE.move);
       if(S.over) break; continue;
     }
-    if(ev.kind==='move'){ ui.flash=[ev.from,ev.to]; render(); await sleep(ev.res.kind==='battle'?AI_PACE.battle:AI_PACE.move); }
-    else { ui.flash=ev.ids||[]; render(); await sleep(AI_PACE.act); }
+    if(ev.kind==='move'){ ui.flash=[ev.from,ev.to]; render(); await wait(ev.res.kind==='battle'?AI_PACE.battle:AI_PACE.move); }
+    else { ui.flash=ev.ids||[]; render(); await wait(AI_PACE.act); }
     if(S.over) break;
   }
   ARENA_LIVE=false;
