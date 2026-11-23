@@ -1411,7 +1411,7 @@ function mythTurnStart(p){
   S.tiles.forEach(t=>{ if(t.owner===pid&&t.root>0){ lockMage(t); t.root--; } });
 }
 function mythSetup(p,i){
-  p.gold=MYTH.startMagic+catchUp(i,MYTH.secondMagic,S.players.length); p.mlv=0; p.clv=0;
+  p.gold=MYTH.startMagic+catchUp(i,MYTH.secondMagic,S.players.length); p.mlv=0; p.clv=0; p.mythFirst=true;   // no magic collected on the first turn (Ethan)
   addUnits(S.tiles[HOMES[i]],'mage0',1,true); addUnits(S.tiles[HOMES[i]],'minion',4,true);
 }
 // the special card: no actions, but every Mage makes 2 magic and every castle 5
@@ -1591,6 +1591,7 @@ function mythFactionInfo(fid){
   return `<div class="fs-head"><span class="fs-castle px-c-${fid}" aria-hidden="true"></span><div><h2 style="color:${f.ink}">${f.name}</h2><p>${f.tagline}. ${faceLine(fid)}</p></div></div>
     <h3>Magic, not gold</h3>
     <ul><li>The Mythical earn and spend only <b>magic</b> <span class="px px-magic" aria-hidden="true"></span>. Captured markets, forts and barracks do nothing for them, and they don't take bonus coins or plunder.</li>
+      <li><b>Start</b> with ${MYTH.startMagic} magic; the Floating Castle's magic starts on your second turn.</li>
       <li><b>Floating Castle</b> (home): ${MYTH.castleMagic[0]} magic and ${MYTH.minions[0]} Minions every turn. Three upgrades (${MYTH.castleUp.join(', ')} magic) raise that to ${MYTH.castleMagic.slice(1).join(', ')} magic and ${MYTH.minions.slice(1).join(', ')} Minions. Only flyers can attack it.</li>
       <li><b>Life Trees</b>: ${MYTH.treeMagic} magic a turn, or ${MYTH.treeRich} with ${MYTH.treeMinions}+ Minions on the hex.</li></ul>
     <h3>Mages</h3>
@@ -2373,6 +2374,8 @@ function factory(pid){
 // then the played card goes into reserve and a random reserve card takes its place.
 function beginTurn(){
   const p=cur(), inc=incomeOf(p.id);
+  const mythFirst=!!p.mythFirst;
+  if(p.mythFirst){ p.mythFirst=false; inc.total=0; inc.home=0; inc.treeM=0; }   // the Mythical's first turn: they open with their starting 5 magic
   p.gold+=inc.total;
   const tm=inc.castles*TUSK_M[tuskLv(p.id)]; if(tm) p.mat=matOf(p.id)+tm;   // Tusks and Thorns' Harvest: materials from every castle, every round
   p.updNow=!!p.updNext; p.updNext=false; p.herd=false; p.tr=0;   // p.tr: materials bought from the markets this turn   // a Herd lasts until the herd's next turn   // a Robot Update from last turn: +1 attack and damage this turn
@@ -2380,6 +2383,7 @@ function beginTurn(){
   S.tiles.forEach(t=>{if(t.owner===p.id){t.ready=Object.assign({},t.army||{}); delete t.ready.alamo; syncT(t); if(t.braced===p.id) t.braced=-1;}});
   if(isMyth(p.id)) mythTurnStart(p);   // dome upkeep, the Floating Castle's Minions, Mages rooted to new trees
   S.play=null; S.volley=null;
+  if(mythFirst) addLog(`${p.name} begin with ${p.gold} magic; the Floating Castle's magic starts next turn.`,p.id); else
   addLog(`${p.name} collect ${inc.total} ${cur$(p.id)}${tm?` and ${matTxt(tm)}`:''}.`,p.id);
   // finished trebuchets fire once, at an enemy hex next to them
   const trebs=readyTrebs(p.id);
