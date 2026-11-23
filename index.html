@@ -1362,7 +1362,7 @@ const cardLv=(pid,cid,a)=>{ const c=(FACTIONS[facIdOf(pid)]||{cards:[]}).cards.f
 // the Floating Castle (their home castle). Mages are moving barracks: on the hex they stand on they turn Minions into bigger
 // units, plant Life Trees and raise magic domes. Mages and Minions are made at castles. Captured enemy buildings do nothing
 // for them. Unit prices and the Mage's base price are placeholders until Ethan sets them.
-const MYTH={startMagic:5, castleMagic:[10,15,20,25], castleUp:[10,15,20], minions:[1,3,5,8], mageUp:[7,9,12], mageBase:4,
+const MYTH={startMagic:5, castleMagic:[1,3,6,10], castleUp:[10,15,20], minions:[1,3,5,8], mageUp:[7,9,12], mageBase:4,
   treeMagic:3, treeRich:5, treeMinions:5, treeTurns:2, domeCost:1, domeUpkeep:1, chMage:2, chCastle:5, minionPack:3, secondMagic:3, guards:1};
 const MAGIC_VAL=3;                                  // the computer's rough worth of 1 magic, in gold
 const MAGES=['mage0','mage1','mage2','mage3'];      // a Mage keeps the level it was made at
