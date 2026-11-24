@@ -20,14 +20,44 @@ func _ready() -> void:
 		if d is Dictionary:
 			url = String(d.get("url", "")).strip_edges().trim_suffix("/")
 			key = String(d.get("key", "")).strip_edges()
+	# Each copy of the game running on this computer is its own player (Ethan, 2026-11-23: two windows on one computer
+	# shared one id, so both sat in the maker's seat and the map flipped between their boards). The first copy open
+	# uses slot 1, a second copy open at the same time slot 2, and so on; each slot keeps its id, so Your games stay.
 	var cfg := ConfigFile.new()
 	cfg.load(SETTINGS)
-	my_id = String(cfg.get_value("online", "id", ""))
-	if my_id == "":   # this computer's own id: who made or joined which game
-		var crypto := Crypto.new()
-		my_id = crypto.generate_random_bytes(12).hex_encode()
-		cfg.set_value("online", "id", my_id)
-		cfg.save(SETTINGS)
+	var now: float = Time.get_unix_time_from_system()
+	for slot in range(1, 9):
+		var alive: String = "user://online_alive_%d" % slot
+		if slot < 8 and FileAccess.file_exists(alive) and now - float(FileAccess.get_file_as_string(alive)) < 6.0:
+			continue   # another copy of the game is using this slot right now
+		_alive_file = alive
+		var k: String = "id" if slot == 1 else "id%d" % slot
+		my_id = String(cfg.get_value("online", k, ""))
+		if my_id == "":
+			my_id = Crypto.new().generate_random_bytes(12).hex_encode()
+			cfg.set_value("online", k, my_id)
+			cfg.save(SETTINGS)
+		break
+	_beat()
+	var t := Timer.new()
+	t.wait_time = 2.0
+	t.autostart = true
+	t.timeout.connect(_beat)
+	add_child(t)
+
+
+var _alive_file: String = ""
+
+func _beat() -> void:
+	var f := FileAccess.open(_alive_file, FileAccess.WRITE)
+	if f != null:
+		f.store_string(str(Time.get_unix_time_from_system()))
+		f.close()
+
+
+func _exit_tree() -> void:
+	if _alive_file != "":
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(_alive_file))
 
 
 func configured() -> bool:
