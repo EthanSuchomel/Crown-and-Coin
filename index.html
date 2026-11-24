@@ -176,7 +176,7 @@ html,body{height:100%;overflow:hidden}
 #stage{position:fixed;top:0;left:0;transform-origin:0 0;overflow:hidden;font-size:clamp(12px,min(calc(var(--H,700px)*.036),calc(var(--W,1200px)*.026)),16px)}   /* text scales with the window, so a small window keeps the cards column readable */
 #app{display:grid;height:100%;box-sizing:border-box;gap:0 .8em;   /* no row gaps: the empty rows above and below the board would add them and push everything down */
   padding:max(.6em,var(--sa-t,0px)) max(.8em,var(--sa-r,0px)) max(.6em,var(--sa-b,0px)) max(.8em,var(--sa-l,0px));   /* the phone's notch and home-bar margins, set by fitStage for whichever way the game is turned */
-  grid-template-columns:minmax(0,66fr) minmax(0,34fr);   /* the map gets about 2/3 of the width */grid-template-rows:minmax(0,1fr) var(--maph,70vh) minmax(0,1fr);
+  grid-template-columns:minmax(0,var(--mfr,66fr)) minmax(0,var(--sfr,34fr));   /* the map gets 2/3 of the width (3/4 on a computer) */grid-template-rows:minmax(0,1fr) var(--maph,70vh) minmax(0,1fr);
   grid-template-areas:". side" "board side" ". side"}   /* your numbers sit in the board's bottom-left corner */
 .board{grid-area:board;min-width:0;min-height:0}
 .board{justify-self:center;width:var(--mapw,100%)}
@@ -600,6 +600,14 @@ html,body{height:100%;overflow:hidden}
 .fsx-lvsheet .fsx-lv button:hover{border-color:#8a6a34}
 .fsx-lvsheet .fsx-lv button[aria-pressed="true"]{border-color:#d9b25a;background:linear-gradient(180deg,rgba(64,50,30,.95),rgba(30,23,14,.95));box-shadow:0 0 0 2px #120c06,0 0 0 3px rgba(233,185,73,.75),0 0 .8em rgba(255,190,70,.2)}
 .fsx-lvsheet .fsx-lv button[aria-pressed="true"] b{color:#f6e7bf}
+/* no description under the playing card (Ethan, 2026-11-23): the hints and the building key go; notes, picks and buttons stay */
+.bigcard.playing .bc-step>p.hint,.bigcard.playing .bc-step>ul.bkey,.bigcard.playing .bc-step>.mythpanel>p.hint{display:none}
+/* a slimmer cards column on a computer: tighter cards */
+#stage.wide .handlist{gap:.45em}
+#stage.wide .bigcard .bc-head{margin-bottom:.1em}
+#stage.wide .bc-acts{gap:.15em}
+#stage.wide .bc-acts li{padding-top:.25em;padding-bottom:.25em}
+#stage.wide .handlist .gcard .cname{font-size:1em}
 /* ===== Play online, themed like the setup screen (Ethan, 2026-11-23) ===== */
 #scrOnline{--cz:"Cinzel","Trajan Pro","Palatino Linotype",Palatino,Georgia,serif;--brz:#6e5226;--parch:#e4d6b4;overflow:hidden;background:#0c0a07!important}
 #scrOnline::before{content:"";position:absolute;inset:-14px;background:url(title_battle.jpg) center/cover no-repeat;filter:blur(2px) brightness(.62) saturate(1.1);z-index:0}
@@ -941,7 +949,8 @@ const BOARDS={
      center:[5,5], mountains:10, waters:4, castles:6, forests:15, ferns:0, coins:26, crates:9},
 };
 let N, GRID_W, GRID_H, BOARD_W, BOARD_H, VB_X, VB_Y, VB_W, VB_H, VOID, HOMES, MOUNTAINS, WATERS, NEUTRAL_CASTLES, FORESTS, FERNS, COINS, CRATES, BOARD_NP=0;
-const VB_M=HM-1.4, MAP_SHARE=.66, SOLO_GROW=1.2;
+const VB_M=HM-1.4, SOLO_GROW=1.2;
+let MAP_SHARE=.66;   // the map's share of the width: .75 on a computer-sized screen, so the cards column is slimmer (Ethan, 2026-11-23)
 let SOLO_T=0, _soloAnim=0, _soloRun=false, _soloSim=false;   // 0 your turn (cards shown) .. 1 their turn (cards away)
 // The board is drawn turned a quarter (flipped across its diagonal), so it is wider than tall and the hexes stand points-up.
 // Your corner stays lower left; on the 2-player board the opponent's is upper right.
@@ -1589,13 +1598,9 @@ function mythBubbleItems(t){
   return out;
 }
 const MYTH_RING={1:[90],2:[120,60],3:[150,90,30],4:[150,90,30,270],5:[150,90,30,225,315],6:[150,90,30,210,330,270],7:[150,90,30,200,250,290,340]};
-function mythBubbles(P,cx,cy,k,R,stem){
+function mythBubbles(P,cx,cy,k,R,stem,slot){
   const items=mythBubbleItems(S.tiles[_zoomHex]); let lines='', html='';
-  const [hcx,hcy]=P(cx,cy), hr=HR*k, r=items.length>3?Math.min(R,(hr*.95+stem)/1.75):R, ring=hr*.95+stem+r, fsz=(r/R).toFixed(3);
-  const rpost=deg=>{ const a=deg*Math.PI/180, ux=Math.cos(a), uy=-Math.sin(a), nx=-uy*r*.2, ny=ux*r*.2, r0=hr*.86;
-    for(const sg of [-1,1]){ const x1=(hcx+ux*r0+sg*nx).toFixed(1), y1=(hcy+uy*r0+sg*ny).toFixed(1), x2=(hcx+ux*(ring-r+4)+sg*nx).toFixed(1), y2=(hcy+uy*(ring-r+4)+sg*ny).toFixed(1);
-      lines+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#060907" stroke-width="4.5" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ece4cf" stroke-width="2"/>`; }
-    return `style="left:${(hcx+ux*ring).toFixed(1)}px;top:${(hcy+uy*ring).toFixed(1)}px;width:${(2*r).toFixed(1)}px;height:${(2*r).toFixed(1)}px;font-size:calc(.78em * ${fsz})"`; };
+  const hr=HR*k, r=items.length>3?Math.min(R,(hr*.95+stem)/1.75):R, rpost=deg=>slot(deg,r);
   const degs=MYTH_RING[Math.min(7,items.length)]||[];
   items.slice(0,7).forEach((o,i)=>{
     html+=`<button class="bub unit${o.big?' rec':''}${o.ok?'':' off'}" data-my="${o.op}" data-k="${o.k}" ${rpost(degs[i])} ${o.ok?'':'disabled'} aria-label="${o.label||o.name}"><img src="${o.img}" alt=""${o.sm?' class="sm"':''}><b${o.big?' class="big"':o.name.length>11?' class="lng"':''}>${o.name}</b><small>${o.note}</small></button>`; });
@@ -4083,6 +4088,86 @@ function updateZoom(){
     if(k<1) _vbAnim=requestAnimationFrame(step); else placeBubbles(true); };
   _vbAnim=requestAnimationFrame(step);
 }
+// Lays out the round buttons round a hex (Ethan, 2026-11-23: "make it flexible so the purchase buttons go around the hexagon in
+// the open spaces instead of squishing"). Each slot wants a spot: off a hex corner (vi, deg) or on the ring round the hex (deg).
+// If every wished-for spot is on the map's open part of the screen (not off screen, not under the cards or the numbers box)
+// and no two buttons touch, they stay there. Otherwise they keep their order round the hex and spread into the open arcs of a
+// ring at the hex's edge; a wider ring if the open arc is too short, then smaller buttons. Returns the posts and the buttons.
+function bubLayout(ov,slots,html,g){
+  const {P,cx,cy,hcx,hcy,hr,stem,R}=g, n=slots.length;
+  if(!n) return html;
+  const ob=ov.getBoundingClientRect(), M=4, blocks=[];
+  const add=el=>{ if(!el||el.hidden) return; const b=el.getBoundingClientRect(); if(b.width>2&&b.height>2&&getComputedStyle(el).visibility!=='hidden'&&+getComputedStyle(el).opacity>.05) blocks.push([b.left-ob.left-M,b.top-ob.top-M,b.right-ob.left+M,b.bottom-ob.top+M]); };
+  add(document.querySelector('#app .side')); add(document.getElementById('stats'));
+  const W=ov.clientWidth, H=ov.clientHeight;
+  const fits=(x,y,r)=>x-r>=M&&y-r>=M&&x+r<=W-M&&y+r<=H-M&&!blocks.some(([l,t,rt,bt])=>{ const qx=Math.max(l,Math.min(x,rt)), qy=Math.max(t,Math.min(y,bt)); return (qx-x)**2+(qy-y)**2<r*r; });
+  const apart=ps=>ps.every((p,i)=>ps.every((q,j)=>j<=i||Math.hypot(p.x-q.x,p.y-q.y)>=p.r+q.r+2));
+  // where each button usually goes. Buttons on the ring keep their full size: when the hex is small on screen the ring
+  // widens so they don't overlap (they used to shrink to fit round it, which squashed them)
+  const rd=slots.filter(sl=>sl.vi==null).map(sl=>sl.deg);
+  let dmin=360; rd.forEach((a,i)=>rd.forEach((b,j)=>{ if(j>i) dmin=Math.min(dmin,Math.abs(((a-b+540)%360)-180)); }));
+  const ringR=Math.max(hr*.95+stem+R, rd.length>1?(R+3)/Math.sin(Math.max(1,dmin)/2*Math.PI/180):0);
+  let ps=slots.map(sl=>{ const a=sl.deg*Math.PI/180, ux=Math.cos(a), uy=-Math.sin(a);
+    if(sl.vi!=null){ const [hx,hy]=P(...hexV(cx,cy,HR,sl.vi)); return {x:hx+ux*(stem+sl.r), y:hy+uy*(stem+sl.r), r:sl.r, ux, uy, fx:hx, fy:hy, ring:false}; }
+    return {x:hcx+ux*ringR, y:hcy+uy*ringR, r:R, ux, uy, ring:true}; });
+  if(!(ps.every(p=>fits(p.x,p.y,p.r))&&apart(ps))){
+    // into the open space: the buttons in their usual order round the hex, on one ring
+    const norm=d=>((d%360)+360)%360, want=slots.map(sl=>norm(sl.deg));
+    const tryRing=(r,extra)=>{
+      const ring=hr*.95+stem+r+extra, step=2, ok=[];
+      for(let d=0;d<360;d+=step){ const a=d*Math.PI/180; ok.push(fits(hcx+Math.cos(a)*ring,hcy-Math.sin(a)*ring,r)); }
+      if(!ok.some(Boolean)) return null;
+      const gap=2*Math.asin(Math.min(1,(r+2)/ring))*180/Math.PI;   // degrees between two button centres
+      if(n*gap>360) return null;
+      // the open arcs (runs of open degrees round the circle)
+      const N=ok.length, arcs=[]; let st=ok.indexOf(false);
+      if(st<0) arcs.push([0,360]); else for(let i=1;i<=N;i++){ const j=(st+i)%N; if(ok[j]&&!ok[(j-1+N)%N]) arcs.push([j*step,0]); if(ok[j]&&!ok[(j+1)%N]) arcs[arcs.length-1][1]=j*step; }
+      const len=a=>a[1]>=a[0]?a[1]-a[0]:a[1]+360-a[0];
+      // the arc nearest where the buttons usually are that holds them all
+      const mean=Math.atan2(want.reduce((t,d)=>t+Math.sin(d*Math.PI/180),0),want.reduce((t,d)=>t+Math.cos(d*Math.PI/180),0))*180/Math.PI;
+      const need=(n-1)*gap, dist=(a,b)=>Math.abs(((a-b+540)%360)-180);
+      const fit=arcs.filter(a=>arcs.length===1&&a[1]-a[0]>=360||len(a)>=need).sort((p,q)=>dist(norm(p[0]+len(p)/2),mean)-dist(norm(q[0]+len(q)/2),mean))[0];
+      if(!fit){   // no one open arc holds them all: spread them over several, in order, each a button apart
+        if(st<0) return null;
+        const at=[]; let last=-1e9;
+        for(let i=1;i<=N;i++){ const d=(st+i)*step; if(ok[(st+i)%N]&&d-last>=gap&&(at.length===0||d-at[0]<=360-gap)){ at.push(d); last=d; } }
+        if(at.length<n) return null;
+        // the n of them closest together round the usual direction
+        let bi=0, bv=1e9; for(let i=0;i+n<=at.length;i++){ const mid=norm((at[i]+at[i+n-1])/2), v=dist(mid,mean)+(at[i+n-1]-at[i])*.2; if(v<bv){ bv=v; bi=i; } }
+        const use=at.slice(bi,bi+n), base2=norm(use[0]), order2=slots.map((sl,i)=>i).sort((i,j)=>norm(want[i]-base2)-norm(want[j]-base2)), out2=new Array(n);
+        order2.forEach((si,k)=>{ const a=use[k]*Math.PI/180, ux=Math.cos(a), uy=-Math.sin(a); out2[si]={x:hcx+ux*ring, y:hcy+uy*ring, r, ux, uy, ring:true}; });
+        return out2;
+      }
+      const full=fit[1]-fit[0]>=360, L=full?360:len(fit);
+      // even steps, a little wider than touching when there's room; then the start angle and the turn of the (circular)
+      // order that keep the buttons closest to their usual spots, every one on open ground
+      const sp=full?Math.min(360/n,gap*1.25):Math.max(gap,Math.min(gap*1.3,n>1?L/(n-1):gap));
+      const ord=slots.map((sl,i)=>i).sort((i,j)=>want[i]-want[j]), open=d=>ok[Math.round(norm(d)/step)%N];
+      let best=null, bc=1e9;
+      for(let c0=0;c0<360;c0+=2) for(let rot=0;rot<n;rot++){
+        let cost=0, good=true;
+        for(let k=0;k<n&&good;k++){ const d=c0+k*sp; if(!open(d)) good=false; else cost+=dist(norm(d),want[ord[(k+rot)%n]]); }
+        if(good&&cost<bc){ bc=cost; best=[c0,rot]; } }
+      if(!best) return null;
+      const out=new Array(n);
+      for(let k=0;k<n;k++){ const si=ord[(k+best[1])%n], a=(best[0]+k*sp)*Math.PI/180, ux=Math.cos(a), uy=-Math.sin(a);
+        out[si]={x:hcx+ux*ring, y:hcy+uy*ring, r, ux, uy, ring:true}; }
+      return out;
+    };
+    const big=R, rr=Math.min(big,(hr*.95+stem)/1.75);
+    let got=null;   // full-size buttons on a ring that widens; smaller buttons only if nothing else fits
+    for(const [r,extra] of [[big,0],[big,big*.6],[big,big*1.2],[big,big*1.8],[big,big*2.6],[big*.85,big*1.8],[rr,rr*1.8],[rr*.8,rr*2.4]]){ got=tryRing(r,extra); if(got&&got.every(p=>fits(p.x,p.y,p.r))&&apart(got)) break; got=null; }
+    if(got) ps=got;
+  }
+  let lines='';
+  ps.forEach(p=>{ const nx=-p.uy*p.r*.2, ny=p.ux*p.r*.2;
+    const [x0,y0]=p.ring?[hcx+p.ux*hr*.86,hcy+p.uy*hr*.86]:[p.fx,p.fy], len=Math.hypot(p.x-x0,p.y-y0)-p.r+4;
+    for(const sg of [-1,1]){ const x1=(x0+sg*nx).toFixed(1), y1=(y0+sg*ny).toFixed(1), x2=(x0+p.ux*len+sg*nx).toFixed(1), y2=(y0+p.uy*len+sg*ny).toFixed(1);
+      lines+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#060907" stroke-width="4.5" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ece4cf" stroke-width="2"/>`; } });
+  html=html.replace(/__SLOT(\d+)__/g,(m,i)=>{ const p=ps[+i], f=(slots[+i].vi==null||p.r<R-.01)?`;font-size:calc(.78em * ${(p.r/R).toFixed(3)})`:'';
+    return `style="left:${p.x.toFixed(1)}px;top:${p.y.toFixed(1)}px;width:${(2*p.r).toFixed(1)}px;height:${(2*p.r).toFixed(1)}px${f}"`; });
+  return `<svg aria-hidden="true">${lines}</svg>${html}`;
+}
 function placeBubbles(show){
   const ov=$('#bldov'), id=_zoomHex;
   if(!show||id==null||!_vb){ ov.classList.remove('show'); if(id==null){ ov.innerHTML=''; ov.hidden=true; } return; }
@@ -4096,20 +4181,13 @@ function placeBubbles(show){
   // three buttons: off the upper-left corner, the top, and the upper-right corner
   const bk=basicOf(0), tc=unitCostAt(t,0,bk), maxN=Math.floor(me.gold/tc);
   // a round button on a post, off corner vi of the hex, pointing out at angle deg
-  const post=(vi,deg)=>{
-    const [hx,hy]=P(...hexV(cx,cy,HR,vi)), a=deg*Math.PI/180, ux=Math.cos(a), uy=-Math.sin(a);
-    const bx=hx+ux*(stem+R), by=hy+uy*(stem+R), nx=-uy*R*.2, ny=ux*R*.2;
-    for(const sg of [-1,1]){ const x1=(hx+sg*nx).toFixed(1), y1=(hy+sg*ny).toFixed(1), x2=(hx+ux*(stem+4)+sg*nx).toFixed(1), y2=(hy+uy*(stem+4)+sg*ny).toFixed(1);
-      lines+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#060907" stroke-width="4.5" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ece4cf" stroke-width="2"/>`; }
-    return `style="left:${bx.toFixed(1)}px;top:${by.toFixed(1)}px;width:${(2*R).toFixed(1)}px;height:${(2*R).toFixed(1)}px"`;
-  };
+  const slots=[];   // every button's wished-for spot; finish() lays them out (into open space if they don't fit)
+  const post=(vi,deg)=>{ slots.push({vi,deg,r:R}); return `__SLOT${slots.length-1}__`; };
   // a ring of smaller buttons all round the hex, for when more than fit on the corners
   const [hcx,hcy]=P(cx,cy), hr=HR*k, rr=Math.min(R,(hr*.95+stem)/1.75), ring=hr*.95+stem+rr, rfs=(rr/R).toFixed(3);
-  const rpost=deg=>{ const a=deg*Math.PI/180, ux=Math.cos(a), uy=-Math.sin(a), nx=-uy*rr*.2, ny=ux*rr*.2, r0=hr*.86;
-    for(const sg of [-1,1]){ const x1=(hcx+ux*r0+sg*nx).toFixed(1), y1=(hcy+uy*r0+sg*ny).toFixed(1), x2=(hcx+ux*(ring-rr+4)+sg*nx).toFixed(1), y2=(hcy+uy*(ring-rr+4)+sg*ny).toFixed(1);
-      lines+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#060907" stroke-width="4.5" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ece4cf" stroke-width="2"/>`; }
-    return `style="left:${(hcx+ux*ring).toFixed(1)}px;top:${(hcy+uy*ring).toFixed(1)}px;width:${(2*rr).toFixed(1)}px;height:${(2*rr).toFixed(1)}px;font-size:calc(.78em * ${rfs})"`; };
-  if(isMyth(0)){ const m=mythBubbles(P,cx,cy,k,R,stem); ov.hidden=false; ov.innerHTML=`<svg aria-hidden="true">${m.lines}</svg>${m.html}`; requestAnimationFrame(()=>{ void ov.offsetWidth; ov.classList.add('show'); }); return; }
+  const rpost=(deg,r1)=>{ slots.push({vi:null,deg,r:r1||rr}); return `__SLOT${slots.length-1}__`; };
+  const finish=html=>{ ov.hidden=false; ov.innerHTML=bubLayout(ov,slots,html,{P,cx,cy,hcx,hcy,hr,stem,R}); requestAnimationFrame(()=>{ void ov.offsetWidth; ov.classList.add('show'); }); };
+  if(isMyth(0)){ finish(mythBubbles(P,cx,cy,k,R,stem,rpost).html); return; }
   const menu=recruiting&&ui.train&&hasMenu(t,ui.train)?ui.train:null;
   if(menu){
     // the unit menu: the barracks' 4 units around the sides, or the fort's 3 along the top, and a hexagon below to go back
@@ -4118,8 +4196,7 @@ function placeBubbles(show){
     list.forEach(([k,nm,full],i)=>{ const pos=big?rpost(ringAt[i]):post(...at[i]), c=unitCostAt(t,0,k), ok=trainOk(t,menu,k), pk=ui.info&&ui.info.k===k&&ui.info.via===menu;
       html+=`<button class="bub unit${ok?'':' off'}${pk?' picked':''}" data-ui="${k}" data-via="${menu}" ${pos} aria-label="${full}: see its stats${ok?' and train it':`; needs a level ${bkNeed(k)} barracks`}"><img src="${UNIT_ART[k]}" alt=""><b${nm.length>11?' class="lng"':''}>${nm}</b><small>${ok?c+' gold':lockNote(t,k)}</small></button>`; });
     html+=`<button class="bub back" data-tb="back" ${big?rpost(270):post(3,270)} aria-label="Back to the hex"><svg viewBox="0 0 20 22" aria-hidden="true"><polygon points="10,1.5 18.5,6.25 18.5,15.75 10,20.5 1.5,15.75 1.5,6.25" fill="#2a5529" stroke="#060907" stroke-width="3" stroke-linejoin="round"/><polygon points="10,1.5 18.5,6.25 18.5,15.75 10,20.5 1.5,15.75 1.5,6.25" fill="none" stroke="#ece4cf" stroke-width="1.2" stroke-linejoin="round"/></svg><b>Back</b></button>`;
-    ov.hidden=false; ov.innerHTML=`<svg aria-hidden="true">${lines}</svg>${html}`;
-    requestAnimationFrame(()=>{ void ov.offsetWidth; ov.classList.add('show'); });
+    finish(html);
     return;
   }
   if(recruiting){
@@ -4162,8 +4239,7 @@ function placeBubbles(show){
       can:!me.armor&&me.gold>=ARMOR_COST, note:me.armor?'Forged':`${ARMOR_COST} gold`, label:me.armor?'Armor: already forged':`Forge Armor for ${ARMOR_COST} gold: all your units +${ARMOR_DMG} damage and +10% health`});
     [[150,1],[90,0],[30,5],[210,2],[330,4]].slice(0,opts.length).forEach(([deg,vi],i)=>{ const o=opts[i];
       html+=`<button class="bub adv${o.can?'':' off'}" data-av="${o.k}" ${post(vi,deg)} ${o.can?'':'disabled'} aria-label="${o.label}"><img src="${o.img}" alt=""${o.sm?' class="sm"':''}><b>${o.name}</b><small>${o.note}</small></button>`; });
-    ov.hidden=false; ov.innerHTML=`<svg aria-hidden="true">${lines}</svg>${html}`;
-    requestAnimationFrame(()=>{ void ov.offsetWidth; ov.classList.add('show'); });
+    finish(html);
     return;
   }
   if(recruiting){
@@ -4183,19 +4259,14 @@ function placeBubbles(show){
       }
     } else if(canRecruit(t)&&!t.barracks){ const c=unitCostAt(t,0,bk), pk=ui.info&&ui.info.via==='basic';   // a hex with a barracks: the basic unit is in the barracks menu
       html+=`<button class="bub unit${pk?' picked':''}" data-ui="${bk}" data-via="basic" ${post(0,90)} aria-label="${UNIT_STATS[bk].name}: see its stats and recruit"><img src="${UNIT_ART[bk]}" alt=""><b>${UNIT_STATS[bk].name.replace('Robot ','')}</b><small>${c} gold</small></button>`; }
-    ov.hidden=false; ov.innerHTML=`<svg aria-hidden="true">${lines}</svg>${html}`;
-    requestAnimationFrame(()=>{ void ov.offsetWidth; ov.classList.add('show'); });
+    finish(html);
     return;
   }
   const spots=[['barracks',150,1],['fort',90,0],['market',30,5]].filter(x=>!(x[0]==='fort'&&isDino(0)))   // the Dinosaurs build no forts
     .filter(x=>!isRobo(0)||x[0]==='market');   // Robots: a market, and factory upgrades at the home castle
   if(!recruiting&&whOk(0)) spots.push(['wh',210,2]);   // Watering Hole (Mammals)
   for(const [kind,deg,vi] of spots){
-    const [hx,hy]=P(...hexV(cx,cy,HR,vi)), a=deg*Math.PI/180, ux=Math.cos(a), uy=-Math.sin(a);
-    const bx=hx+ux*(stem+R), by=hy+uy*(stem+R), nx=-uy*R*.2, ny=ux*R*.2;
-    for(const sg of [-1,1]){ const x1=(hx+sg*nx).toFixed(1), y1=(hy+sg*ny).toFixed(1), x2=(hx+ux*(stem+4)+sg*nx).toFixed(1), y2=(hy+uy*(stem+4)+sg*ny).toFixed(1);
-      lines+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#060907" stroke-width="4.5" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ece4cf" stroke-width="2"/>`; }
-    const pos=`style="left:${bx.toFixed(1)}px;top:${by.toFixed(1)}px;width:${(2*R).toFixed(1)}px;height:${(2*R).toFixed(1)}px"`;
+    const pos=post(vi,deg);
     if(recruiting){
       // +1, +5, and every troop the gold covers
       const n=kind==='all'?maxN:kind, can=n>=1&&maxN>=n;
@@ -4218,9 +4289,7 @@ function placeBubbles(show){
     const nt=has?'Has one':full?'Full':castleNo?'Not here':price===0?'Free':priceTxt(kind,price), note=has||full||castleNo||price===0?nt:priceIc(kind,price);
     html+=`<button class="bub${can?'':' off'}" data-bk="${kind}" ${pos} ${can?'':'disabled'} aria-label="Build a ${BUILD_INFO[kind].name}: ${nt}">${bldImg(kind==='wh'?'wh':kind+'_'+me.faction)}<b>${kind==='wh'?'Watering':BUILD_INFO[kind].name}</b><small>${note}</small></button>`;
   }
-  ov.hidden=false;
-  ov.innerHTML=`<svg aria-hidden="true">${lines}</svg>${html}`;
-  requestAnimationFrame(()=>{ void ov.offsetWidth; ov.classList.add('show'); });
+  finish(html);
 }
 function renderMap(){
   syncShape();
@@ -5536,6 +5605,8 @@ function fitStage(){
   { const lr=Math.max(m.l,m.r); m.l=lr; m.r=lr; }   // the same margin left and right, so the board is centred on the screen itself (Ethan)
   for(const k of ['t','r','b','l']) st.style.setProperty('--sa-'+k,m[k]+'px');
   st.classList.toggle('short',sh<520);
+  MAP_SHARE=!rot&&!tall&&sw>=1150?.75:.66; st.classList.toggle('wide',MAP_SHARE>.7);
+  $('#app').style.setProperty('--mfr',Math.round(MAP_SHARE*100)+'fr'); $('#app').style.setProperty('--sfr',Math.round((1-MAP_SHARE)*100)+'fr');
   // a small window (like a game window inside an app) leaves the cards column narrow: tighten it
   st.classList.toggle('narrow',!rot&&!tall&&(sw-1.6*14)*(1-MAP_SHARE)<300);
   const fs=parseFloat(getComputedStyle(st).fontSize)||14;
