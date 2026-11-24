@@ -84,5 +84,5 @@ css = """
 .brief .bf-h{margin:.6em 0 .2em;font-weight:700;color:#e9c66a;font-family:Cinzel,'Trajan Pro',Georgia,serif}.brief ul{margin:0;padding-left:1.2em}.brief li{margin:.2em 0}
 @media (max-width:560px){.brief{flex-direction:column;align-items:center}.brief img{width:90px}}
 </style>"""
-i = s.index("</style>"); s = s[:i] + css + s[i+len("</style>"):]
+i = s.index("\n</style>"); s = s[:i] + css[:-len("</style>")] + s[i:]
 open(p, 'w', encoding='utf-8').write(s); print('ok')

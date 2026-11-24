@@ -1,17 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
-/* about to win (2026-11-24) */
-#turnwarn{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;width:min(560px,calc(100% - 32px));cursor:pointer;opacity:0;transition:opacity .5s, transform .5s}
-#turnwarn.in{opacity:1}
-#turnwarn.out{opacity:0;transform:translate(-50%,-10px)}
-#turnwarn .tw{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-radius:6px;background:linear-gradient(#2a1d10f2,#160e07f2);border:2px solid #b8893a;box-shadow:0 6px 24px #000a;color:#f0dcaa;text-align:center;font-size:14px}
-#turnwarn .tw b{font-family:Cinzel,'Trajan Pro',Georgia,serif;font-size:19px;letter-spacing:.02em}
-#turnwarn .tw.theirs{border-color:#c0392b}#turnwarn .tw.theirs b{color:#ff8a70}
-#turnwarn .tw.mine b{color:#f3cf6b}
-/* your faction (2026-11-24) */
-.brief{display:flex;gap:16px;align-items:flex-start}.brief img{width:120px;flex:none;image-rendering:auto}
-.brief .bf-h{margin:.6em 0 .2em;font-weight:700;color:#e9c66a;font-family:Cinzel,'Trajan Pro',Georgia,serif}.brief ul{margin:0;padding-left:1.2em}.brief li{margin:.2em 0}
-@media (max-width:560px){.brief{flex-direction:column;align-items:center}.brief img{width:90px}}
-</style><link rel="manifest" href="manifest.webmanifest">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,6 +11,19 @@
 @media (display-mode: standalone), (display-mode: fullscreen){ [data-full]{display:none!important} }
 html.standalone [data-full]{display:none!important}
 html,body{overscroll-behavior:none}
+/* about to win (2026-11-24) */
+#turnwarn{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;width:min(560px,calc(100% - 32px));cursor:pointer;opacity:0;transition:opacity .5s, transform .5s}
+#turnwarn.in{opacity:1}
+#turnwarn.out{opacity:0;transform:translate(-50%,-10px)}
+#turnwarn .tw{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-radius:6px;background:linear-gradient(#2a1d10f2,#160e07f2);border:2px solid #b8893a;box-shadow:0 6px 24px #000a;color:#f0dcaa;text-align:center;font-size:14px}
+#turnwarn .tw b{font-family:Cinzel,'Trajan Pro',Georgia,serif;font-size:19px;letter-spacing:.02em}
+#turnwarn .tw.theirs{border-color:#c0392b}#turnwarn .tw.theirs b{color:#ff8a70}
+#turnwarn .tw.mine b{color:#f3cf6b}
+/* your faction (2026-11-24) */
+.brief{display:flex;gap:16px;align-items:flex-start}.brief img{width:120px;flex:none;image-rendering:auto}
+.brief .bf-h{margin:.6em 0 .2em;font-weight:700;color:#e9c66a;font-family:Cinzel,'Trajan Pro',Georgia,serif}.brief ul{margin:0;padding-left:1.2em}.brief li{margin:.2em 0}
+@media (max-width:560px){.brief{flex-direction:column;align-items:center}.brief img{width:90px}}
+
 </style>
 <script>if(navigator.standalone) document.documentElement.classList.add('standalone');</script>
 </head><body>
