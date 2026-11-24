@@ -2,12 +2,12 @@
 const { chromium } = require('playwright'); const path = require('path');
 const [, , FILE, OUT] = process.argv;
 (async () => {
-  const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 });
+  const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 4 });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + path.resolve(FILE)); await pg.waitForTimeout(1000);
   const ids = await pg.evaluate(() => { showScreen(null); newGame('robots', {}); S.players[0].briefed = true; closeModal();
     const cs = S.tiles.filter(t => t.castle && t.id !== S.homes[0] && t.id !== S.homes[1]);
-    cs[0].walls = [3, 2, 1, 0, 3, 3]; cs[1].walls = [2, 2, 2, 2, 2, 2]; cs[2].walls = [3, 0, 0, 0, 0, 0];
+    cs[0].walls = [3, 3, 3, 3, 3, 3]; cs[1].walls = [0, 3, 0, 0, 3, 0]; cs[2].walls = [3, 3, 0, 0, 0, 3];
     render(); return cs.slice(0, 3).map(t => t.id); });
   await pg.waitForTimeout(800); await pg.evaluate(() => closeModal()); await pg.waitForTimeout(300);
   for (const id of ids) {
