@@ -29,7 +29,7 @@ function wallRun(a,b,t0,t1){
   if(t0>0.001||t1<0.999){ const L=(t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t], p0=L(t0), p1=L(t1), id='wc'+(++_wcN);
     clip=` clip-path="url(#${id})"`;
     return `<clipPath id="${id}"><polygon points="${p0[0].toFixed(2)},${(p0[1]+4).toFixed(2)} ${p1[0].toFixed(2)},${(p1[1]+4).toFixed(2)} ${p1[0].toFixed(2)},${(p1[1]-16).toFixed(2)} ${p0[0].toFixed(2)},${(p0[1]-16).toFixed(2)}"/></clipPath>`
-      +`<use href="#wl-${down?'d0':'d1'}" transform="matrix(${sc.toFixed(5)} ${B.toFixed(5)} 0 ${D.toFixed(5)} ${E.toFixed(3)} ${F.toFixed(3)})"${clip}/>`; }
+      +`<g${clip}><use href="#wl-${down?'d0':'d1'}" transform="matrix(${sc.toFixed(5)} ${B.toFixed(5)} 0 ${D.toFixed(5)} ${E.toFixed(3)} ${F.toFixed(3)})"/></g>`; }   // (the clip on a group, so it's in board units)
   return `<use href="#wl-${down?'d0':'d1'}" transform="matrix(${sc.toFixed(5)} ${B.toFixed(5)} 0 ${D.toFixed(5)} ${E.toFixed(3)} ${F.toFixed(3)})"/>`;
 }
 let _wcN=0;
