@@ -4441,7 +4441,7 @@ function renderMap(){
     }
    // over the outline and the owner's colour, so tree tops can spill past the edge
     if(t.dome>0) walls+=domeSvg(cx,cy,t.dome);
-    if(t.walls) t.walls.forEach((hp,k)=>{ if(hp>0) walls+=wallSvg(cx,cy,k,hp,false,false);   // every faction's walls are the castle's stone walls (Ethan, 2026-11-24) });
+    if(t.walls) t.walls.forEach((hp,k)=>{ if(hp>0) walls+=wallSvg(cx,cy,k,hp,false,false); });   // every faction's walls are the castle's stone walls (Ethan, 2026-11-24)
     if(i===wallFor) nbrDirs(i).forEach((j,k)=>{ if(wallOpen.includes(j)) walls+=wallSvg(cx,cy,k,3,true); });
     if(t.castle&&!castleTile(t)){
       const f=castleArt(t), w=castleW(f), ch=w*ART['castle_'+f].ratio;

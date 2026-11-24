@@ -20,5 +20,5 @@ rep("const castleW=f=>f==='mythical'?26:", "const castleW=f=>f==='mythical'?26:f
 rep("const castleTile=t=>!!(t.castle&&castleArt(t)==='neutral'&&HEX_TERRAIN.castle_neutral);", "const castleTile=t=>false;   // the neutral castle stands on the grass since 2026-11-24 (it was a whole-hex tile)")
 rep("""      castles+=`<use href="#ca-${f}" x="${(cx-w/2).toFixed(2)}" y="${(cy-ch/2).toFixed(2)}"/>`;""",
     """      castles+=`<use href="#ca-${f}" x="${(cx-w/2).toFixed(2)}" y="${(cy-ch*(f==='neutral'?0.58:0.5)).toFixed(2)}"/>`;""")
-rep("walls+=wallSvg(cx,cy,k,hp,false,owned&&S.players[t.owner].faction==='mammals');", "walls+=wallSvg(cx,cy,k,hp,false,false);   // every faction's walls are the castle's stone walls (Ethan, 2026-11-24)")
+rep("walls+=wallSvg(cx,cy,k,hp,false,owned&&S.players[t.owner].faction==='mammals');", "walls+=wallSvg(cx,cy,k,hp,false,false);   /* every faction's walls are the castle's stone walls (Ethan, 2026-11-24) */")
 open(p, 'w', encoding='utf-8').write(s); print('ok', ratio, len(uri))
