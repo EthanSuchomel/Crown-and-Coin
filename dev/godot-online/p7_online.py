@@ -243,6 +243,9 @@ func _ol_fill(list: VBoxContainer) -> void:
         return
     for c in list.get_children():
         c.queue_free()
+    if games.is_empty() and net.last_err != "":
+        list.add_child(_label("Couldn't reach the online games. The online database said: " + net.last_err, 14, Color("e8a08a")))
+        return
     if games.is_empty():
         list.add_child(_label("Games you create or join show up here, so you can come back to them.", 14, Color("bfae88")))
         return
@@ -306,7 +309,7 @@ func _net_create() -> void:
             _online_wait(code)
             return
         if int(r.status) != 409:   # 409: that code is taken, try another
-            show_online("The game couldn't be made (%s). Check the internet connection and try again." % ("error %d" % int(r.status) if int(r.status) > 0 else "no connection"))
+            show_online("The game couldn't be made. The online database said: %s" % String(r.err))
             return
     show_online("The game couldn't be made. Try again.")
 

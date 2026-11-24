@@ -11,6 +11,7 @@ const CODE_CHARS := "ABCDEFGHJKLMNPQRSTUVWXYZ"   # no I or O (they look like 1 a
 var url: String = ""
 var key: String = ""
 var my_id: String = ""
+var last_err: String = ""   # the last failed call, for the screen: "401: Invalid API key"
 
 
 func _ready() -> void:
@@ -61,7 +62,15 @@ func call_db(method: int, path: String, body = null, prefer: String = "") -> Dic
 	var status: int = int(r[1])
 	var text: String = (r[3] as PackedByteArray).get_string_from_utf8()
 	var data = JSON.parse_string(text) if text != "" else null
-	return {"ok": int(r[0]) == HTTPRequest.RESULT_SUCCESS and status >= 200 and status < 300, "status": status, "data": data, "err": text.left(200)}
+	var ok: bool = int(r[0]) == HTTPRequest.RESULT_SUCCESS and status >= 200 and status < 300
+	if not ok:
+		var msg: String = text.left(300)
+		if data is Dictionary:
+			msg = String(data.get("message", data.get("msg", data.get("error", msg))))
+			if data.get("hint") != null and String(data.hint) != "":
+				msg += " (" + String(data.hint) + ")"
+		last_err = ("%d: %s" % [status, msg]) if status > 0 else "no connection (%d)" % int(r[0])
+	return {"ok": ok, "status": status, "data": data, "err": last_err if not ok else ""}
 
 
 func get_game(code: String) -> Dictionary:
@@ -100,6 +109,7 @@ func push(code: String, rev: int, fields: Dictionary) -> Dictionary:
 
 
 func my_games() -> Array:
+	last_err = ""
 	var r: Dictionary = await call_db(HTTPClient.METHOD_GET, "games?or=(host.eq.%s,guest.eq.%s)&select=code,host,guest,host_faction,guest_faction,status,cur,turn,winner,updated&order=updated.desc&limit=20" % [my_id, my_id])
 	return r.data if (r.ok and r.data is Array) else []
 
