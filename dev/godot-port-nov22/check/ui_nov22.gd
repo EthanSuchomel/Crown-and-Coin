@@ -115,4 +115,33 @@ func _ready() -> void:
 		print("computer turn (expert) took %.1f s" % ((Time.get_ticks_msec() - t0) / 1000.0))
 		await _f(40)
 		await _shot("play_back")
+	if what.contains("bub"):
+		for spec in [["robots", 2, "arena-2p", "recruit"], ["mammals", 3, "", "recruit"], ["mythical", 2, "arena-2p", "recruit"], ["dinos", 2, "", "advance"], ["robots", 2, "arena-2p", "build"]]:
+			main.pref_np = spec[1]
+			main.pref_map = spec[2]
+			main.pref_opps = []
+			main.start_game(spec[0])
+			await _f(20)
+			var p: Dictionary = main.g.players[0]
+			var has := func(): return Array(p.hand).any(func(c): return Array(main.g.card_of(0, c).actions).has(spec[3]))
+			if not has.call():
+				for cd in main.g.faction_of(0).cards:
+					if Array(cd.actions).has(spec[3]):
+						p.hand[0] = cd.id
+						break
+			var cid: String = ""
+			for c in p.hand:
+				if Array(main.g.card_of(0, c).actions).has(spec[3]):
+					cid = c
+			p.gold = 200
+			main._start_card(cid, -1)
+			await _f(3)
+			var n: int = 0
+			while main.g.cur_action() != spec[3] and n < 3:
+				main._next_action(true)
+				n += 1
+				await _f(2)
+			main._on_hex(int(main.g.homes[0]))
+			await _f(10)
+			await _shot("bub_%s_%s_%s" % [spec[0], spec[3], spec[2] if spec[2] != "" else str(spec[1]) + "p"])
 	get_tree().quit()
