@@ -600,6 +600,46 @@ html,body{height:100%;overflow:hidden}
 .fsx-lvsheet .fsx-lv button:hover{border-color:#8a6a34}
 .fsx-lvsheet .fsx-lv button[aria-pressed="true"]{border-color:#d9b25a;background:linear-gradient(180deg,rgba(64,50,30,.95),rgba(30,23,14,.95));box-shadow:0 0 0 2px #120c06,0 0 0 3px rgba(233,185,73,.75),0 0 .8em rgba(255,190,70,.2)}
 .fsx-lvsheet .fsx-lv button[aria-pressed="true"] b{color:#f6e7bf}
+/* ===== Play online, themed like the setup screen (Ethan, 2026-11-23) ===== */
+#scrOnline{--cz:"Cinzel","Trajan Pro","Palatino Linotype",Palatino,Georgia,serif;--brz:#6e5226;--parch:#e4d6b4;overflow:hidden;background:#0c0a07!important}
+#scrOnline::before{content:"";position:absolute;inset:-14px;background:url(title_battle.jpg) center/cover no-repeat;filter:blur(2px) brightness(.62) saturate(1.1);z-index:0}
+#scrOnline::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(10,8,5,.15),rgba(10,8,5,.6));z-index:0;pointer-events:none}
+#scrOnline .ol-panel{position:relative;z-index:1;background:rgba(22,17,12,.72);border:2px solid var(--brz);border-radius:4px;color:#d8cba9;
+  box-shadow:0 0 0 2px #120c06,inset 0 0 0 1px rgba(233,185,73,.12),inset 0 0 2.5em rgba(0,0,0,.45),0 .6em 1.6em rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#scrOnline .ol-head h2{font-family:var(--cz);font-weight:700;letter-spacing:.05em;color:var(--parch);text-shadow:0 1px 0 #000,0 0 .5em rgba(0,0,0,.6)}
+#scrOnline h3{font-family:var(--cz);font-weight:700;letter-spacing:.04em;color:var(--parch);text-shadow:0 1px 0 #000}
+#scrOnline .hint,#scrOnline .sub{color:#bfae88}
+#scrOnline p{color:#cdbf9c}
+#scrOnline p b{color:#f0e2bd}
+#scrOnline .ol-box{background:rgba(12,9,6,.6);border:1px solid #6b4d1c;border-radius:4px}
+#scrOnline .ol-note{background:rgba(12,9,6,.72);border:1px solid var(--brz);border-radius:4px;color:var(--parch)}
+#scrOnline .ol-last{display:flex;align-items:center;gap:.7em}
+#scrOnline .ol-last .fs-castle{display:block;width:4.2em;height:3em;background-size:contain;background-repeat:no-repeat;background-position:center bottom;flex:none}
+#scrOnline .ol-last b{display:block;font-family:var(--cz);font-weight:700;letter-spacing:.03em;text-shadow:0 1px 0 #000}
+#scrOnline .ol-last small{color:#bfae88}
+#scrOnline .ol-game{background:linear-gradient(180deg,rgba(52,42,30,.9),rgba(24,19,13,.92));border:2px solid #4f3b1c;border-radius:4px;box-shadow:0 0 0 2px #120c06}
+#scrOnline .ol-game.due{border-color:#d9b25a;box-shadow:0 0 0 2px #120c06,0 0 0 3px rgba(233,185,73,.75),0 0 .8em rgba(255,190,70,.2)}
+#scrOnline .ol-gtxt b{font-family:var(--cz);font-weight:700;color:#f0dcaa}
+#scrOnline .ol-gtxt small{color:#bfae88}
+#scrOnline .ol-code{color:#e9c66a;text-shadow:0 1px 0 #000}
+#scrOnline .ol-game.due .ol-st{color:#e9c66a}
+#scrOnline button:not(.primary){font-family:var(--cz);font-weight:700;letter-spacing:.04em;color:var(--parch);background:linear-gradient(180deg,#3b3226,#1d1710);border:2px solid var(--brz);border-radius:4px;
+  box-shadow:0 0 0 2px #120c06,inset 0 1px 0 rgba(255,236,190,.15),0 .25em .6em rgba(0,0,0,.5);text-shadow:0 1px 0 #000}
+#scrOnline button:not(.primary):hover:not(:disabled){background:linear-gradient(180deg,#4a3f2f,#241c13)}
+#scrOnline button.primary{font-family:var(--cz);font-weight:700;letter-spacing:.06em;color:#2a1805;text-shadow:0 1px 0 rgba(255,240,200,.6);
+  background:linear-gradient(180deg,#fff0bd 0%,#f4cf6b 22%,#dca43a 55%,#a9721f 100%);border:2px solid #5a3a0e;border-radius:4px;
+  box-shadow:0 0 0 2px #120c06,inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(90,55,10,.55),0 0 1.1em rgba(255,180,60,.35),0 .35em .8em rgba(0,0,0,.6)}
+#scrOnline button.primary:hover:not(:disabled){background:linear-gradient(180deg,#fff6d2 0%,#f8da80 22%,#e6b14a 55%,#b67d26 100%)}
+#scrOnline button:disabled{filter:grayscale(.5) brightness(.75);cursor:default}
+#scrOnline .ol-join input{background:rgba(12,9,6,.82);border:2px solid var(--brz);border-radius:4px;color:#f6e7bf;box-shadow:0 0 0 2px #120c06,inset 0 2px 6px rgba(0,0,0,.6)}
+#scrOnline .ol-join input:focus{outline:none;border-color:#d9b25a}
+#scrOnline .ol-bigcode{font-family:var(--cz)!important;font-weight:700;background:linear-gradient(180deg,#fff6d6 0%,#f7d77c 28%,#e0a93a 52%,#a8701c 72%,#f2c862 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.02em #2a1a06;text-shadow:none;filter:drop-shadow(0 .05em 0 #1a1005) drop-shadow(0 0 .3em rgba(0,0,0,.8))}
+/* the setup screen making an online game */
+#scrFaction .ol-tag{font-family:var(--cz);font-size:.8em;letter-spacing:.08em;text-transform:uppercase;color:#2a1805;background:linear-gradient(180deg,#f6e2a4,#c99a45);border-radius:3px;padding:.05em .45em;margin-right:.2em}
+#scrFaction .fsx-foot .sum small{color:#bfae88;font-weight:500}
+#scrFaction .fsx-kind{margin:.1em 0 .2em}
+#scrFaction .fsx-rival .hint{margin:.2em 0 0}
 /* ===== the game screen, themed like the home screen (Ethan, 2026-11-22) ===== */
 :root{--night:#100d09;--moss:#1e1811;--moss-2:#2b2319;--edge:#5e4622;--bone:#ece0c0;--lichen:#b9a984;--cz:"Cinzel","Trajan Pro","Palatino Linotype",Palatino,Georgia,serif}
 body{background-image:none}
@@ -4808,6 +4848,7 @@ function openFactionPicker(onPick,onCancel){
 }
 // Screens before the game: the title (Start Game), then choose a faction with its details beside it (Start).
 let fsPick=DEFAULT_FACTION, fsOpp=null, fsOpps=[], fsNP=2, fsMap='';
+let fsOnline=false, _fsLocal=null;   // the setup screen making an online game (Ethan, 2026-11-23); the local picks kept aside meanwhile
 try{ fsMap=localStorage.getItem('cc-map')||''; }catch(e){}
 try{ if(localStorage.getItem('cc-np')==='3') fsNP=3; }catch(e){}
 // 3 players: the two opponents' factions (the ones picked, filled up from the faction list)
@@ -4898,13 +4939,16 @@ function renderFactionScreen(){
       <button class="fsx-more" data-fsx="info"><span class="ic">i</span><span>About the ${f.name} <small>cards, units, abilities</small></span></button>`;
   }else if(fsTab===1){
     const rivals=facs.slice(1);
-    h=`<div class="fsx-sec"><div class="fsx-l">Players</div><div class="fsx-np">${[2,3].map(n=>`<button class="op-b" data-np="${n}" aria-pressed="${n===fsNP}" style="--pc:var(--bone)">${n}</button>`).join('')}<span class="hint">${fsNP===3?'You and two rivals':'You and one opponent'}</span></div></div>
+    h=`<div class="fsx-sec"><div class="fsx-l">Players</div><div class="fsx-np">${[2,3].map(n=>`<button class="op-b" data-np="${n}" aria-pressed="${n===fsNP}" style="--pc:var(--bone)">${n}</button>`).join('')}<span class="hint">${fsNP===3?'You and two rivals':fsOnline?'You and a friend':'You and one opponent'}</span></div></div>
       ${rivals.map((rf,k)=>{ const others=cols.filter((c,i)=>i!==k+1);
-        return `<div class="fsx-rival"><div class="fsx-l">${fsNP===3?`Rival ${k+1}`:'Opponent'} <small>played by the computer</small></div>
+        const kind=fsKind(k);
+        return `<div class="fsx-rival"><div class="fsx-l">${fsNP===3?`Rival ${k+1}`:'Opponent'} <small>played by ${kind==='cpu'?'the computer':'a friend'}</small></div>
+          ${fsOnline&&fsNP===3?`<div class="opick fsx-kind" role="group" aria-label="Who plays rival ${k+1}"><span class="cp-l">Played by</span>${[['friend','A friend'],['cpu','The computer']].map(([kk,l])=>`<button class="op-b" data-okind="${k}:${kk}" aria-pressed="${kind===kk}" style="--pc:var(--bone)">${l}</button>`).join('')}</div>`:''}
           <div class="fsx-facs sm">${FACTION_ORDER.filter(f=>f!==fsPick).map(fid=>{ const F=FACTIONS[fid];
             return `<button class="fsx-fac" data-ofac="${k}:${fid}" aria-pressed="${fid===rf}" style="--pc:${F.ink}"><span class="fs-castle px-c-${fid}" aria-hidden="true"></span><b>${F.name}</b></button>`; }).join('')}</div>
-          ${fsxSwatches(cols[k+1],c=>`data-ocol="${k}:${c}"`,others)}</div>`; }).join('')}
-      <button class="fsx-more" data-fsx="level"><span class="ic">!</span><span>Difficulty: ${AI_LEVEL_NAME[lv]} <small>${AI_LEVEL_NOTE[lv]}</small></span></button>`;
+          ${kind==='cpu'?fsxSwatches(cols[k+1],c=>`data-ocol="${k}:${c}"`,others):`<p class="hint">Your friend picks their own color when they join.</p>`}</div>`; }).join('')}
+      ${rivals.some((rf,k)=>fsKind(k)==='cpu')?`<button class="fsx-more" data-fsx="level"><span class="ic">!</span><span>Difficulty: ${AI_LEVEL_NAME[lv]} <small>${AI_LEVEL_NOTE[lv]}</small></span></button>`
+        :`<p class="hint">Online: send your friend the game's code once it's made.</p>`}`;
   }else{
     const list=CUSTOM_MAPS.filter(m=>m.players===fsNP), sel=list.some(m=>m.id===fsMap)?fsMap:'';
     const win=m=>{ const n=winCastlesFor(fsNP,m?m.id:''); return n?`${n} castles to win`:'last side standing'; };
@@ -4914,9 +4958,11 @@ function renderFactionScreen(){
       <div class="fsx-sec"><div class="fsx-l">How to win <small>${sel?escH(mapById(sel).name):'Random map'}</small></div><div class="fsx-rules">${winListHtml()}</div></div>`;
   }
   $('#fsxBody').innerHTML=h;
-  const side=i=>`<b style="color:${COLORS[cols[i]].ink}">${FACTIONS[facs[i]].name}</b>`;
-  const mp=CUSTOM_MAPS.find(m=>m.id===fsMap&&m.players===fsNP);
-  $('#fsxFoot').innerHTML=`<button data-fsx="back">${fsTab?'Back':'Title'}</button><span class="sum">${side(0)} vs ${facs.slice(1).map((f,i)=>side(i+1)).join(' and ')} · ${AI_LEVEL_NAME[lv]} · ${mp?escH(mp.name):'Random map'}</span>${fsTab<2?'<button data-fsx="next">Next</button>':''}<button class="primary fs-go" data-scr="go">Start</button>`;
+  const side=i=>`<b style="color:${COLORS[cols[i]].ink}">${FACTIONS[facs[i]].name}</b>${i>0&&fsOnline?` <small>(${fsKind(i-1)==='cpu'?'computer':'a friend'})</small>`:''}`;
+  const mp=CUSTOM_MAPS.find(m=>m.id===fsMap&&m.players===fsNP), cpu=facs.slice(1).some((f,i)=>fsKind(i)==='cpu');
+  $('#scrFaction').classList.toggle('online',fsOnline);
+  $('#fsxFoot').innerHTML=`<button data-fsx="back">${fsTab?'Back':fsOnline?'Online':'Title'}</button><span class="sum">${fsOnline?'<b class="ol-tag">Online</b> ':''}${side(0)} vs ${facs.slice(1).map((f,i)=>side(i+1)).join(' and ')}${cpu?' · '+AI_LEVEL_NAME[lv]:''} · ${mp?escH(mp.name):'Random map'}</span>${fsTab<2?'<button data-fsx="next">Next</button>':''}`
+    +(fsOnline?`<button class="primary fs-go" data-fsx="create" ${NETX.busy||NETX.canWrite===false?'disabled':''}>Create game</button>`:`<button class="primary fs-go" data-scr="go">Start</button>`);
 }
 function fsxInfo(){
   const m=$('#modal'); m.classList.remove('hidden');
@@ -4926,7 +4972,21 @@ function fsxLevel(){
   const m=$('#modal'); m.classList.remove('hidden');
   m.innerHTML=`<div class="sheet fsx-lvsheet"><h3>Difficulty</h3><p class="hint">How well the computer plays.</p><div class="fsx-lv">${AI_LEVELS.map(v=>`<button data-fslv="${v}" aria-pressed="${v===prefLevel}"><b>${AI_LEVEL_NAME[v]}</b><small>${AI_LEVEL_NOTE[v]}</small></button>`).join('')}</div><div class="btns"><button data-fsx="close">Close</button></div></div>`;
 }
-function startNewGame(){ fsTab=0; renderFactionScreen(); showScreen('scrFaction'); }
+function startNewGame(){ if(fsOnline) fsLeaveOnline(); fsTab=0; renderFactionScreen(); showScreen('scrFaction'); }
+// Play online -> New game: the same three tabs, with the online picks (kept apart from the local game's)
+function fsEnterOnline(){
+  if(!fsOnline){ _fsLocal={pick:fsPick,opp:fsOpp,opps:fsOpps,np:fsNP}; fsOnline=true; }
+  fsPick=NETX.pick; fsOpp=NETX.opp; fsOpps=NETX.opps; fsNP=NETX.np===3?3:2;
+  fsTab=0; closeModal(); renderFactionScreen(); showScreen('scrFaction');
+}
+function fsLeaveOnline(){
+  if(!fsOnline) return;
+  NETX.pick=fsPick; NETX.opp=fsOpp; NETX.opps=fsOpps; NETX.np=fsNP;
+  if(_fsLocal){ fsPick=_fsLocal.pick; fsOpp=_fsLocal.opp; fsOpps=_fsLocal.opps; fsNP=_fsLocal.np; }
+  fsOnline=false; _fsLocal=null;
+}
+// who plays a rival seat online: 2 players always a friend; 3 players a friend or the computer
+const fsKind=k=>fsOnline?(fsNP===3?(NETX.kinds[k]==='cpu'?'cpu':'friend'):'friend'):'cpu';
 
 // ---------- Save / load ----------
 function save(){
@@ -5386,17 +5446,19 @@ $('#stage').addEventListener('click',e=>{
   const fx=e.target.closest('button[data-fsx]'); if(fx){ const k=fx.dataset.fsx;
     if(k==='close') closeModal(); else if(k==='info') fsxInfo(); else if(k==='level') fsxLevel();
     else if(k==='next'){ fsTab=Math.min(2,fsTab+1); renderFactionScreen(); }
-    else if(k==='back'){ if(fsTab) { fsTab--; renderFactionScreen(); } else showScreen('scrTitle'); }
+    else if(k==='back'){ if(fsTab) { fsTab--; renderFactionScreen(); } else if(fsOnline){ fsLeaveOnline(); openOnline(); } else showScreen('scrTitle'); }
+    else if(k==='create'){ NETX.map=(mapById(fsMap)||{}).players===fsNP?fsMap:''; NETX.cols=fsSides().cols; fsLeaveOnline(); openOnline(); netCreate(); }
     return; }
   const flv=e.target.closest('button[data-fslv]'); if(flv){ setPrefLevel(flv.dataset.fslv); closeModal(); renderFactionScreen(); return; }
   const fof=e.target.closest('button[data-ofac]'); if(fof){ const [k,f]=fof.dataset.ofac.split(':');
     if(fsNP===3){ const o=threeOpps(fsPick,fsOpps); if(o[1-k]===f) o[1-k]=o[+k]; o[+k]=f; fsOpps=o; } else fsOpp=f;
     renderFactionScreen(); return; }
+  const fok=e.target.closest('button[data-okind]'); if(fok){ const [k,v]=fok.dataset.okind.split(':'); NETX.kinds[+k]=v==='cpu'?'cpu':'friend'; renderFactionScreen(); return; }
   const foc=e.target.closest('button[data-ocol]'); if(foc){ const [k,c]=foc.dataset.ocol.split(':'); setOppColor(+k,c); renderFactionScreen(); return; }
   const fsb=e.target.closest('button[data-fs]'); if(fsb){ fsPick=fsb.dataset.fs; renderFactionScreen(); return; }
   const fob=e.target.closest('button[data-opp]'); if(fob){ fsOpp=fob.dataset.opp; renderFactionScreen(); return; }
   const fmp=e.target.closest('button[data-map]'); if(fmp){ fsMap=fmp.dataset.map; try{ localStorage.setItem('cc-map',fsMap); }catch(_){} renderFactionScreen(); return; }
-  const fnp=e.target.closest('button[data-np]'); if(fnp){ fsNP=+fnp.dataset.np===3?3:2; try{ localStorage.setItem('cc-np',String(fsNP)); }catch(_){} renderFactionScreen(); return; }
+  const fnp=e.target.closest('button[data-np]'); if(fnp){ fsNP=+fnp.dataset.np===3?3:2; try{ localStorage.setItem(fsOnline?'cc-np-ol':'cc-np',String(fsNP)); }catch(_){} if(fsOnline) NETX.np=fsNP; renderFactionScreen(); return; }
   const fo3=e.target.closest('button[data-opp3]'); if(fo3){ const f=fo3.dataset.opp3, cur3=threeOpps(fsPick,fsOpps);   // pick 2: tapping a third swaps out the one picked longest ago
     fsOpps=cur3.includes(f)?cur3:[cur3[1],f]; renderFactionScreen(); return; }
   const lvb=e.target.closest('button[data-lvl]'); if(lvb){ setPrefLevel(lvb.dataset.lvl); renderFactionScreen(); return; }
@@ -5628,7 +5690,7 @@ function netApply(d){
   if(!fresh||!d.state) return;
   const before=S;
   net.applying=true;
-  S=toLocal(JSON.parse(d.state),net.seat); useBoard(S.players.length);
+  S=toLocal(JSON.parse(d.state),net.seat); useBoard(S.players.length); syncShape();
   net.rev=d.rev; net.lastJson=d.state; net.lastCur=S.current;
   const first=!net.entered;
   if(first){ net.entered=true; NETX.msg=''; closeModal(); showScreen(null); netRoom();
@@ -5768,12 +5830,10 @@ function renderOnline(){
   }
   const games=Object.values(NETX.games).sort((a,b)=>(b.updated||0)-(a.updated||0));
   const pick=NETX.pick;
-  B.innerHTML=head+msg+noWrite+`<div class="ol-colrow">${colorPicker(myColorFor(pick))}</div><div class="ol-cols">
-    <section class="ol-box"><h3>New game</h3><p class="hint">${NETX.np===3?'Choose your side, the other two sides, and who plays each.':'Choose your side, and which side your friend plays.'}</p>
-      <div class="ol-facs">${FACTION_ORDER.map(fid=>{const f=FACTIONS[fid]; return `<button class="ol-fac" data-ol="fac" data-fid="${fid}" aria-pressed="${fid===pick}" style="--pc:${f.ink}"><span class="fs-castle px-c-${fid}" aria-hidden="true"></span><b>${f.name}</b></button>`;}).join('')}</div>
-      <div class="opick" role="group" aria-label="Players"><span class="cp-l">Players</span>${[2,3].map(n=>`<button class="op-b" data-ol="np" data-n="${n}" aria-pressed="${n===(NETX.np===3?3:2)}" style="--pc:var(--bone)">${n}</button>`).join('')}</div>
-      ${NETX.np===3?seatPicker(pick):oppPicker(pick,NETX.opp,'ol')}
-      <button class="primary ol-go" data-ol="create" ${NETX.busy||NETX.canWrite===false?'disabled':''}>Create game</button></section>
+  B.innerHTML=head+msg+noWrite+`<div class="ol-cols">
+    <section class="ol-box"><h3>New game</h3><p class="hint">Set it up like a game against the computer: your side and color, who your friend plays, then the map.</p>
+      <div class="ol-last"><span class="fs-castle px-c-${pick}" aria-hidden="true"></span><span><b style="color:${FACTIONS[pick].ink}">${FACTIONS[pick].name}</b><small>${NETX.np===3?'3 players':'2 players'}</small></span></div>
+      <button class="primary ol-go" data-ol="setup" ${NETX.busy||NETX.canWrite===false?'disabled':''}>${NETX.busy?'Creating…':'Set up a new game'}</button></section>
     <section class="ol-box"><h3>Join a game</h3><p class="hint">Enter the 4-letter code your friend sent you.</p>
       <form id="olJoin" class="ol-join"><label class="vh" for="olCode">Game code</label><input id="olCode" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD" value="${escH(NETX.code||'')}">
       <button class="primary" type="submit" ${NETX.busy||NETX.canWrite===false?'disabled':''}>Join</button></form></section>
@@ -5786,8 +5846,9 @@ async function netCreate(){
     const db=NETX.db; let code='', ref=null;
     for(let i=0;i<8;i++){ code=Array.from({length:4},()=>CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join(''); ref=db.doc('games/'+code); if(!(await ref.get()).exists) break; }
     const keep=S, np=NETX.np===3?3:2, kinds=['me',...NETX.kinds];
-    if(np===3) newGame(NETX.pick,{online:true,np:3,opps:threeOpps(NETX.pick,NETX.opps)});
-    else newGame(NETX.pick,{online:true,opp:NETX.opp});
+    const map=NETX.map&&(mapById(NETX.map)||{}).players===np?NETX.map:'', cols=NETX.cols||null;
+    if(np===3) newGame(NETX.pick,{online:true,np:3,opps:threeOpps(NETX.pick,NETX.opps),map,cols});
+    else newGame(NETX.pick,{online:true,opp:NETX.opp,map,cols});
     S.first=0; S.pendingBegin=true;
     S.log=[];
     if(np===3){
@@ -5796,10 +5857,10 @@ async function netCreate(){
       addLog(`A new age begins: the ${FACTIONS[S.players[0].faction].name}, ${nm(1)} and ${nm(2)}. Take a side's home castle, or wipe them off the map, and they're out. The last side standing wins.`);
       for(let i=1;i<3;i++){ const q=S.players[i], my=q.faction==='mythical'; addLog(`The ${FACTIONS[q.faction].name} start with ${catchUp(i,my?MYTH.secondMagic:SECOND_PLAYER_GOLD,3)} extra ${my?'magic':'gold'} to offset moving ${i===1?'second':'third'}.`); }
     } else {
-      addLog(`A new age begins: the ${FACTIONS[S.players[0].faction].name} against the ${FACTIONS[S.players[1].faction].name}. Win by taking the enemy home castle, holding ${CASTLES_TO_WIN} castles, or wiping them off the map.`);
+      addLog(`A new age begins: the ${FACTIONS[S.players[0].faction].name} against the ${FACTIONS[S.players[1].faction].name}${S.mapName?' on '+S.mapName:''}. Win by taking the enemy home castle, holding ${winCastles()} castles, or wiping them off the map.`);
       if(SECOND_PLAYER_GOLD) addLog(`The ${FACTIONS[S.players[1].faction].name} start with ${SECOND_PLAYER_GOLD} extra gold to offset moving second.`);
     }
-    const canon=toCanon(S,0); S=keep; useBoard(S.players.length);
+    const canon=toCanon(S,0); S=keep; if(S){ useBoard(S.players.length); syncShape(true); }
     const now=Date.now(), friends=np===3?kinds.filter(k=>k==='friend').length:1;
     const doc={code,host:NETX.uid,hostDev:DEVICE,guest:null,guestDev:null,hostFaction:NETX.pick,guestFaction:canon.players[1].faction,status:friends?'waiting':'playing',rev:1,state:JSON.stringify(canon),cur:0,turn:1,winner:null,created:now,updated:now};
     if(np===3) Object.assign(doc,{np:3,guest2:null,guest2Dev:null,factions:canon.players.map(q=>q.faction),kinds});
@@ -5872,6 +5933,7 @@ $('#scrOnline').addEventListener('click',e=>{
   else if(k==='opp3'){ const f=b.dataset.fid, c3=threeOpps(NETX.pick,NETX.opps); NETX.opps=c3.includes(f)?c3:[c3[1],f]; renderOnline(); }
   else if(k==='kind'){ NETX.kinds[+b.dataset.i]=b.dataset.k==='cpu'?'cpu':'friend'; renderOnline(); }
   else if(k==='create') netCreate();
+  else if(k==='setup') fsEnterOnline();
   else if(k==='open'){ const g=NETX.games[b.dataset.code]; if(!g) return; NETX.msg=''; NETX.view=g.status==='waiting'?'wait':'menu'; const s=seatOf(g); if(s==null){ askSeat(g); return; } netOpen(g.code,s); renderOnline(); }
   else if(k==='del') netDelete(b.dataset.code);
 });
