@@ -1284,6 +1284,13 @@ let UID=0, LASTHIT=0, ME=0, AI_TEAMS=[1], AI_LV='medium';
    Offline (Robots): a sneak attack. SNEAK is the attacking team; the other side can't attack until SNEAK lands its first hit.
    Update (Robots): MOD_PLUS extra damage on every hit and MOD_MULT more damage, per team. */
 let SNEAK=null, SNEAK_HIT=false, MOD_PLUS=[0,0], MOD_MULT=[1,1], MOD_HP=[1,1];
+// Volley (Crown & Coin's card upgrade): VOLLEY is the attacking team; its shooters fire once as the battle starts
+let VOLLEY=null, VOLLEY_DONE=false;
+function doVolley(){ VOLLEY_DONE=true; let n=0;
+  for(const f of F.slice()){ if(f.team!==VOLLEY||f.dead||!(f.T.ranged||f.T.rocket)) continue;
+    const fs=F.filter(t=>t.team!==VOLLEY&&!t.dead&&(!t.T.flying||f.T.antiAir)); if(!fs.length) break;
+    const t=fs[Math.floor(R()*fs.length)]; hit(t,f,1,true); n++; }
+  return n; }
 // the sneak attack also ends if the attackers have nothing left that can hurt the defenders (Brawlers against flyers, say)
 let _sneakT=-1;
 function sneakCanLand(){ const types=t=>F.filter(f=>f.team===t&&!f.dead).map(f=>f.T).concat(RES[t].map(k=>TYPES[k]));
@@ -2112,6 +2119,7 @@ function reinforce(){
 }
 function update(dt){
   clock+=dt;
+  if(VOLLEY!=null&&!VOLLEY_DONE) doVolley();   // Volley: the attackers' shooters fire once as it starts
   if(!SHOUTED&&clock>=2){ SHOUTED=true; for(const f of F) if(f.T.trumpet&&!f.dead&&!f.pass) warTrumpet(f); }
   updateWalls(dt); updateFort(dt); updateBallistas(dt); fireStep(dt); trikeStops();
   // everyone decides from the same snapshot, in a shuffled order, so neither side gets to act first
@@ -2563,7 +2571,7 @@ function embSetup(m){
   if(m.cols&&m.cols.length===2){ let st=document.getElementById('ccCols'); if(!st){ st=document.createElement('style'); st.id='ccCols'; document.head.appendChild(st); } const a=m.cols[0], b=m.cols[1]; st.textContent=`:root{--blue:${a.i}!important;--red:${b.i}!important} .hp-fill.b{background:${a.c}!important} .hp-fill.r{background:${b.c}!important} .embtop .you.b{background:${a.c}!important;color:${a.t}!important} .embtop .you.r{background:${b.c}!important;color:${b.t}!important}`; NAMES[0]=a.n; NAMES[1]=b.n; }
   EMB={role:m.role,seed:m.seed>>>0,go:false,rate:1,title:m.title||'Battle',me:m.me};
   ME=m.me; AI_TEAMS=m.ai||[]; AI_LV=m.lvl||'medium';
-  { const md=m.mods||{}; SNEAK=(md.sneak===0||md.sneak===1)?md.sneak:null; SNEAK_HIT=false;
+  { const md=m.mods||{}; SNEAK=(md.sneak===0||md.sneak===1)?md.sneak:null; SNEAK_HIT=false; VOLLEY=(md.volley===0||md.volley===1)?md.volley:null; VOLLEY_DONE=false;
     MOD_PLUS=[0,1].map(t=>+((md.plus||[])[t])||0); MOD_MULT=[0,1].map(t=>+((md.mult||[])[t])||1); MOD_HP=[0,1].map(t=>+((md.hp||[])[t])||1); } MAP_PICK=null; MAP=(m.map&&m.map!=='fortress'&&m.map!=='walls')?m.map:'open';   // no Fortress or Walls map any more (Ethan, 2026-11-24)
   HOLD_SEL=m.hold||0; END_SENT=false; ENDED=null; HOSTCLK=null; SNAP_T=0;
   for(let t=0;t<2;t++){ for(const k of ORDER) COUNTS[t][k]=0; const a=m.armies[t]||{}; for(const k in a){ const ak=KEY_IN[k]||k; if(TYPES[ak]&&ORDER.includes(ak)) COUNTS[t][ak]=Math.min(capOf(ak),COUNTS[t][ak]+a[k]); }
