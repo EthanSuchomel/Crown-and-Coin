@@ -38,6 +38,8 @@ edit('scripts/rules/test_rules.gd',[('''	# the Triceratops: shots do nothing to 
 	var arrows: Dictionary = CombatRules.fight({"rarch": 10}, {"bow": 1}, {"avg": true})
 	check("Robot Archers can't hurt a Triceratops", CombatRules.count(arrows.def_lost) == 0)''','''	# the Triceratops: shots do only a quarter of their damage to it
 	var arrows: Dictionary = CombatRules.fight({"rarch": 10}, {"bow": 1}, {"avg": true})
-	check("Robot Archers only chip at a Triceratops", CombatRules.count(arrows.def_lost) <= 1)''')])
+	check("Robot Archers only chip at a Triceratops", CombatRules.count(arrows.def_lost) <= 1)'''),
+('''	check("arena: shots can't hurt a Triceratops, but shots from a wall do half", hp_ground == 45.0 and tk.hp < 45.0 and tk.hp >= 45.0 - 2.0, "%.1f -> %.1f" % [hp_ground, tk.hp])''',
+ '''	check("arena: shots do a quarter to a Triceratops, shots from a wall half", hp_ground == 44.5 and tk.hp == 43.0, "%.1f -> %.1f" % [hp_ground, tk.hp])''')])
 edit('data/units.json',[('''"note": "Shots and spells do nothing to it (except the Laser Tank's beam).''','''"note": "Shots and spells do only a quarter of their damage to it (the Laser Tank's beam does full).''')])
 print('ok')
