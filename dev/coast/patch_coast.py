@@ -12,4 +12,5 @@ rep("""  d+=`</defs><g id="cells"></g><g id="grs" class="ico"></g><g id="terr" c
     """  const OT=150;   // the open sea's tile, board units
   d+=`<pattern id="oceanPat" width="${OT}" height="${OT}" patternUnits="userSpaceOnUse"><image href="${oceanTile()}" width="${OT}" height="${OT}" preserveAspectRatio="none"/></pattern>`;
   d+=`</defs><rect x="-3000" y="-3000" width="6000" height="6000" fill="url(#oceanPat)" style="pointer-events:none"/><g id="cells"></g><g id="grs" class="ico"></g><g class="ico">${coastSvg('lo')}</g><g id="terr" class="ico"></g><g class="ico">${coastSvg('hi')}</g>""")
+rep("const VB_M=HM-1.4,","const VB_M=HM-7,")   # room round the board for the beach, now outside the hexes
 open(p,'w',encoding='utf8').write(s); print('coast ok')
